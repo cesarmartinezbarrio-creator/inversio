@@ -1,9 +1,21 @@
 // Utilidades compartidas por las funciones de /api.
 // CommonJS a propósito: así Vercel no necesita "type":"module" en package.json.
 
+// ALLOWED_ORIGIN admite varios dominios separados por comas, por ejemplo:
+//   https://ahorrainvierte.es,https://www.ahorrainvierte.es,https://algo.hostingersite.com
+// Se devuelve el que coincida con el Origin de la petición; si no coincide
+// ninguno, se devuelve el primero de la lista (y el navegador lo bloqueará,
+// que es justo lo que queremos con un origen desconocido).
 function aplicarCORS(req, res) {
-  const origenPermitido = process.env.ALLOWED_ORIGIN || "*";
-  res.setHeader("Access-Control-Allow-Origin", origenPermitido);
+  const lista = (process.env.ALLOWED_ORIGIN || "*")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const origen = req.headers.origin || "";
+  const permitido = lista.includes("*") ? "*"
+    : lista.includes(origen) ? origen
+    : (lista[0] || "*");
+  res.setHeader("Access-Control-Allow-Origin", permitido);
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
