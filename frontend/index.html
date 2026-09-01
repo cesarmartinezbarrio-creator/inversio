@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <!-- Pon aquí la URL de tu backend en Vercel, sin barra al final.
      Ejemplo: https://inversio-api.vercel.app -->
-<meta name="api-base" content="https://inversio-lemon.vercel.app">
+<meta name="api-base" content="https://REEMPLAZA-ESTO.vercel.app">
 <title>Cuentas y Cartera</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -318,6 +318,18 @@ input.cel:focus{outline:none;border-color:var(--accent);box-shadow:var(--sink-sm
 .chip.mid .dot{background:var(--warn)}
 .chip.bad{color:var(--crit-ink);border-color:color-mix(in srgb,var(--crit) 45%,transparent)}
 .chip.bad .dot{background:var(--crit)}
+
+/* ── Desplegable de estado (cartera) ──────────────────────── */
+.sel-estado{
+  appearance:none;-webkit-appearance:none;border-radius:100px;border:1px solid transparent;
+  padding:4px 26px 4px 12px;font-size:11.5px;font-weight:600;font-family:inherit;
+  background-color:var(--surface);box-shadow:var(--rise-sm);cursor:pointer;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23888" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  background-repeat:no-repeat;background-position:right 8px center;background-size:12px;
+}
+.sel-estado[data-v="activo"]{color:var(--good-ink);border-color:color-mix(in srgb,var(--good) 40%,transparent)}
+.sel-estado[data-v="parado"]{color:var(--warn-ink);border-color:color-mix(in srgb,var(--warn) 55%,transparent)}
+.sel-estado option{color:var(--ink);background:var(--surface)}
 
 .checks{display:flex;flex-direction:column}
 .check{display:grid;grid-template-columns:22px 1fr auto;gap:12px;align-items:start;padding:13px 18px;border-bottom:1px solid var(--rule)}
@@ -1181,6 +1193,22 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
   </div>
 </dialog>
 
+<dialog id="dlgCancelarInv">
+  <div class="dlg-hd"><h3>Cancelar esta inversión</h3><button class="btn btn-sm btn-quiet" data-close>Cerrar</button></div>
+  <div class="dlg-bd">
+    <p class="note" id="cancInvTexto"></p>
+    <div class="callout" style="margin-top:12px">Esto borra el producto entero, con sus compras. No hay vuelta atrás — por eso hace falta que lo escribas tú, a mano, no basta con pulsar un botón.</div>
+    <div class="field" style="margin-top:14px">
+      <label for="cancInvInput">Escribe <strong>CANCELAR INVERSIÓN</strong> para confirmar</label>
+      <input id="cancInvInput" autocomplete="off" spellcheck="false" placeholder="CANCELAR INVERSIÓN">
+    </div>
+  </div>
+  <div class="dlg-ft">
+    <button class="btn" data-close>No, dejarlo</button>
+    <button class="btn btn-danger" id="btnCancInvOk" disabled>Cancelar inversión</button>
+  </div>
+</dialog>
+
 <dialog id="dlgInv">
   <div class="dlg-hd"><h3>Apuntar una inversión</h3><button class="btn btn-sm btn-quiet" data-close>Cerrar</button></div>
   <div class="dlg-bd">
@@ -1503,6 +1531,7 @@ function activoVacio(nombre){
     moneda: "€",
     precio: null,
     estado: "estudio",          /* estudio · observacion · cartera · cerrado */
+    pausado: false,             /* solo aplica con estado "cartera": true = no se actualiza ni se pide precio */
     tesis: "",
     informe: "",                /* el informe ampliado que pega el usuario */
     plazoBeneficio: "",
@@ -1558,6 +1587,7 @@ function saneaEstado(x){
     if (a.fondo && typeof a.fondo === "object")
       Object.keys(CAMPOS_FONDO).forEach(k => { if (typeof a.fondo[k] === "string" && CAMPOS_FONDO[k].op.includes(a.fondo[k])) v.fondo[k] = a.fondo[k]; });
     if (typeof a.generaCaja === "boolean") v.generaCaja = a.generaCaja;
+    if (typeof a.pausado === "boolean") v.pausado = a.pausado;
     if (a.kpi && typeof a.kpi === "object") v.kpi = a.kpi;
     if (a.mercado) v.mercado = String(a.mercado);
     return v;
@@ -3050,6 +3080,8 @@ function bandaAnual(min, max, marcas, fy, opts){
    Piezas de interfaz compartidas
    ═══════════════════════════════════════════════════════════ */
 
+const ICO_X_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+
 const card = (t, cuerpo, hint, tight) =>
   `<section class="card"><div class="card-hd"><h3>${t}</h3>${hint ? `<span class="hint">${hint}</span>` : ""}</div><div class="card-bd${tight ? " tight" : ""}">${cuerpo}</div></section>`;
 
@@ -3756,7 +3788,6 @@ function renderCartera(){
   TV.plPct = TV.invertido > 0 ? TV.pl / TV.invertido : null;
 
   const filas = vis.map(p => {
-    const s = senal(p);
     return `<tr>
       <td><button class="btn btn-sm btn-quiet" data-abrir="${p.act.id}" style="padding:2px 0;font-weight:600">${esc(p.act.nombre)}</button>
         ${p.act.simbolo ? `<span class="dim"> ${esc(p.act.simbolo)}</span>` : ""}
@@ -3768,7 +3799,11 @@ function renderCartera(){
       <td class="n">${dinero(p.valor)}${p.estimado ? `<span class="lbl-sub">solo lo aportado</span>` : ""}</td>
       <td class="n"><span class="gan" style="color:${colorGan(p.plPct)}">${dineroS(p.pl)}</span><span class="lbl-sub" style="color:${colorGan(p.plPct)}">${isN(p.plPct) ? pctS(p.plPct, 1) : ""}</span></td>
       <td class="n">${isN(p.peso) ? pct(p.peso, 0) : "—"}</td>
-      <td>${chip(s.nivel, s.titulo)}</td>
+      <td><select class="sel-estado" data-est="${p.act.id}" data-v="${p.act.pausado ? "parado" : "activo"}" aria-label="Estado de ${esc(p.act.nombre)}">
+        <option value="activo"${!p.act.pausado ? " selected" : ""}>Activo</option>
+        <option value="parado"${p.act.pausado ? " selected" : ""}>Parado</option>
+        <option value="borrar">Borrar</option>
+      </select></td>
     </tr>`;
   });
 
@@ -3812,7 +3847,8 @@ function renderCartera(){
     card("Por categoría", tarjetas + `<p class="help" style="margin-top:14px">Pincha una categoría para ver solo esa parte. Vuelve a «Todo» para el conjunto.</p>`) +
 
     card(S.catAbierta ? `Posiciones en ${esc(S.catAbierta)}` : "Todas tus posiciones",
-      tabla([`Producto`, `Puesto`, `Unidades`, `Coste medio${info("costeMedio")}`, `Precio`, `Valor`, `Resultado`, `Peso${info("peso")}`, `Señal`], filas),
+      tabla([`Producto`, `Puesto`, `Unidades`, `Coste medio${info("costeMedio")}`, `Precio`, `Valor`, `Resultado`, `Peso${info("peso")}`, `Estado`], filas) +
+      `<p class="help" style="margin-top:12px"><strong>Activo</strong>: normal, se le piden precios. <strong>Parado</strong>: se queda en tu cartera con lo que ya tiene, pero deja de pedirle precio — para algo que no quieres seguir de cerca sin dejar de contarlo. <strong>Borrar</strong>: lo elimina del todo, con sus compras; te pedirá que lo escribas para confirmar.</p>`,
       null, true) +
 
     panelSolape() +
@@ -3902,9 +3938,9 @@ function fichaPosicion(id){
       <button class="btn btn-sm btn-primary" data-act="add-inversion" data-id="${id}">Añadir compra</button>
       <button class="btn btn-sm" data-act="cerrar-pos" data-id="${id}">He vendido esto</button>
       <button class="btn btn-sm" data-abrir="">Cerrar la ficha</button>
-      <button class="btn btn-sm btn-danger" data-act="eliminar-producto" data-id="${id}" style="margin-left:auto">Eliminar producto</button>
+      <button class="btn btn-sm btn-danger" data-act="eliminar-producto" data-id="${id}" style="margin-left:auto">Cancelar inversión</button>
     </div>
-    <p class="help" style="margin-top:8px">«Eliminar producto» lo borra del todo, con sus compras — úsalo solo si lo creaste por error o era una prueba. Si de verdad tenías esto y lo has vendido, usa «He vendido esto»: así conservas el historial.</p>`, esc(nombreCat(act)));
+    <p class="help" style="margin-top:8px">«Cancelar inversión» lo borra del todo, con sus compras — úsalo solo si lo creaste por error o era una prueba. Si de verdad tenías esto y lo has vendido, usa «He vendido esto»: así conservas el historial. También puedes pararlo sin borrarlo desde la tabla de Cartera, en la columna Estado.</p>`, esc(nombreCat(act)));
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -4013,7 +4049,7 @@ function renderSenales(){
    INVERSIÓN · Precios
    ═══════════════════════════════════════════════════════════ */
 function peticionPrecios(){
-  const l = S.activos.filter(a => a.estado === "cartera" || a.estado === "observacion");
+  const l = S.activos.filter(a => (a.estado === "cartera" && !a.pausado) || a.estado === "observacion");
   return `Necesito los precios de cierre más recientes de estos productos. Devuélveme SOLO un JSON con la forma {"SÍMBOLO": precio, "_usdEur": 0.86, "_fecha": "AAAA-MM-DD"}, sin texto alrededor. Los precios, en la moneda que indico. Si alguno no lo puedes verificar, déjalo fuera en lugar de estimarlo.
 
 ${l.length ? l.map(a => `- ${a.nombre}${a.simbolo ? " (" + a.simbolo + ")" : ""} — ${nombreCat(a)}, en ${a.moneda}`).join("\n") : "- (todavía no hay productos)"}
@@ -4023,7 +4059,7 @@ Añade también "_usdEur" con los euros que vale un dólar hoy, y "_fecha" con l
 
 function renderPrecios(){
   const host = $("#p-precios");
-  const l = S.activos.filter(a => a.estado === "cartera" || a.estado === "observacion");
+  const l = S.activos.filter(a => (a.estado === "cartera" && !a.pausado) || a.estado === "observacion");
   const ts = S.preciosTs ? new Date(S.preciosTs) : null;
   const dias = ts ? (Date.now() - ts.getTime()) / 86400000 : null;
   const sello = ts
@@ -4711,7 +4747,10 @@ function renderObservacion(){
       <td>${enZona ? chip("ok", "En zona de compra")
         : tipoAnalisis(a) === "negocio" ? chip(est, est === "ok" ? "Con descuento" : "Esperando")
         : chip(est, est === "ok" ? "Cumple" : est === "bad" ? "Falla algo" : "Esperando")}</td>
-      <td><button class="btn btn-sm" data-act="a-inversion" data-id="${a.id}">A cartera</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" data-act="a-inversion" data-id="${a.id}">A cartera</button>
+        <button class="btn btn-sm btn-danger" data-act="descartar" data-id="${a.id}" title="Descartar" aria-label="Descartar ${esc(a.nombre)}" style="margin-left:6px">${ICO_X_SVG}</button>
+      </td>
     </tr>`;
   });
 
@@ -5379,7 +5418,7 @@ async function precioDeUno(x){
 
 async function actualizarPreciosEnVivo(){
   if (!apiMcp){ toast("Los conectores no están disponibles en esta vista.", true); return; }
-  const todos = S.activos.filter(a => a.estado === "cartera" || a.estado === "observacion");
+  const todos = S.activos.filter(a => (a.estado === "cartera" && !a.pausado) || a.estado === "observacion");
   const items = todos.filter(x => String(x.simbolo || "").trim());
   const sinSimbolo = todos.length - items.length;
   if (!items.length){
@@ -6153,22 +6192,34 @@ function cerrarPosicion(id){
       toast(`${act.nombre} ha pasado a observación. Lo encontrarás en Mercado → Observación.`);
     }, "aviso");
 }
-function eliminarProducto(id){
+
+const TEXTO_CANCELAR = "CANCELAR INVERSIÓN";
+let cancInvId = null;
+function abrirCancelarInversion(id){
   const act = S.activos.find(a => a.id === id);
   if (!act) return;
+  cancInvId = id;
   const aps = aportacionesDe(id);
-  confirmar(`Eliminar ${act.nombre} por completo`,
-    aps.length
-      ? `Se borra el producto y ${aps.length === 1 ? "su apunte de inversión" : `sus ${aps.length} apuntes de inversión`} — desaparecerán también de tu economía mensual. Esto no se puede deshacer. Si esto era una venta real, mejor usa «He vendido esto»: así conservas el historial.`
-      : "Se borra el producto. No tiene apuntes de inversión asociados, así que no afecta a tu economía mensual. Esto no se puede deshacer.",
-    () => {
-      S.aportaciones = S.aportaciones.filter(x => x.activoId !== id);
-      S.activos = S.activos.filter(x => x.id !== id);
-      if (posAbierta === id) posAbierta = null;
-      if (S.fichaAbierta === id) S.fichaAbierta = null;
-      render(); programarGuardado();
-      toast(`${act.nombre} eliminado.`);
-    }, "crit");
+  $("#cancInvTexto").innerHTML = aps.length
+    ? `Vas a borrar <strong>${esc(act.nombre)}</strong> y ${aps.length === 1 ? "su apunte de inversión" : `sus ${aps.length} apuntes de inversión`} — desaparecerán también de tu economía mensual. Esto no se puede deshacer. Si esto era una venta real, mejor cierra la posición con «He vendido esto» desde su ficha: así conservas el historial.`
+    : `Vas a borrar <strong>${esc(act.nombre)}</strong>. No tiene apuntes de inversión asociados, así que no afecta a tu economía mensual. Esto no se puede deshacer.`;
+  $("#cancInvInput").value = "";
+  $("#btnCancInvOk").disabled = true;
+  $("#dlgCancelarInv").showModal();
+  setTimeout(() => $("#cancInvInput").focus(), 30);
+}
+function confirmarCancelarInversion(){
+  const id = cancInvId;
+  const act = id ? S.activos.find(a => a.id === id) : null;
+  cancInvId = null;
+  $("#dlgCancelarInv").close();
+  if (!act) return;
+  S.aportaciones = S.aportaciones.filter(x => x.activoId !== id);
+  S.activos = S.activos.filter(x => x.id !== id);
+  if (posAbierta === id) posAbierta = null;
+  if (S.fichaAbierta === id) S.fichaAbierta = null;
+  render(); programarGuardado();
+  toast(`${act.nombre} eliminado.`);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -6239,7 +6290,7 @@ function eventos(){
     const b = ev.target.closest("[data-act]"); if (!b) return;
     const cambiaDatos = ["add-libre","nueva-partida","aplicar-fijas","add-inversion","nuevo-producto","cerrar-pos","nueva-ficha",
       "a-observacion","a-inversion","descartar","anios-inicio","anio-mas","anio-menos",
-      "copiar-mes","precios-vivo","pdf-confirmar","traer-datos","eliminar-producto"].includes(b.dataset.act);
+      "copiar-mes","precios-vivo","pdf-confirmar","traer-datos"].includes(b.dataset.act);
     const id = b.dataset.id;
     const act = id ? S.activos.find(a => a.id === id) : null;
     switch (b.dataset.act){
@@ -6319,7 +6370,7 @@ function eventos(){
         toast("Producto creado. Ponle nombre y apunta tu primera compra."); break;
       }
       case "cerrar-pos": cerrarPosicion(id); break;
-      case "eliminar-producto": eliminarProducto(id); break;
+      case "eliminar-producto": abrirCancelarInversion(id); break;
       case "nueva-ficha": {
         const n = ($("#nvNombre").value || "").trim();
         if (!n){ toast("Escribe primero el nombre del producto.", true); break; }
@@ -6438,6 +6489,20 @@ function eventos(){
       const n2 = $("#fd-" + t.dataset.fondo); if (n2) n2.focus();
       return;
     }
+    if (t.dataset.est){
+      const id = t.dataset.est;
+      const act = S.activos.find(a => a.id === id);
+      if (!act) return;
+      if (t.value === "borrar"){
+        t.value = act.pausado ? "parado" : "activo";
+        abrirCancelarInversion(id);
+        return;
+      }
+      act.pausado = (t.value === "parado");
+      programarGuardado(); render();
+      toast(act.pausado ? `${act.nombre} en pausa: no se le pedirán precios, pero sigue en tu cartera.` : `${act.nombre} activo de nuevo.`);
+      return;
+    }
     if (t.dataset.actF || t.dataset.plan || t.dataset.rent || t.dataset.hip || t.dataset.k || t.dataset.ajuste){
       programarGuardado();
       if (t.dataset.actF === "categoria"){ const a = S.activos.find(x => x.id === t.dataset.id); if (a) a.categoria = t.value; }
@@ -6453,6 +6518,12 @@ function eventos(){
   $("#btnPopVer").addEventListener("click", () => { marcarVistos(); irA("portada|portada"); });
   $("#btnConfNo").addEventListener("click", () => { confAccion = null; $("#dlgConf").close(); });
   $("#btnConfSi").addEventListener("click", () => { const f = confAccion; confAccion = null; $("#dlgConf").close(); if (f) f(); });
+  $("#cancInvInput").addEventListener("input", () => {
+    $("#btnCancInvOk").disabled = $("#cancInvInput").value.trim() !== TEXTO_CANCELAR;
+  });
+  $("#cancInvInput").addEventListener("keydown", ev => { if (ev.key === "Enter" && !$("#btnCancInvOk").disabled) confirmarCancelarInversion(); });
+  $("#btnCancInvOk").addEventListener("click", confirmarCancelarInversion);
+  $("#dlgCancelarInv").addEventListener("close", () => { cancInvId = null; });
   $("#btnInvOk").addEventListener("click", guardarInv);
   $("#btnDoPrecios").addEventListener("click", () => aplicarPrecios($("#preciosText").value));
   $("#btnJsonOk").addEventListener("click", () => cargarJson($("#jsonText").value));
