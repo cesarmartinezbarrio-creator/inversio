@@ -1,0 +1,7 @@
+{
+  "name": "inversio-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Backend de Inversio (Cuentas y Cartera): funciones serverless en Vercel para precios y guardado de estado.",
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,37 @@
+name: Subir frontend a Hostinger
+
+# Cada vez que cambie algo dentro de /frontend en la rama principal,
+# este workflow sube ese contenido por FTP al hosting de Hostinger.
+# Hace falta crear tres secretos en GitHub primero:
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#     FTP_SERVER    (ej. ftp.tudominio.com, lo da hPanel -> Archivos -> Cuentas FTP)
+#     FTP_USERNAME
+#     FTP_PASSWORD
+# Vercel, en cambio, no necesita este workflow: se despliega solo al
+# hacer push, con su propia integración de GitHub.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+  workflow_dispatch: {}
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Subir por FTP a Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./frontend/
+          server-dir: ./public_html/
+          # Si prefieres publicar en una subcarpeta (por ejemplo porque el
+          # dominio principal ya tiene otra cosa), cambia server-dir a
+          # ./public_html/inversio/ y ajusta la URL con la que la abres.
