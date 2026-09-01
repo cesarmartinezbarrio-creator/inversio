@@ -29,7 +29,14 @@ module.exports = async (req, res) => {
   if (req.method === "GET") {
     try {
       const r = await fetch(`${base}?id=eq.principal&select=json,actualizado`, { headers: cabecerasSupabase });
-      if (!r.ok) { res.status(502).json({ code: "server_unavailable" }); return; }
+      if (!r.ok) {
+        const texto = await r.text().catch(() => "");
+        res.status(502).json({
+          code: "server_unavailable",
+          message: `Supabase respondió ${r.status}: ${texto.slice(0, 400)}`,
+        });
+        return;
+      }
       const filas = await r.json();
       if (!filas.length) { res.status(200).json(null); return; }
       res.status(200).json(filas[0].json);
