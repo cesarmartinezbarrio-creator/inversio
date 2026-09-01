@@ -6,8 +6,23 @@
 <meta name="robots" content="noindex, nofollow">
 <!-- Pon aquí la URL de tu backend en Vercel, sin barra al final.
      Ejemplo: https://inversio-api.vercel.app -->
-<meta name="api-base" content="https://REEMPLAZA-ESTO.vercel.app">
+<meta name="api-base" content="https://inversio-lemon.vercel.app">
 <title>Cuentas y Cartera</title>
+
+<!-- ── App instalable (PWA) ──────────────────────────────────
+     Con esto, Chrome y Edge ofrecen "Instalar aplicación" en el escritorio
+     y Android permite añadirla a la pantalla de inicio. El color de la
+     barra cambia según el tema del sistema. -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F9F4EC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B322D" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="iconos/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cartera">
+<meta name="mobile-web-app-capable" content="yes">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -4026,7 +4041,7 @@ function renderSenales(){
       return card(g.t, `<p class="help" style="margin-bottom:14px">${g.d}</p>
         <div class="pasos">${lista.map(({ p, s }) => `
           <div class="paso">
-            <span class="paso-n" style="background:${g.c};color:${g.k === "mid" ? "#2a1c00" : "#fff"}">${p.act.nombre.slice(0, 1).toUpperCase()}</span>
+            <span class="paso-n" style="background:${g.c};color:${g.k === "mid" ? "#2a1c00" : "#fff"}">${esc(p.act.nombre.slice(0, 1).toUpperCase())}</span>
             <div>
               <h4>${esc(p.act.nombre)} <span class="tag">${esc(nombreCat(p.act))}</span></h4>
               <p>${esc(s.explica)}</p>
@@ -6763,7 +6778,21 @@ const apiMcpBackend = {
   }
   setTimeout(() => { if (!document.querySelector("dialog[open]")) abrirAvisos(true); }, 800);
   render();
+  registraServiceWorker();
 })();
+
+/* ── App instalable ───────────────────────────────────────────
+   El service worker solo guarda el armazón de la app (ver sw.js): permite
+   abrirla sin conexión y que arranque al instante, pero no cachea ni un
+   dato de la cartera. Si el navegador no lo soporta, o la página se sirve
+   por http://, no pasa nada: la app funciona igual, solo que no instalable. */
+function registraServiceWorker(){
+  if (!("serviceWorker" in navigator)) return;
+  if (location.protocol !== "https:" && location.hostname !== "localhost") return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
 
 </script>
 </body>
