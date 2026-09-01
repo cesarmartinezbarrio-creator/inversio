@@ -3902,7 +3902,9 @@ function fichaPosicion(id){
       <button class="btn btn-sm btn-primary" data-act="add-inversion" data-id="${id}">Añadir compra</button>
       <button class="btn btn-sm" data-act="cerrar-pos" data-id="${id}">He vendido esto</button>
       <button class="btn btn-sm" data-abrir="">Cerrar la ficha</button>
-    </div>`, esc(nombreCat(act)));
+      <button class="btn btn-sm btn-danger" data-act="eliminar-producto" data-id="${id}" style="margin-left:auto">Eliminar producto</button>
+    </div>
+    <p class="help" style="margin-top:8px">«Eliminar producto» lo borra del todo, con sus compras — úsalo solo si lo creaste por error o era una prueba. Si de verdad tenías esto y lo has vendido, usa «He vendido esto»: así conservas el historial.</p>`, esc(nombreCat(act)));
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -6151,6 +6153,23 @@ function cerrarPosicion(id){
       toast(`${act.nombre} ha pasado a observación. Lo encontrarás en Mercado → Observación.`);
     }, "aviso");
 }
+function eliminarProducto(id){
+  const act = S.activos.find(a => a.id === id);
+  if (!act) return;
+  const aps = aportacionesDe(id);
+  confirmar(`Eliminar ${act.nombre} por completo`,
+    aps.length
+      ? `Se borra el producto y ${aps.length === 1 ? "su apunte de inversión" : `sus ${aps.length} apuntes de inversión`} — desaparecerán también de tu economía mensual. Esto no se puede deshacer. Si esto era una venta real, mejor usa «He vendido esto»: así conservas el historial.`
+      : "Se borra el producto. No tiene apuntes de inversión asociados, así que no afecta a tu economía mensual. Esto no se puede deshacer.",
+    () => {
+      S.aportaciones = S.aportaciones.filter(x => x.activoId !== id);
+      S.activos = S.activos.filter(x => x.id !== id);
+      if (posAbierta === id) posAbierta = null;
+      if (S.fichaAbierta === id) S.fichaAbierta = null;
+      render(); programarGuardado();
+      toast(`${act.nombre} eliminado.`);
+    }, "crit");
+}
 
 /* ═══════════════════════════════════════════════════════════
    Eventos
@@ -6220,7 +6239,7 @@ function eventos(){
     const b = ev.target.closest("[data-act]"); if (!b) return;
     const cambiaDatos = ["add-libre","nueva-partida","aplicar-fijas","add-inversion","nuevo-producto","cerrar-pos","nueva-ficha",
       "a-observacion","a-inversion","descartar","anios-inicio","anio-mas","anio-menos",
-      "copiar-mes","precios-vivo","pdf-confirmar","traer-datos"].includes(b.dataset.act);
+      "copiar-mes","precios-vivo","pdf-confirmar","traer-datos","eliminar-producto"].includes(b.dataset.act);
     const id = b.dataset.id;
     const act = id ? S.activos.find(a => a.id === id) : null;
     switch (b.dataset.act){
@@ -6300,6 +6319,7 @@ function eventos(){
         toast("Producto creado. Ponle nombre y apunta tu primera compra."); break;
       }
       case "cerrar-pos": cerrarPosicion(id); break;
+      case "eliminar-producto": eliminarProducto(id); break;
       case "nueva-ficha": {
         const n = ($("#nvNombre").value || "").trim();
         if (!n){ toast("Escribe primero el nombre del producto.", true); break; }
