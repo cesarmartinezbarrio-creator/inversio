@@ -32,8 +32,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./frontend/
           server-dir: ./
-          dry-run: true
-
+          
           # ⚠️ OJO CON ESTA RUTA — cambiada el 03/09/2026.
           #
           # Antes ponía `./public_html/` y el despliegue terminaba en verde
