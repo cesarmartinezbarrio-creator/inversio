@@ -31,8 +31,9 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./frontend/
-          server-dir: ./domains/ahorrainvierte.es/public_html/
-          
+          server-dir: ./
+          dry-run: true
+
           # ⚠️ OJO CON ESTA RUTA — cambiada el 03/09/2026.
           #
           # Antes ponía `./public_html/` y el despliegue terminaba en verde
