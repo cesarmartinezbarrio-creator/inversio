@@ -32,7 +32,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./frontend/
           server-dir: ./domains/ahorrainvierte.es/public_html/
-          server-dir: ./domains/ahorrainvierte.es/public_html/
+          
           # ⚠️ OJO CON ESTA RUTA — cambiada el 03/09/2026.
           #
           # Antes ponía `./public_html/` y el despliegue terminaba en verde
@@ -48,7 +48,5 @@ jobs:
           # 419 KiB desde hacía dos días. No era la misma carpeta.
           #
           # Si algún día se cambia de dominio, hay que cambiar esta ruta.
-          
-          # Si prefieres publicar en una subcarpeta (por ejemplo porque el
-          # dominio principal ya tiene otra cosa), cambia server-dir a
-          # ./public_html/inversio/ y ajusta la URL con la que la abres.
+
+
