@@ -14,7 +14,7 @@
 
 <!-- A dónde se va después de entrar, y cuánto se espera antes de ir solo. -->
 <meta name="destino" content="/index.html">
-<meta name="espera" content="5">
+<meta name="espera" content="10">
 
 <meta name="theme-color" content="#F9F4EC" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B322D" media="(prefers-color-scheme: dark)">
@@ -240,7 +240,6 @@ body{
         <circle class="pista"  cx="60" cy="60" r="52"></circle>
         <circle class="avance" cx="60" cy="60" r="52"></circle>
       </svg>
-      <div class="cuenta" id="okCuenta">5</div>
     </div>
 
     <h2>Ya estás dentro</h2>
@@ -455,13 +454,16 @@ async function tras_entrar(){
   arrancaCuentaAtras();
 }
 
-/* ── La cuenta atrás hasta la app ───────────────────────────────
+/* ── La espera hasta la app ─────────────────────────────────────
    Se entra solo, pero con salida: el botón "Entrar ahora" se la salta y
-   "cerrar sesión" la cancela. Nunca hay que quedarse mirando un reloj. */
+   "cerrar sesión" la cancela.
+   No se enseña el número de segundos a propósito: una cifra bajando
+   invita a mirarla, y lo que hace el anillo llenándose ya se entiende
+   sin contar. */
 let temporizador = null;
 
 function paraCuentaAtras(){
-  if (temporizador){ clearInterval(temporizador); temporizador = null; }
+  if (temporizador){ clearTimeout(temporizador); temporizador = null; }
 }
 
 function entraEnLaApp(){
@@ -472,7 +474,6 @@ function entraEnLaApp(){
 
 function arrancaCuentaAtras(){
   paraCuentaAtras();
-  let quedan = ESPERA;
   const anillo = document.querySelector(".reloj .avance");
   // Reiniciar la animación por si se vuelve a este paso sin recargar.
   if (anillo){
@@ -481,12 +482,7 @@ function arrancaCuentaAtras(){
     void anillo.offsetWidth;              // fuerza a rehacer el cálculo
     anillo.style.animation = "";
   }
-  $("#okCuenta").textContent = quedan;
-  temporizador = setInterval(() => {
-    quedan -= 1;
-    $("#okCuenta").textContent = Math.max(quedan, 0);
-    if (quedan <= 0) entraEnLaApp();
-  }, 1000);
+  temporizador = setTimeout(entraEnLaApp, ESPERA * 1000);
 }
 
 /* ── Eventos ────────────────────────────────────────────────── */

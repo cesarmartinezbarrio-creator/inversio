@@ -1639,7 +1639,12 @@ function saneaEstado(x){
       : (isN(f) && f >= 0 && f <= 1 ? f : "tramos");
   }
   if (typeof x.mes === "string" && /^\d{4}-\d{2}$/.test(x.mes)) o.mes = x.mes;
-  if (MODULOS[x.modulo]) { o.modulo = x.modulo; o.tab = x.tab || (MODULOS[x.modulo].tabs[0] ? MODULOS[x.modulo].tabs[0][0] : x.modulo); }
+  /* La aplicación SIEMPRE abre en la Portada, aunque la última vez se
+     cerrara en Mercado o en cualquier otro sitio. El módulo y la pestaña
+     guardados se ignoran a propósito: la Portada es el resumen y el punto
+     de partida, y entrar directamente en una pantalla de detalle obliga a
+     recolocarse mentalmente cada vez.
+     (Antes se restauraba lo último visitado: `o.modulo = x.modulo`.) */
   if (x.avisosVistos && typeof x.avisosVistos === "object") o.avisosVistos = x.avisosVistos;
   if (isN(x.rev)) o.rev = x.rev;
   if (x.preciosTs) o.preciosTs = x.preciosTs;
