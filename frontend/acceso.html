@@ -12,6 +12,10 @@
 <meta name="supabase-url" content="https://gnrhzddrgsmyxveijcsv.supabase.co">
 <meta name="supabase-key" content="sb_publishable_dRDh4r6Kf60B1RrcKev5UA_PGyAuTnx">
 
+<!-- A dónde se va después de entrar, y cuánto se espera antes de ir solo. -->
+<meta name="destino" content="/index.html">
+<meta name="espera" content="5">
+
 <meta name="theme-color" content="#F9F4EC" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B322D" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="iconos/favicon-32.png" sizes="32x32">
@@ -130,6 +134,7 @@ body{
 
 .panel-ok{text-align:center}
 .panel-ok h2{font-family:"Outfit",sans-serif; font-size:19px; margin:0 0 6px}
+.panel-ok .sub{margin:0 0 20px; font-size:13px; color:var(--ink-2)}
 .dato{
   display:flex; justify-content:space-between; gap:12px; padding:9px 0;
   border-bottom:1px solid var(--rule); font-size:12.5px; text-align:left;
@@ -137,6 +142,30 @@ body{
 .dato:last-of-type{border-bottom:none}
 .dato span:first-child{color:var(--ink-3)}
 .dato span:last-child{font-weight:600; word-break:break-all}
+
+/* ── El círculo de espera ──────────────────────────────────────
+   Un anillo que se va llenando mientras la cuenta atrás corre. La
+   circunferencia del radio 52 es 326.7, y de ahí sale el dasharray:
+   el trazo se dibuja "descontando" ese hueco hasta cerrarlo. */
+.reloj{position:relative; width:112px; height:112px; margin:4px auto 18px}
+.reloj svg{width:100%; height:100%; transform:rotate(-90deg)}
+.reloj circle{fill:none; stroke-width:6; stroke-linecap:round}
+.reloj .pista{stroke:var(--rule)}
+.reloj .avance{
+  stroke:var(--brand); stroke-dasharray:326.7;
+  stroke-dashoffset:326.7; animation:llena var(--espera,5s) linear forwards;
+}
+@keyframes llena{ to{ stroke-dashoffset:0 } }
+.reloj .cuenta{
+  position:absolute; inset:0; display:grid; place-items:center;
+  font-family:"Outfit",sans-serif; font-size:30px; font-weight:600;
+  color:var(--ink); font-variant-numeric:tabular-nums;
+}
+/* Si alguien tiene el sistema puesto en "menos animaciones", el anillo se
+   queda quieto y lleno: la cuenta atrás sigue viéndose en el número. */
+@media (prefers-reduced-motion: reduce){
+  .reloj .avance{animation:none; stroke-dashoffset:0}
+}
 
 .pie{text-align:center; margin-top:18px; font-size:11.5px; color:var(--ink-3)}
 </style>
@@ -206,15 +235,21 @@ body{
 
   <!-- ── PASO 3 · Dentro ──────────────────────────────────── -->
   <section id="pasoDentro" hidden class="panel-ok">
-    <div class="aviso bien" style="margin-bottom:20px">
-      <strong>Acceso correcto.</strong> Tu cuenta está activa y tus datos
-      solo los ves tú.
+    <div class="reloj">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="pista"  cx="60" cy="60" r="52"></circle>
+        <circle class="avance" cx="60" cy="60" r="52"></circle>
+      </svg>
+      <div class="cuenta" id="okCuenta">5</div>
     </div>
-    <div class="dato"><span>Correo</span><span id="okCorreo">—</span></div>
-    <div class="dato"><span>Identificador</span><span id="okUid">—</span></div>
-    <div class="dato"><span>Miembro desde</span><span id="okAlta">—</span></div>
-    <div class="dato"><span>Segundo factor</span><span id="okMfa">—</span></div>
-    <button class="btn btn-suave" id="btnSalir2" type="button">Cerrar sesión</button>
+
+    <h2>Ya estás dentro</h2>
+    <p class="sub" id="okEstado" aria-live="polite">Abriendo tu cartera…</p>
+
+    <button class="btn" id="btnContinuar" type="button">Entrar ahora</button>
+    <button class="btn btn-suave" id="btnSalir2" type="button">No soy yo · cerrar sesión</button>
+
+    <p class="pie" id="okQuien">—</p>
   </section>
 
   <p class="pie">Página de pruebas del acceso · no es la app todavía</p>
@@ -242,6 +277,11 @@ body{
 const meta = n => (document.querySelector(`meta[name="${n}"]`)?.content || "").trim();
 const SB  = meta("supabase-url").replace(/\/$/, "");
 const KEY = meta("supabase-key");
+
+// A dónde se entra y cuánto se espera. Se acotan los segundos por si
+// alguien edita el <head> con la mano y pone algo absurdo.
+const DESTINO = meta("destino") || "/index.html";
+const ESPERA  = Math.min(Math.max(parseInt(meta("espera") || "5", 10) || 5, 1), 30);
 const LS  = "cyc.sesion";
 
 const $ = s => document.querySelector(s);
@@ -405,14 +445,48 @@ async function tras_entrar(){
   const s = leeSesion();
   if (!filas.length){ muestra("codigo"); return; }
 
-  $("#okCorreo").textContent = s.correo || "—";
-  $("#okUid").textContent    = s.uid || "—";
-  $("#okAlta").textContent   = filas[0].alta
-    ? new Date(filas[0].alta).toLocaleDateString("es-ES", { day:"numeric", month:"long", year:"numeric" })
-    : "—";
-  $("#okMfa").textContent    = "sin configurar (etapa 6)";
+  // Lo único que se enseña aquí es de quién es la sesión, por si alguien
+  // comparte ordenador y entra sin darse cuenta con la cuenta de otro.
+  // Ni identificadores internos ni avisos técnicos: esto es una puerta,
+  // no un panel de diagnóstico.
+  $("#okQuien").textContent = s.correo || "";
   muestra("dentro");
   aviso(null);
+  arrancaCuentaAtras();
+}
+
+/* ── La cuenta atrás hasta la app ───────────────────────────────
+   Se entra solo, pero con salida: el botón "Entrar ahora" se la salta y
+   "cerrar sesión" la cancela. Nunca hay que quedarse mirando un reloj. */
+let temporizador = null;
+
+function paraCuentaAtras(){
+  if (temporizador){ clearInterval(temporizador); temporizador = null; }
+}
+
+function entraEnLaApp(){
+  paraCuentaAtras();
+  $("#okEstado").textContent = "Abriendo…";
+  location.replace(DESTINO);
+}
+
+function arrancaCuentaAtras(){
+  paraCuentaAtras();
+  let quedan = ESPERA;
+  const anillo = document.querySelector(".reloj .avance");
+  // Reiniciar la animación por si se vuelve a este paso sin recargar.
+  if (anillo){
+    anillo.style.setProperty("--espera", ESPERA + "s");
+    anillo.style.animation = "none";
+    void anillo.offsetWidth;              // fuerza a rehacer el cálculo
+    anillo.style.animation = "";
+  }
+  $("#okCuenta").textContent = quedan;
+  temporizador = setInterval(() => {
+    quedan -= 1;
+    $("#okCuenta").textContent = Math.max(quedan, 0);
+    if (quedan <= 0) entraEnLaApp();
+  }, 1000);
 }
 
 /* ── Eventos ────────────────────────────────────────────────── */
@@ -479,6 +553,7 @@ $("#formCodigo").addEventListener("submit", async ev => {
 });
 
 async function salir(){
+  paraCuentaAtras();          // que no se vaya a la app mientras sale
   const token = await tokenValido();
   if (token){
     // Que el servidor invalide la sesión, no solo el navegador.
@@ -493,6 +568,7 @@ async function salir(){
 }
 $("#btnSalir1").addEventListener("click", salir);
 $("#btnSalir2").addEventListener("click", salir);
+$("#btnContinuar").addEventListener("click", entraEnLaApp);
 
 /* ── Arranque ───────────────────────────────────────────────── */
 (async function(){
