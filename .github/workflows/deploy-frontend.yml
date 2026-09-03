@@ -31,7 +31,24 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./frontend/
-          server-dir: ./public_html/
+          server-dir: ./domains/ahorrainvierte.es/public_html/
+          server-dir: ./domains/ahorrainvierte.es/public_html/
+          # ⚠️ OJO CON ESTA RUTA — cambiada el 03/09/2026.
+          #
+          # Antes ponía `./public_html/` y el despliegue terminaba en verde
+          # sin que la web cambiara. El motivo: por FTP se entra en la
+          # carpeta personal de la cuenta, no en la del dominio. Ahí hay un
+          # `public_html` genérico que NO es el que sirve ahorrainvierte.es;
+          # el del dominio vive en `domains/<dominio>/public_html`.
+          #
+          # El gestor de archivos del panel enseña ya el del dominio y lo
+          # llama `public_html` a secas, así que las dos carpetas parecen la
+          # misma y no lo son. La pista estaba en el registro: decía
+          # "Server Files: 0" cuando esa carpeta tenía un index.html de
+          # 419 KiB desde hacía dos días. No era la misma carpeta.
+          #
+          # Si algún día se cambia de dominio, hay que cambiar esta ruta.
+          
           # Si prefieres publicar en una subcarpeta (por ejemplo porque el
           # dominio principal ya tiene otra cosa), cambia server-dir a
           # ./public_html/inversio/ y ajusta la URL con la que la abres.
