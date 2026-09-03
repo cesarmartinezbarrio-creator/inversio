@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Acceso · Cuentas y Cartera</title>
+
+<!-- Datos del proyecto de Supabase. La clave publishable es pública por
+     diseño: viaja en el navegador de cualquiera que abra la app y por sí
+     sola no abre nada, porque las políticas RLS la dejan sin permisos. -->
+<meta name="supabase-url" content="https://gnrhzddrgsmyxveijcsv.supabase.co">
+<meta name="supabase-key" content="sb_publishable_dRDh4r6Kf60B1RrcKev5UA_PGyAuTnx">
+
+<meta name="theme-color" content="#F9F4EC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B322D" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="iconos/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+/* ── Los mismos tokens que la app, para que no parezca pegada con cola ── */
+:root{
+  color-scheme: light;
+  --ground:#F1EAE0; --surface:#F9F4EC; --surface-2:#EAE1D4;
+  --ink:#0B2E29; --ink-2:#3D5C56; --ink-3:#586D64;
+  --rule:#E2D8C9;
+  --accent:#B84400; --accent-wash:rgba(184,68,0,.10);
+  --grad:linear-gradient(126deg,#C24E14 0%,#B03E05 46%,#8E3204 100%);
+  --grad-ink:#FFFFFF;
+  --good:#076B4A; --good-ink:#076B4A;
+  --warn-ink:#8A5F00;
+  --crit:#B4243C; --crit-ink:#B4243C;
+  --rise:-5px -5px 12px rgba(255,255,255,.92), 6px 7px 18px rgba(120,102,80,.22);
+  --rise-sm:-2px -2px 6px rgba(255,255,255,.88), 3px 3px 8px rgba(120,102,80,.19);
+  --sink-sm:inset 2px 2px 5px rgba(120,102,80,.17), inset -2px -2px 5px rgba(255,255,255,.88);
+  --r:20px; --r-sm:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#05221F; --surface:#0B322D; --surface-2:#082A26;
+    --ink:#F2EDE3; --ink-2:#A8BDB6; --ink-3:#8CA69D;
+    --rule:#123E38;
+    --accent:#E4622A; --accent-wash:rgba(228,98,42,.15);
+    --grad:linear-gradient(126deg,#F5814A 0%,#E4622A 46%,#C9481B 100%);
+    --grad-ink:#2A0E03;
+    --good:#3FD8A0; --good-ink:#3FD8A0;
+    --warn-ink:#FFC24D;
+    --crit:#FF8080; --crit-ink:#FF8080;
+    --rise:-5px -5px 12px rgba(255,255,255,.045), 6px 7px 18px rgba(0,0,0,.55);
+    --rise-sm:-2px -2px 6px rgba(255,255,255,.038), 3px 3px 9px rgba(0,0,0,.5);
+    --sink-sm:inset 2px 2px 5px rgba(0,0,0,.55), inset -2px -2px 5px rgba(255,255,255,.04);
+  }
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; background:var(--ground); color:var(--ink);
+  font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+
+.tarjeta{
+  width:100%; max-width:400px; background:var(--surface);
+  border-radius:var(--r); box-shadow:var(--rise); padding:32px 28px;
+}
+
+.marca{display:flex; align-items:center; gap:9px; justify-content:center; margin-bottom:6px}
+.marca svg{width:26px; height:26px; color:var(--accent)}
+.marca span{
+  font-family:"Outfit",sans-serif; font-weight:700; font-size:18px;
+  letter-spacing:-.02em;
+}
+.lema{text-align:center; color:var(--ink-3); font-size:12.5px; margin:0 0 24px}
+
+/* ── Selector entrar / crear cuenta ── */
+.modos{display:flex; gap:3px; background:var(--surface-2); border-radius:100px;
+  padding:3px; margin-bottom:22px; box-shadow:var(--sink-sm)}
+.modo{
+  flex:1; border:none; background:none; cursor:pointer; padding:8px;
+  border-radius:100px; font-family:"Outfit",sans-serif; font-size:13px;
+  font-weight:600; color:var(--ink-3); transition:.16s;
+}
+.modo[aria-selected="true"]{background:var(--surface); color:var(--ink); box-shadow:var(--rise-sm)}
+
+.campo{display:flex; flex-direction:column; gap:5px; margin-bottom:14px}
+.campo label{
+  font-size:11px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.campo input{
+  border:1px solid transparent; background:var(--surface-2);
+  border-radius:var(--r-sm); box-shadow:var(--sink-sm);
+  padding:11px 13px; font-family:inherit; font-size:14px; color:var(--ink); width:100%;
+}
+.campo input:focus{
+  outline:none; border-color:var(--accent);
+  box-shadow:var(--sink-sm), 0 0 0 3px var(--accent-wash);
+}
+.pista{font-size:11.5px; color:var(--ink-3); margin-top:-8px; margin-bottom:14px}
+
+.btn{
+  width:100%; border:none; border-radius:100px; padding:12px;
+  font-family:"Outfit",sans-serif; font-size:14px; font-weight:600;
+  cursor:pointer; transition:.16s; background:var(--grad); color:var(--grad-ink);
+  box-shadow:var(--rise-sm); margin-top:4px;
+}
+.btn:hover:not(:disabled){filter:brightness(1.06)}
+.btn:disabled{opacity:.5; cursor:not-allowed}
+.btn-suave{
+  background:none; box-shadow:none; color:var(--ink-2); font-size:12.5px;
+  padding:8px; margin-top:10px;
+}
+.btn-suave:hover:not(:disabled){color:var(--ink); background:var(--surface-2)}
+
+/* ── Avisos ── */
+.aviso{
+  border-radius:var(--r-sm); padding:11px 13px; font-size:12.5px;
+  margin-bottom:16px; line-height:1.45;
+}
+.aviso.malo{background:color-mix(in srgb,var(--crit) 12%,transparent); color:var(--crit-ink)}
+.aviso.bien{background:color-mix(in srgb,var(--good) 12%,transparent); color:var(--good-ink)}
+.aviso.info{background:var(--surface-2); color:var(--ink-2)}
+[hidden]{display:none !important}
+
+.panel-ok{text-align:center}
+.panel-ok h2{font-family:"Outfit",sans-serif; font-size:19px; margin:0 0 6px}
+.dato{
+  display:flex; justify-content:space-between; gap:12px; padding:9px 0;
+  border-bottom:1px solid var(--rule); font-size:12.5px; text-align:left;
+}
+.dato:last-of-type{border-bottom:none}
+.dato span:first-child{color:var(--ink-3)}
+.dato span:last-child{font-weight:600; word-break:break-all}
+
+.pie{text-align:center; margin-top:18px; font-size:11.5px; color:var(--ink-3)}
+</style>
+</head>
+<body>
+
+<main class="tarjeta">
+  <div class="marca">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 20h18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M6 20v-6m4 6V8m4 12v-9m4 9V5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" opacity=".5"/>
+      <circle cx="18" cy="5" r="2.4" fill="currentColor"/>
+    </svg>
+    <span>Cuentas y Cartera</span>
+  </div>
+  <p class="lema">Tu economía y tu cartera, en un sitio que es tuyo.</p>
+
+  <div id="aviso" class="aviso" hidden></div>
+
+  <!-- ── PASO 1 · Entrar o crear cuenta ───────────────────── -->
+  <section id="pasoAcceso">
+    <div class="modos" role="tablist">
+      <button class="modo" id="mEntrar" role="tab" aria-selected="true">Entrar</button>
+      <button class="modo" id="mCrear"  role="tab" aria-selected="false">Crear cuenta</button>
+    </div>
+
+    <form id="formAcceso" autocomplete="on">
+      <div class="campo">
+        <label for="correo">Correo</label>
+        <input id="correo" type="email" autocomplete="username" required
+               placeholder="tu@correo.com">
+      </div>
+
+      <div class="campo">
+        <label for="clave">Contraseña</label>
+        <input id="clave" type="password" required
+               autocomplete="current-password" placeholder="••••••••••">
+      </div>
+      <p class="pista" id="pistaClave" hidden>Diez caracteres como mínimo.</p>
+
+      <div class="campo" id="campoCodigo" hidden>
+        <label for="codigo">Código de invitación</label>
+        <input id="codigo" autocomplete="off" spellcheck="false"
+               placeholder="FAMILIA-2026">
+      </div>
+
+      <button class="btn" id="btnAcceso" type="submit">Entrar</button>
+    </form>
+  </section>
+
+  <!-- ── PASO 2 · Tiene sesión pero no es miembro ──────────── -->
+  <section id="pasoCodigo" hidden>
+    <div class="aviso info">
+      Tu cuenta está creada, pero todavía no tiene acceso. Escribe el código
+      de invitación que te dieron para activarla.
+    </div>
+    <form id="formCodigo">
+      <div class="campo">
+        <label for="codigo2">Código de invitación</label>
+        <input id="codigo2" autocomplete="off" spellcheck="false"
+               placeholder="FAMILIA-2026" required>
+      </div>
+      <button class="btn" id="btnCodigo" type="submit">Activar mi cuenta</button>
+    </form>
+    <button class="btn btn-suave" id="btnSalir1" type="button">Cerrar sesión</button>
+  </section>
+
+  <!-- ── PASO 3 · Dentro ──────────────────────────────────── -->
+  <section id="pasoDentro" hidden class="panel-ok">
+    <div class="aviso bien" style="margin-bottom:20px">
+      <strong>Acceso correcto.</strong> Tu cuenta está activa y tus datos
+      solo los ves tú.
+    </div>
+    <div class="dato"><span>Correo</span><span id="okCorreo">—</span></div>
+    <div class="dato"><span>Identificador</span><span id="okUid">—</span></div>
+    <div class="dato"><span>Miembro desde</span><span id="okAlta">—</span></div>
+    <div class="dato"><span>Segundo factor</span><span id="okMfa">—</span></div>
+    <button class="btn btn-suave" id="btnSalir2" type="button">Cerrar sesión</button>
+  </section>
+
+  <p class="pie">Página de pruebas del acceso · no es la app todavía</p>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Acceso a Cuentas y Cartera
+   ───────────────────────────────────────────────────────────────
+   Habla con Supabase por HTTP directamente, sin cargar su SDK.
+
+   El motivo es de seguridad, no de purismo: cargar un script de una CDN
+   de terceros significa que quien controle esa CDN puede ejecutar código
+   dentro de una página que maneja carteras de inversión. Como además
+   queremos poner una cabecera Content-Security-Policy restrictiva, cada
+   script externo sería un agujero que habría que abrirle.
+
+   Ojo a la distinción: escribir nuestras propias llamadas HTTP NO es lo
+   mismo que escribir nuestra propia autenticación. El hash de las
+   contraseñas, la generación de sesiones, la validación del TOTP y los
+   límites de intentos siguen ocurriendo en Supabase. Aquí solo hay
+   peticiones REST con formatos documentados.
+   ═══════════════════════════════════════════════════════════════ */
+
+const meta = n => (document.querySelector(`meta[name="${n}"]`)?.content || "").trim();
+const SB  = meta("supabase-url").replace(/\/$/, "");
+const KEY = meta("supabase-key");
+const LS  = "cyc.sesion";
+
+const $ = s => document.querySelector(s);
+
+/* ── Guardar y recuperar la sesión ──────────────────────────── */
+function guardaSesion(s){
+  try {
+    localStorage.setItem(LS, JSON.stringify({
+      access_token:  s.access_token,
+      refresh_token: s.refresh_token,
+      // expires_at viene en segundos desde 1970; lo pasamos a milisegundos.
+      caduca: (s.expires_at ? s.expires_at * 1000 : Date.now() + (s.expires_in || 3600) * 1000),
+      correo: s.user?.email || null,
+      uid:    s.user?.id || null
+    }));
+  } catch(_){}
+}
+function leeSesion(){
+  try { return JSON.parse(localStorage.getItem(LS) || "null"); } catch(_){ return null; }
+}
+function borraSesion(){ try { localStorage.removeItem(LS); } catch(_){} }
+
+/* ── Traducción de los errores de Supabase ──────────────────── */
+/* Sin esto, el usuario ve "Invalid login credentials" y se queda igual.
+   Peor: si no decimos nada, parece que la app está rota — que es
+   exactamente lo que nos pasó durante media tarde con el token viejo. */
+function enCristiano(j, status){
+  const cod = (j?.error_code || j?.code || "").toString();
+  const msg = (j?.msg || j?.message || j?.error_description || "").toString();
+
+  // Los errores de la función de canje ya vienen en español desde la
+  // propia base de datos: se dejan pasar tal cual.
+  if (/código|invitación|sesión/i.test(msg)) return msg;
+
+  const tabla = {
+    invalid_credentials:        "Correo o contraseña incorrectos.",
+    email_not_confirmed:        "Tienes que confirmar tu correo antes de entrar. Mira tu bandeja de entrada.",
+    user_already_exists:        "Ya existe una cuenta con ese correo. Prueba a entrar en vez de crearla.",
+    email_exists:               "Ya existe una cuenta con ese correo. Prueba a entrar en vez de crearla.",
+    weak_password:              "Esa contraseña es demasiado débil. Usa al menos diez caracteres.",
+    signup_disabled:            "El registro está cerrado ahora mismo.",
+    email_address_invalid:      "Ese correo no parece válido.",
+    over_request_rate_limit:    "Demasiados intentos seguidos. Espera un minuto y vuelve a probarlo.",
+    over_email_send_rate_limit: "Se han enviado demasiados correos. Espera unos minutos.",
+    validation_failed:          "Falta algún dato o está mal escrito."
+  };
+  if (tabla[cod]) return tabla[cod];
+
+  if (/invalid login credentials/i.test(msg)) return tabla.invalid_credentials;
+  if (/already registered|already exists/i.test(msg)) return tabla.user_already_exists;
+  if (/password/i.test(msg) && /short|weak|least/i.test(msg)) return tabla.weak_password;
+  if (status === 429) return tabla.over_request_rate_limit;
+  if (status >= 500) return "Supabase no responde ahora mismo. Inténtalo en un momento.";
+
+  return msg || "Algo ha fallado y no sabría decirte qué. Vuelve a intentarlo.";
+}
+
+/* ── Las cuatro llamadas ────────────────────────────────────── */
+async function pide(ruta, opciones = {}, token){
+  const r = await fetch(SB + ruta, {
+    ...opciones,
+    headers: {
+      apikey: KEY,
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: "Bearer " + token } : {}),
+      ...(opciones.headers || {})
+    }
+  });
+  const texto = await r.text();
+  let j = null;
+  try { j = texto ? JSON.parse(texto) : null; } catch(_){ j = null; }
+  if (!r.ok){
+    const e = new Error(enCristiano(j, r.status));
+    e.status = r.status; e.cuerpo = j;
+    throw e;
+  }
+  return j;
+}
+
+const registrar = (correo, clave) =>
+  pide("/auth/v1/signup", { method:"POST", body: JSON.stringify({ email: correo, password: clave }) });
+
+const entrar = (correo, clave) =>
+  pide("/auth/v1/token?grant_type=password", { method:"POST", body: JSON.stringify({ email: correo, password: clave }) });
+
+const refrescar = refresh =>
+  pide("/auth/v1/token?grant_type=refresh_token", { method:"POST", body: JSON.stringify({ refresh_token: refresh }) });
+
+const canjear = (codigo, token) =>
+  pide("/rest/v1/rpc/canjear_invitacion", { method:"POST", body: JSON.stringify({ codigo_txt: codigo }) }, token);
+
+const miMembresia = token =>
+  pide("/rest/v1/miembros?select=user_id,alta,codigo", {}, token);
+
+/* Devuelve un token válido, refrescándolo si hace falta. Se pide un
+   minuto antes de que caduque, para no llegar justo. */
+async function tokenValido(){
+  const s = leeSesion();
+  if (!s) return null;
+  if (Date.now() < (s.caduca - 60000)) return s.access_token;
+  try {
+    const nueva = await refrescar(s.refresh_token);
+    guardaSesion(nueva);
+    return nueva.access_token;
+  } catch(_){
+    borraSesion();
+    return null;
+  }
+}
+
+/* ── Interfaz ───────────────────────────────────────────────── */
+let modo = "entrar";
+
+function aviso(texto, clase){
+  const a = $("#aviso");
+  if (!texto){ a.hidden = true; return; }
+  a.textContent = texto;
+  a.className = "aviso " + (clase || "malo");
+  a.hidden = false;
+}
+
+function muestra(paso){
+  $("#pasoAcceso").hidden = paso !== "acceso";
+  $("#pasoCodigo").hidden = paso !== "codigo";
+  $("#pasoDentro").hidden = paso !== "dentro";
+}
+
+function cambiaModo(nuevo){
+  modo = nuevo;
+  const creando = modo === "crear";
+  $("#mEntrar").setAttribute("aria-selected", String(!creando));
+  $("#mCrear").setAttribute("aria-selected", String(creando));
+  $("#campoCodigo").hidden = !creando;
+  $("#pistaClave").hidden  = !creando;
+  $("#codigo").required    = creando;
+  // El mínimo de diez caracteres solo se exige al CREAR la cuenta. Si se
+  // exigiera también al entrar, alguien con una contraseña antigua más
+  // corta no podría acceder a su propia cuenta.
+  if (creando) $("#clave").setAttribute("minlength", "10");
+  else         $("#clave").removeAttribute("minlength");
+  $("#clave").setAttribute("autocomplete", creando ? "new-password" : "current-password");
+  $("#btnAcceso").textContent = creando ? "Crear mi cuenta" : "Entrar";
+  aviso(null);
+}
+
+function ocupado(si, boton){
+  boton.disabled = si;
+  boton.dataset.txt = boton.dataset.txt || boton.textContent;
+  boton.textContent = si ? "Un momento…" : boton.dataset.txt;
+}
+
+/* Con sesión iniciada, decide si ya es miembro o le falta el código. */
+async function tras_entrar(){
+  const token = await tokenValido();
+  if (!token){ muestra("acceso"); return; }
+
+  let filas = [];
+  try { filas = await miMembresia(token) || []; }
+  catch(err){ aviso(err.message); muestra("acceso"); return; }
+
+  const s = leeSesion();
+  if (!filas.length){ muestra("codigo"); return; }
+
+  $("#okCorreo").textContent = s.correo || "—";
+  $("#okUid").textContent    = s.uid || "—";
+  $("#okAlta").textContent   = filas[0].alta
+    ? new Date(filas[0].alta).toLocaleDateString("es-ES", { day:"numeric", month:"long", year:"numeric" })
+    : "—";
+  $("#okMfa").textContent    = "sin configurar (etapa 6)";
+  muestra("dentro");
+  aviso(null);
+}
+
+/* ── Eventos ────────────────────────────────────────────────── */
+$("#mEntrar").addEventListener("click", () => cambiaModo("entrar"));
+$("#mCrear").addEventListener("click",  () => cambiaModo("crear"));
+
+$("#formAcceso").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  aviso(null);
+  const correo = $("#correo").value.trim();
+  const clave  = $("#clave").value;
+  const codigo = $("#codigo").value.trim();
+  const btn    = $("#btnAcceso");
+
+  if (modo === "crear" && !codigo){
+    aviso("Necesitas un código de invitación para crear la cuenta.");
+    return;
+  }
+
+  ocupado(true, btn);
+  try {
+    const sesion = modo === "crear"
+      ? await registrar(correo, clave)
+      : await entrar(correo, clave);
+
+    if (!sesion.access_token){
+      // Pasa cuando el proyecto exige confirmar el correo: crea el
+      // usuario pero no da sesión hasta que se confirme.
+      aviso("Cuenta creada. Revisa tu correo para confirmarla y luego entra.", "info");
+      cambiaModo("entrar");
+      return;
+    }
+    guardaSesion(sesion);
+
+    // Recién registrado: se canjea el código en el mismo gesto, para que
+    // no parezca que hay dos pasos donde el usuario ve uno.
+    if (modo === "crear"){
+      try { await canjear(codigo, sesion.access_token); }
+      catch(err){ aviso(err.message + " Tu cuenta está creada; escribe un código válido para activarla.", "malo"); }
+    }
+    await tras_entrar();
+  } catch(err){
+    aviso(err.message);
+  } finally {
+    ocupado(false, btn);
+  }
+});
+
+$("#formCodigo").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  aviso(null);
+  const btn = $("#btnCodigo");
+  ocupado(true, btn);
+  try {
+    const token = await tokenValido();
+    if (!token){ muestra("acceso"); return; }
+    await canjear($("#codigo2").value.trim(), token);
+    await tras_entrar();
+  } catch(err){
+    aviso(err.message);
+  } finally {
+    ocupado(false, btn);
+  }
+});
+
+async function salir(){
+  const token = await tokenValido();
+  if (token){
+    // Que el servidor invalide la sesión, no solo el navegador.
+    try { await pide("/auth/v1/logout", { method:"POST" }, token); } catch(_){}
+  }
+  borraSesion();
+  $("#correo").value = ""; $("#clave").value = "";
+  $("#codigo").value = ""; $("#codigo2").value = "";
+  cambiaModo("entrar");
+  muestra("acceso");
+  aviso("Sesión cerrada.", "info");
+}
+$("#btnSalir1").addEventListener("click", salir);
+$("#btnSalir2").addEventListener("click", salir);
+
+/* ── Arranque ───────────────────────────────────────────────── */
+(async function(){
+  if (!SB || !KEY){
+    aviso("Falta configurar la URL o la clave de Supabase en el <head>.");
+    return;
+  }
+  if (leeSesion()) await tras_entrar();
+  else muestra("acceso");
+})();
+</script>
+</body>
+</html>

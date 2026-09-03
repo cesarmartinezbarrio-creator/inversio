@@ -13,7 +13,39 @@
 //   Twelve Data get_quote     -> {result:"CSV;con;cabecera\nCSV;con;valores"} (se transforma)
 //   Alpha Vantage / Crypto.com -> se reenvían tal cual, ya coinciden.
 
-const { aplicarCORS, compruebaToken, leerCuerpoJSON } = require("./_common");
+const {
+  aplicarCORS, leerCuerpoJSON, identifica,
+  cacheLee, cacheGuarda, consumePeticion,
+} = require("./_common");
+
+/* ── Cuánto aguanta cada dato antes de volver a preguntar ──────
+   No es lo mismo un precio que el balance de una empresa. Poner a todo
+   el mismo plazo sería o gastar cuota de más, o enseñar datos viejos.
+   En segundos. */
+const CADUCIDAD = {
+  "Twelve Data:get_price": 300,             // 5 min
+  "Twelve Data:get_quote": 300,
+  "Twelve Data:search_symbol": 604800,      // una semana: los tickers no cambian
+  "Alpha Vantage MCP Server:GLOBAL_QUOTE": 300,
+  "Alpha Vantage MCP Server:CURRENCY_EXCHANGE_RATE": 3600,
+  "Alpha Vantage MCP Server:SYMBOL_SEARCH": 604800,
+  "Alpha Vantage MCP Server:ETF_PROFILE": 86400,
+  "Alpha Vantage MCP Server:COMPANY_OVERVIEW": 86400,   // las cuentas salen cada trimestre
+  "Crypto.com:get_ticker": 120,             // 2 min: el cripto se mueve deprisa
+};
+
+// La clave tiene que ser la misma para dos peticiones equivalentes aunque
+// los argumentos vengan en distinto orden o con otras mayúsculas, o la
+// caché no serviría de nada.
+function claveCache(servidor, herramienta, entrada) {
+  const e = entrada && typeof entrada === "object" ? entrada : {};
+  const partes = Object.keys(e).sort()
+    .map((k) => `${k}=${String(e[k]).trim().toUpperCase()}`)
+    .join("&");
+  return `${servidor}:${herramienta}:${partes}`;
+}
+
+const LIMITE_DIARIO = () => parseInt(process.env.LIMITE_DIARIO || "300", 10);
 
 const TD_KEY = () => process.env.TWELVE_DATA_KEY;
 const AV_KEY = () => process.env.ALPHA_VANTAGE_KEY;
@@ -95,10 +127,37 @@ module.exports = async (req, res) => {
   aplicarCORS(req, res);
   if (req.method === "OPTIONS") { res.status(204).end(); return; }
   if (req.method !== "POST") { res.status(405).json({ code: "tool_error" }); return; }
-  if (!compruebaToken(req, res)) return;
+
+  const quien = await identifica(req, res);
+  if (!quien) return;
 
   const { servidor, herramienta, entrada } = await leerCuerpoJSON(req);
   if (!servidor || !herramienta) { res.status(400).json({ code: "tool_error", message: "Falta servidor o herramienta." }); return; }
+
+  // 1) ¿Lo ha preguntado alguien hace poco? Entonces esto no cuesta nada:
+  //    ni cuota de la API, ni cuota del usuario.
+  const clave = claveCache(servidor, herramienta, entrada);
+  const guardado = await cacheLee(clave);
+  if (guardado) {
+    res.setHeader("X-Cache", "hit");
+    res.status(200).json({ payload: guardado });
+    return;
+  }
+
+  // 2) Va a salir a internet de verdad. Aquí sí se cuenta.
+  if (quien.tipo === "usuario") {
+    const uso = await consumePeticion(quien.id, LIMITE_DIARIO());
+    res.setHeader("X-Uso-Hoy", String(uso.usadas ?? 0));
+    res.setHeader("X-Limite-Dia", String(uso.limite_dia ?? LIMITE_DIARIO()));
+    if (!uso.permitido) {
+      res.status(429).json({
+        code: "rate_limited",
+        message: `Has llegado al máximo de ${uso.limite_dia} consultas de mercado por hoy. Se reinicia esta noche; los datos que ya tienes guardados siguen ahí.`,
+        retryable: false,
+      });
+      return;
+    }
+  }
 
   try {
     let payload;
@@ -117,6 +176,12 @@ module.exports = async (req, res) => {
     } else {
       const e = new Error("servidor desconocido"); e.code = "server_not_found"; throw e;
     }
+    // 3) Guardar para el siguiente. Los errores NO se guardan: si Twelve
+    //    Data falla un momento, no queremos servir ese fallo cinco minutos.
+    const segundos = CADUCIDAD[`${servidor}:${herramienta}`];
+    if (segundos) await cacheGuarda(clave, payload, segundos);
+
+    res.setHeader("X-Cache", "miss");
     res.status(200).json({ payload });
   } catch (err) {
     const code = err.code || "tool_error";
