@@ -552,8 +552,13 @@ $("#formAcceso").addEventListener("submit", async ev => {
     if (!sesion.access_token){
       // Pasa cuando el proyecto exige confirmar el correo: crea el
       // usuario pero no da sesión hasta que se confirme.
-      aviso("Cuenta creada. Confirma el correo que te acabamos de enviar y vuelve aquí a entrar. Guarda el código de invitación: te lo pediremos una vez más al entrar.", "info");
+      // ⚠️ El orden importa: cambiaModo() limpia los avisos al terminar, así
+      // que si se avisa antes de cambiar de pestaña, el mensaje se borra solo
+      // y la persona se queda mirando el formulario de entrar sin saber qué
+      // ha pasado. Lo encontró Cesar probando el alta el 04/09/2026.
       cambiaModo("entrar");
+      aviso("Cuenta creada. Confirma el correo que te acabamos de enviar y vuelve aquí a entrar. Guarda el código de invitación: te lo pediremos una vez más.", "info");
+      $("#correo").value = correo;   // para no tener que escribirlo otra vez
       return;
     }
     guardaSesion(sesion);
