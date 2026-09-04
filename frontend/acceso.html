@@ -190,6 +190,36 @@ body{
   .reloj .avance{ stroke-dashoffset:0 }
 }
 
+/* ── El sobre con la carta ─────────────────────────────────────
+   La carta sube y baja despacio, asomando por la boca del sobre, y la
+   solapa se abre y se cierra a su ritmo. Dos animaciones lentas y en
+   bucle: dan la sensación de "esto está en camino" sin marear. */
+.sobre{width:132px; margin:2px auto 20px}
+.sobre svg{width:100%; height:auto; overflow:visible}
+
+.sobre .carta{
+  transform-origin:center;
+  animation:asoma 3.4s ease-in-out infinite;
+}
+@keyframes asoma{
+  0%,100%{ transform:translateY(14px) }
+  50%    { transform:translateY(-6px) }
+}
+
+.sobre .solapa{
+  stroke-dasharray:130; stroke-dashoffset:0;
+  animation:solapea 3.4s ease-in-out infinite;
+}
+@keyframes solapea{
+  0%,100%{ opacity:1 }
+  50%    { opacity:.35 }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .sobre .carta, .sobre .solapa{ animation:none }
+  .sobre .carta{ transform:translateY(4px) }
+}
+
 .pie{text-align:center; margin-top:18px; font-size:11.5px; color:var(--ink-3)}
 </style>
 </head>
@@ -240,6 +270,50 @@ body{
   </section>
 
   <!-- ── PASO 2 · Tiene sesión pero no es miembro ──────────── -->
+  <!-- ── PASO 1b · Cuenta creada, falta confirmar el correo ────
+       Con la confirmación activada, Supabase no da sesión al registrarse:
+       crea la cuenta y espera a que la persona pulse el enlace. Así que
+       aquí no se puede enseñar la tarjeta de bienvenida —no hay sesión—
+       y hace falta una pantalla propia que explique la espera. -->
+  <section id="pasoCorreo" hidden class="panel-ok">
+    <div class="sobre" aria-hidden="true">
+      <svg viewBox="0 0 120 96">
+        <!-- La carta, que asoma por arriba -->
+        <g class="carta">
+          <rect x="26" y="2" width="68" height="52" rx="5"
+                fill="var(--ground)" stroke="var(--accent)" stroke-width="2" opacity=".9"/>
+          <path d="M37 18h46M37 29h46M37 40h28" stroke="var(--ink-2)"
+                stroke-width="3.4" stroke-linecap="round" opacity=".65"/>
+        </g>
+        <!-- El cuerpo del sobre -->
+        <path d="M8 34h104v54a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z"
+              fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"
+              stroke-linejoin="round"/>
+        <!-- La solapa, cerrándose -->
+        <path class="solapa" d="M8 34 60 70l52-36" fill="none"
+              stroke="var(--accent)" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h2>Confirma tu registro</h2>
+    <p class="sub">
+      Te hemos enviado un correo a <strong id="correoEnviado">tu dirección</strong>.
+      Ábrelo y pulsa el botón para activar la cuenta.
+    </p>
+
+    <div class="aviso info" style="text-align:left">
+      Si no lo ves en unos minutos, <strong>mira en la carpeta de spam</strong>:
+      los primeros correos de un dominio nuevo suelen caer ahí. Márcalo como
+      «no es spam» y los siguientes llegarán bien.
+      <br><br>
+      Y ten a mano el código de invitación: te lo pediremos una vez más al entrar.
+    </div>
+
+    <button class="btn" id="btnYaConfirme" type="button">Ya lo he confirmado, entrar</button>
+    <button class="btn btn-suave" id="btnReenviar" type="button">Reenviar el correo</button>
+  </section>
+
   <section id="pasoCodigo" hidden>
     <div class="aviso info">
       Tu cuenta está creada, pero todavía no tiene acceso. Escribe el código
@@ -435,6 +509,7 @@ function aviso(texto, clase){
 
 function muestra(paso){
   $("#pasoAcceso").hidden = paso !== "acceso";
+  $("#pasoCorreo").hidden = paso !== "correo";
   $("#pasoCodigo").hidden = paso !== "codigo";
   $("#pasoDentro").hidden = paso !== "dentro";
 }
@@ -552,13 +627,16 @@ $("#formAcceso").addEventListener("submit", async ev => {
     if (!sesion.access_token){
       // Pasa cuando el proyecto exige confirmar el correo: crea el
       // usuario pero no da sesión hasta que se confirme.
-      // ⚠️ El orden importa: cambiaModo() limpia los avisos al terminar, así
-      // que si se avisa antes de cambiar de pestaña, el mensaje se borra solo
-      // y la persona se queda mirando el formulario de entrar sin saber qué
-      // ha pasado. Lo encontró Cesar probando el alta el 04/09/2026.
+      // Cuenta creada pero sin sesión: el proyecto exige confirmar el
+      // correo. No se puede enseñar la bienvenida —para eso hace falta
+      // sesión—, así que va su propia pantalla, que explica la espera en
+      // vez de devolver a la gente al formulario sin decir nada.
+      correoPendiente = correo;
+      $("#correoEnviado").textContent = correo;
       cambiaModo("entrar");
-      aviso("Cuenta creada. Confirma el correo que te acabamos de enviar y vuelve aquí a entrar. Guarda el código de invitación: te lo pediremos una vez más.", "info");
-      $("#correo").value = correo;   // para no tener que escribirlo otra vez
+      $("#correo").value = correo;   // listo para cuando vuelva
+      aviso(null);
+      muestra("correo");
       return;
     }
     guardaSesion(sesion);
@@ -609,6 +687,48 @@ async function salir(){
   muestra("acceso");
   aviso("Sesión cerrada.", "info");
 }
+/* ── La espera del correo ──────────────────────────────────────
+   `correoPendiente` guarda a quién se le mandó, para poder reenviárselo
+   sin que lo escriba otra vez. */
+let correoPendiente = "";
+
+$("#btnYaConfirme").addEventListener("click", () => {
+  cambiaModo("entrar");
+  $("#correo").value = correoPendiente || $("#correo").value;
+  muestra("acceso");
+  $("#clave").focus();
+});
+
+/* Reenviar tiene freno propio: Supabase limita los correos por hora y, si
+   se pulsa tres veces seguidas, el cuarto intento ya no sale y encima
+   parece que la culpa es de la aplicación. */
+let puedeReenviar = true;
+$("#btnReenviar").addEventListener("click", async () => {
+  if (!puedeReenviar || !correoPendiente) return;
+  const btn = $("#btnReenviar");
+  puedeReenviar = false;
+  ocupado(true, btn);
+  try {
+    await pide("/auth/v1/resend", {
+      method: "POST",
+      body: JSON.stringify({ type: "signup", email: correoPendiente }),
+    });
+    aviso("Te lo hemos vuelto a enviar. Si tampoco aparece, mira en spam.", "info");
+  } catch(err){
+    aviso(err.message);
+  } finally {
+    ocupado(false, btn);
+    let quedan = 60;
+    btn.disabled = true;
+    btn.textContent = `Reenviar el correo (${quedan})`;
+    const reloj = setInterval(() => {
+      quedan -= 1;
+      btn.textContent = quedan > 0 ? `Reenviar el correo (${quedan})` : "Reenviar el correo";
+      if (quedan <= 0){ clearInterval(reloj); btn.disabled = false; puedeReenviar = true; }
+    }, 1000);
+  }
+});
+
 $("#btnSalir1").addEventListener("click", salir);
 $("#btnSalir2").addEventListener("click", salir);
 $("#btnContinuar").addEventListener("click", entraEnLaApp);
