@@ -7,6 +7,12 @@
 <!-- Pon aquí la URL de tu backend en Vercel, sin barra al final.
      Ejemplo: https://inversio-api.vercel.app -->
 <meta name="api-base" content="https://inversio-lemon.vercel.app">
+
+<!-- Cuentas y datos: se habla con Supabase directamente. La clave
+     publishable es pública por diseño; sin sesión no abre nada, porque
+     las políticas de la base de datos no le conceden nada. -->
+<meta name="supabase-url" content="https://gnrhzddrgsmyxveijcsv.supabase.co">
+<meta name="supabase-key" content="sb_publishable_dRDh4r6Kf60B1RrcKev5UA_PGyAuTnx">
 <title>Cuentas y Cartera</title>
 
 <!-- ── App instalable (PWA) ──────────────────────────────────
@@ -1130,6 +1136,9 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
     <button class="btn btn-sm btn-primary" id="btnSave">Guardar ya</button>
     <button class="btn btn-icon btn-quiet" id="btnTheme" aria-label="Cambiar tema" title="Cambiar tema">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v2m0 14v2m9-9h-2M5 12H3m14.7-6.7-1.4 1.4M7.7 16.3l-1.4 1.4m11 0-1.4-1.4M7.7 7.7 6.3 6.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/></svg>
+    </button>
+    <button class="btn btn-icon btn-quiet" id="btnSalir" aria-label="Cerrar sesión" title="Cerrar sesión">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 17v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10 12h10m0 0-3-3m3 3-3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
   </div>
 </div>
@@ -6556,6 +6565,14 @@ function eventos(){
     await guardarYa(false);
     btn.disabled = false; btn.textContent = "Guardar ya";
   });
+  /* Cerrar sesión: primero se guarda lo que haya pendiente, que salir no
+     debe costarte los últimos cambios. El "?salir" es imprescindible: sin
+     él, la pantalla de acceso vería la sesión todavía válida y te
+     devolvería aquí de rebote. */
+  $("#btnSalir").addEventListener("click", async () => {
+    try { await guardarYa(false); } catch(_){}
+    location.href = PAGINA_ACCESO + "?salir";
+  });
 
   /* Elegir un resultado de la búsqueda */
   document.addEventListener("click", ev => {
@@ -6710,35 +6727,128 @@ function aplicarTema(t){
    ═══════════════════════════════════════════════════════════ */
 const API_BASE = (document.querySelector('meta[name="api-base"]')?.content || "").trim().replace(/\/$/, "");
 
-function obtenerToken(){
-  let t = null;
-  try { t = localStorage.getItem("cyc.token"); } catch(_){}
-  while (!t){
-    const intento = window.prompt("Contraseña de Inversio:");
-    if (intento){ t = intento; try { localStorage.setItem("cyc.token", t); } catch(_){} }
-  }
-  return t;
+/* ── La sesión ────────────────────────────────────────────────
+   Ya no hay contraseña única de la aplicación. Cada uno entra con su
+   cuenta desde acceso.html, que deja la sesión guardada aquí; esta
+   página solo la lee. Si no hay sesión, o ha caducado sin remedio, se
+   va a la pantalla de acceso: nunca se pregunta nada por un prompt. */
+const META    = n => (document.querySelector(`meta[name="${n}"]`)?.content || "").trim();
+const SB_URL  = META("supabase-url").replace(/\/$/, "");
+const SB_KEY  = META("supabase-key");
+const LS_SESION = "cyc.sesion";
+const PAGINA_ACCESO = "acceso.html";
+
+function leeSesion(){
+  try { const r = localStorage.getItem(LS_SESION); return r ? JSON.parse(r) : null; }
+  catch(_){ return null; }
+}
+function guardaSesion(j){
+  const s = {
+    access_token: j.access_token,
+    refresh_token: j.refresh_token,
+    // Un minuto de margen: más vale renovar de más que quedarse a medias.
+    caduca: Date.now() + ((j.expires_in || 3600) * 1000),
+    uid: j.user?.id || leeSesion()?.uid || "",
+    correo: j.user?.email || leeSesion()?.correo || "",
+  };
+  try { localStorage.setItem(LS_SESION, JSON.stringify(s)); } catch(_){}
+  return s;
+}
+function borraSesion(){
+  // Se van también los datos guardados en este navegador: si alguien
+  // cierra sesión en un ordenador compartido, el siguiente no debe
+  // encontrarse su cartera al abrir la página.
+  try { localStorage.removeItem(LS_SESION); localStorage.removeItem(LS_KEY); } catch(_){}
+}
+function alAcceso(){ borraSesion(); location.replace(PAGINA_ACCESO); }
+
+async function renovarSesion(refresh){
+  const r = await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`, {
+    method: "POST",
+    headers: { apikey: SB_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token: refresh }),
+  });
+  if (!r.ok) throw new Error("sesión caducada");
+  return r.json();
 }
 
+/* Devuelve un token válido, renovándolo si hace falta. null = no hay
+   sesión utilizable, y entonces toca volver a la pantalla de acceso. */
+async function tokenValido(){
+  const s = leeSesion();
+  if (!s || !s.access_token) return null;
+  if (Date.now() < (s.caduca - 60000)) return s.access_token;
+  try { return guardaSesion(await renovarSesion(s.refresh_token)).access_token; }
+  catch(_){ return null; }
+}
+
+function miUid(){ return leeSesion()?.uid || ""; }
+
+/* ── Llamadas al backend (solo el proxy de mercado) ───────────
+   El estado ya no pasa por aquí: va directo a la base de datos. */
 async function llamaAPI(ruta, opciones){
-  const token = obtenerToken();
+  const token = await tokenValido();
+  if (!token){ alAcceso(); const e = new Error("sin sesión"); e.code = "needs_reauth"; throw e; }
   const r = await fetch(API_BASE + ruta, {
     ...opciones,
     headers: Object.assign({}, opciones && opciones.headers, { Authorization: "Bearer " + token })
   });
   if (r.status === 401){
-    try { localStorage.removeItem("cyc.token"); } catch(_){}
-    const e = new Error("token incorrecto"); e.code = "needs_reauth"; throw e;
+    alAcceso();
+    const e = new Error("sesión caducada"); e.code = "needs_reauth"; throw e;
   }
   return r;
+}
+
+/* ── El estado, contra la base de datos y con tu nombre ───────
+   La fila lleva tu user_id y las políticas de PostgreSQL solo te dejan
+   tocar la tuya. No es que la aplicación tenga cuidado: es que la base
+   de datos no permite otra cosa, aunque alguien manipule esta página. */
+async function sbEstado(ruta, opciones = {}){
+  const token = await tokenValido();
+  if (!token){ alAcceso(); throw new Error("sin sesión"); }
+  return fetch(`${SB_URL}${ruta}`, {
+    ...opciones,
+    headers: Object.assign({
+      apikey: SB_KEY,
+      Authorization: "Bearer " + token,
+      "Content-Type": "application/json",
+    }, opciones.headers || {}),
+  });
+}
+
+async function leerEstadoNube(){
+  const uid = miUid();
+  if (!uid) return null;
+  const r = await sbEstado(`/rest/v1/perfiles_estado?user_id=eq.${encodeURIComponent(uid)}&select=json`, { cache: "no-store" });
+  if (!r.ok) return null;
+  const filas = await r.json().catch(() => []);
+  return Array.isArray(filas) && filas.length ? filas[0].json : null;
+}
+
+async function guardarEstadoNube(json){
+  const uid = miUid();
+  if (!uid) throw new Error("sin sesión");
+  const r = await sbEstado(`/rest/v1/perfiles_estado`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify([{ user_id: uid, json, actualizado: new Date().toISOString() }]),
+  });
+  if (!r.ok){
+    const texto = await r.text().catch(() => "");
+    const e = new Error("no se pudo guardar: " + texto.slice(0, 200));
+    e.code = "capability_disabled";
+    throw e;
+  }
 }
 
 /* Misma forma que window.claude.use("artifact") */
 const apiArtifactBackend = {
   async publish(ficheros){
-    const cuerpo = ficheros["data/estado.json"];
-    const r = await llamaAPI("/api/estado", { method: "POST", headers: { "Content-Type": "application/json" }, body: cuerpo });
-    if (!r.ok){ const e = new Error("no se pudo guardar"); e.code = "capability_disabled"; throw e; }
+    let json;
+    try { json = JSON.parse(ficheros["data/estado.json"]); }
+    catch(_){ const e = new Error("estado ilegible"); e.code = "capability_disabled"; throw e; }
+    await guardarEstadoNube(json);
   }
 };
 
@@ -6761,6 +6871,14 @@ const apiMcpBackend = {
 
 (async function init(){
   try { aplicarTema(localStorage.getItem("cyc.tema") || "auto"); } catch(_){}
+
+  // Lo primero de todo: ¿hay sesión? Si no, ni se monta la aplicación.
+  if (!SB_URL || !SB_KEY){
+    alert("Falta configurar Supabase en el <head> de esta página.");
+    return;
+  }
+  if (!(await tokenValido())){ alAcceso(); return; }
+
   montaTip(); montaGlobo(); eventos();
 
   const local = cargarLocal();
@@ -6772,7 +6890,7 @@ const apiMcpBackend = {
     esEscritor = false; estadoSync = "local"; pintaSync();
   } else {
     let nube = null;
-    try { const r = await llamaAPI("/api/estado", { cache: "no-store" }); if (r.ok) nube = await r.json(); } catch(_){}
+    try { nube = await leerEstadoNube(); } catch(_){}
     if (nube && Array.isArray(nube.apuntes) && (!local || (nube.rev || 0) >= (local.rev || 0))){
       S = saneaEstado(nube); render();
     }

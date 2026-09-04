@@ -1,0 +1,52 @@
+# ═══════════════════════════════════════════════════════════════
+# Cabeceras de seguridad · ahorrainvierte.es
+# ═══════════════════════════════════════════════════════════════
+#
+# ⚠️ ESTE FICHERO NO PIDE NINGUNA CONTRASEÑA. No tiene nada que ver con
+# aquel .htaccess de "Proteger directorio" que nos dejó fuera del sitio en
+# septiembre de 2026 (ver AVERIAS.md). Aquí solo se añaden cabeceras.
+#
+# Se sube a public_html junto al index.html. Si algún día la web deja de
+# cargar del todo, renómbralo a .htaccess-desactivado desde el gestor de
+# archivos y vuelve a estar como antes: no hay nada más que deshacer.
+
+<IfModule mod_headers.c>
+
+  # HSTS: obliga al navegador a usar https durante un año. Evita que un
+  # atacante en la misma wifi degrade la conexión a http y lea el token.
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+  # Nada de adivinar el tipo de fichero: si decimos que es texto, es texto.
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Que nadie pueda meter la aplicación dentro de un iframe suyo y
+  # engañarte para que pulses donde no crees (clickjacking).
+  Header always set X-Frame-Options "DENY"
+
+  # No filtrar a dónde ibas cuando sales del sitio.
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # La aplicación no necesita cámara, micrófono ni ubicación. Se le quitan.
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+
+  # ── Política de contenido ────────────────────────────────────
+  # Lo que la página puede cargar y con quién puede hablar. Es la
+  # cabecera que convierte un fallo de tipo XSS en un susto en vez de en
+  # un robo: aunque alguien colara un script, no podría enviar tus datos
+  # a ningún sitio que no esté en esta lista.
+  #
+  # 'unsafe-inline' es inevitable aquí: toda la aplicación es un único
+  # fichero con su CSS y su JavaScript dentro. Es el precio de no tener
+  # compilación, y está asumido a conciencia.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://gnrhzddrgsmyxveijcsv.supabase.co https://inversio-lemon.vercel.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+
+</IfModule>
+
+# El service worker debe poder actualizarse siempre: si el navegador se
+# quedara con una copia vieja en caché, la aplicación no se enteraría de
+# las versiones nuevas.
+<FilesMatch "sw\.js$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, must-revalidate"
+  </IfModule>
+</FilesMatch>

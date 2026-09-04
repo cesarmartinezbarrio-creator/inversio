@@ -144,27 +144,50 @@ body{
 .dato span:last-child{font-weight:600; word-break:break-all}
 
 /* ── El círculo de espera ──────────────────────────────────────
-   Un anillo que se va llenando mientras la cuenta atrás corre. La
-   circunferencia del radio 52 es 326.7, y de ahí sale el dasharray:
-   el trazo se dibuja "descontando" ese hueco hasta cerrarlo. */
-.reloj{position:relative; width:112px; height:112px; margin:4px auto 18px}
-.reloj svg{width:100%; height:100%; transform:rotate(-90deg)}
+   Empieza entero y se va gastando, como una mecha: el tiempo que queda
+   es lo que queda de anillo. La circunferencia del radio 52 es 326.7, y
+   de ahí sale el dasharray; moviendo el dashoffset de 0 a 326.7 el trazo
+   desaparece poco a poco.
+   Detrás late un halo, lento, de los que se notan sin llamar la
+   atención; dentro, los segundos que quedan. */
+.reloj{position:relative; width:124px; height:124px; margin:4px auto 20px}
+.reloj svg{width:100%; height:100%; transform:rotate(-90deg); overflow:visible}
 .reloj circle{fill:none; stroke-width:6; stroke-linecap:round}
-.reloj .pista{stroke:var(--rule)}
+
+.reloj .pista{stroke:var(--rule); stroke-width:4}
+
 .reloj .avance{
-  stroke:var(--brand); stroke-dasharray:326.7;
-  stroke-dashoffset:326.7; animation:llena var(--espera,5s) linear forwards;
+  stroke:url(#degradadoReloj);
+  stroke-dasharray:326.7;
+  stroke-dashoffset:0;
+  animation:gasta var(--espera,10s) linear forwards;
+  filter:drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 45%, transparent));
 }
-@keyframes llena{ to{ stroke-dashoffset:0 } }
+@keyframes gasta{ to{ stroke-dashoffset:326.7 } }
+
+.reloj .halo{
+  stroke:color-mix(in srgb, var(--accent) 30%, transparent);
+  stroke-width:2; transform-origin:center;
+  animation:latido 2.4s ease-in-out infinite;
+}
+@keyframes latido{
+  0%,100%{ transform:scale(1);    opacity:.55 }
+  50%    { transform:scale(1.08); opacity:.15 }
+}
+
+/* El número va dentro del anillo, no en su sitio: el anillo dice cuánto
+   queda de un vistazo y la cifra lo concreta para quien quiera mirarla. */
 .reloj .cuenta{
   position:absolute; inset:0; display:grid; place-items:center;
-  font-family:"Outfit",sans-serif; font-size:30px; font-weight:600;
-  color:var(--ink); font-variant-numeric:tabular-nums;
+  font-family:"Outfit",sans-serif; font-size:32px; font-weight:600;
+  color:var(--ink); font-variant-numeric:tabular-nums; letter-spacing:-.02em;
 }
-/* Si alguien tiene el sistema puesto en "menos animaciones", el anillo se
-   queda quieto y lleno: la cuenta atrás sigue viéndose en el número. */
+
+/* Con "menos animaciones" activado en el sistema, todo se queda quieto:
+   el anillo entero, sin latidos. La espera sigue funcionando igual. */
 @media (prefers-reduced-motion: reduce){
-  .reloj .avance{animation:none; stroke-dashoffset:0}
+  .reloj .avance, .reloj .halo{ animation:none }
+  .reloj .avance{ stroke-dashoffset:0 }
 }
 
 .pie{text-align:center; margin-top:18px; font-size:11.5px; color:var(--ink-3)}
@@ -237,9 +260,17 @@ body{
   <section id="pasoDentro" hidden class="panel-ok">
     <div class="reloj">
       <svg viewBox="0 0 120 120" aria-hidden="true">
+        <defs>
+          <linearGradient id="degradadoReloj" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="var(--accent)"></stop>
+            <stop offset="100%" stop-color="var(--good)"></stop>
+          </linearGradient>
+        </defs>
+        <circle class="halo"   cx="60" cy="60" r="52"></circle>
         <circle class="pista"  cx="60" cy="60" r="52"></circle>
         <circle class="avance" cx="60" cy="60" r="52"></circle>
       </svg>
+      <div class="cuenta" id="okCuenta">10</div>
     </div>
 
     <h2>Ya estás dentro</h2>
@@ -432,8 +463,13 @@ function ocupado(si, boton){
   boton.textContent = si ? "Un momento…" : boton.dataset.txt;
 }
 
-/* Con sesión iniciada, decide si ya es miembro o le falta el código. */
-async function tras_entrar(){
+/* Con sesión iniciada, decide si ya es miembro o le falta el código.
+   `recienLlegado` es true solo cuando la cuenta se acaba de crear o el
+   código se acaba de canjear: ese es el único momento en que tiene
+   sentido enseñar la tarjeta de bienvenida. El resto de las veces —el
+   caso normal, entrar a diario— la pantalla de acceso es un peaje, y un
+   peaje bueno es el que no se nota: se va directo a la Portada. */
+async function tras_entrar(recienLlegado){
   const token = await tokenValido();
   if (!token){ muestra("acceso"); return; }
 
@@ -443,6 +479,8 @@ async function tras_entrar(){
 
   const s = leeSesion();
   if (!filas.length){ muestra("codigo"); return; }
+
+  if (!recienLlegado){ location.replace(DESTINO); return; }
 
   // Lo único que se enseña aquí es de quién es la sesión, por si alguien
   // comparte ordenador y entra sin darse cuenta con la cuenta de otro.
@@ -455,15 +493,12 @@ async function tras_entrar(){
 }
 
 /* ── La espera hasta la app ─────────────────────────────────────
-   Se entra solo, pero con salida: el botón "Entrar ahora" se la salta y
-   "cerrar sesión" la cancela.
-   No se enseña el número de segundos a propósito: una cifra bajando
-   invita a mirarla, y lo que hace el anillo llenándose ya se entiende
-   sin contar. */
+   Solo se ve al darse de alta. Se entra solo, pero con salida: el botón
+   "Entrar ahora" se la salta y "cerrar sesión" la cancela. */
 let temporizador = null;
 
 function paraCuentaAtras(){
-  if (temporizador){ clearTimeout(temporizador); temporizador = null; }
+  if (temporizador){ clearInterval(temporizador); temporizador = null; }
 }
 
 function entraEnLaApp(){
@@ -474,6 +509,7 @@ function entraEnLaApp(){
 
 function arrancaCuentaAtras(){
   paraCuentaAtras();
+  let quedan = ESPERA;
   const anillo = document.querySelector(".reloj .avance");
   // Reiniciar la animación por si se vuelve a este paso sin recargar.
   if (anillo){
@@ -482,7 +518,12 @@ function arrancaCuentaAtras(){
     void anillo.offsetWidth;              // fuerza a rehacer el cálculo
     anillo.style.animation = "";
   }
-  temporizador = setTimeout(entraEnLaApp, ESPERA * 1000);
+  $("#okCuenta").textContent = quedan;
+  temporizador = setInterval(() => {
+    quedan -= 1;
+    $("#okCuenta").textContent = Math.max(quedan, 0);
+    if (quedan <= 0) entraEnLaApp();
+  }, 1000);
 }
 
 /* ── Eventos ────────────────────────────────────────────────── */
@@ -511,7 +552,7 @@ $("#formAcceso").addEventListener("submit", async ev => {
     if (!sesion.access_token){
       // Pasa cuando el proyecto exige confirmar el correo: crea el
       // usuario pero no da sesión hasta que se confirme.
-      aviso("Cuenta creada. Revisa tu correo para confirmarla y luego entra.", "info");
+      aviso("Cuenta creada. Confirma el correo que te acabamos de enviar y vuelve aquí a entrar. Guarda el código de invitación: te lo pediremos una vez más al entrar.", "info");
       cambiaModo("entrar");
       return;
     }
@@ -523,7 +564,8 @@ $("#formAcceso").addEventListener("submit", async ev => {
       try { await canjear(codigo, sesion.access_token); }
       catch(err){ aviso(err.message + " Tu cuenta está creada; escribe un código válido para activarla.", "malo"); }
     }
-    await tras_entrar();
+    // Bienvenida solo al crear la cuenta; al entrar, paso directo.
+    await tras_entrar(modo === "crear");
   } catch(err){
     aviso(err.message);
   } finally {
@@ -540,7 +582,7 @@ $("#formCodigo").addEventListener("submit", async ev => {
     const token = await tokenValido();
     if (!token){ muestra("acceso"); return; }
     await canjear($("#codigo2").value.trim(), token);
-    await tras_entrar();
+    await tras_entrar(true);
   } catch(err){
     aviso(err.message);
   } finally {
@@ -572,7 +614,15 @@ $("#btnContinuar").addEventListener("click", entraEnLaApp);
     aviso("Falta configurar la URL o la clave de Supabase en el <head>.");
     return;
   }
-  if (leeSesion()) await tras_entrar();
+  // ahorrainvierte.es/acceso.html?salir  cierra la sesión y se queda
+  // aquí. Hace falta porque, con sesión válida, esta página va derecha a
+  // la aplicación: sin esta puerta no habría manera de salir.
+  if (/(^|[?&])salir\b/.test(location.search)){
+    await salir();
+    history.replaceState(null, "", location.pathname);
+    return;
+  }
+  if (leeSesion()) await tras_entrar(false);
   else muestra("acceso");
 })();
 </script>
