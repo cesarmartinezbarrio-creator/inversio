@@ -34,6 +34,7 @@ inversio/
 │  ├─ index.html      428 KB · LA APLICACIÓN ENTERA (ver §3)
 │  ├─ acceso.html      32 KB · registro, entrada, confirmación (ver §4)
 │  ├─ .htaccess              · cabeceras de seguridad (HSTS, CSP…)
+│  ├─ vendor/tesseract/      · 5,1 MB · el motor de OCR de los tiques (ver §3b)
 │  ├─ manifest.json          · para instalarla como app en el móvil
 │  ├─ sw.js                  · service worker
 │  └─ iconos/                · 6 PNG
@@ -90,6 +91,7 @@ grep -n '^function \|^async function ' frontend/index.html   # las funciones
 | 4797 | MERCADO · Cómo se valora | `renderMetodo` |
 | 4892 | INTERÉS COMPUESTO | `renderCompuesto` |
 | 4969 | Lector de PDF | pdf.js en local; el fichero **no** se sube a ningún sitio |
+| ~5340 | **Lector de tiques** | Tesseract en local: `analizaTique`, `leerTique`, `confirmarTique` |
 | 5339 | Precios en vivo | `precioDeUno`, `actualizarPreciosEnVivo` |
 | 5554 | Buscar un producto | `buscarProducto`, `traerDatos`, `elegirResultado` |
 | 5962 | Prompt de extracción | El texto que se copia para pegar en Claude |
@@ -127,6 +129,36 @@ app **siempre abre en Portada**, nunca en el último módulo visitado. Fue una
 petición explícita; no lo "arregles".
 
 ---
+
+### 3b · El lector de tiques
+
+Hace **una** cosa: sacar el importe total de una foto y apuntarlo como un
+gasto. No reconstruye la cesta de la compra, y es a propósito.
+
+Medido sobre una foto degradada a propósito (torcida, con sombra, con ruido,
+JPEG de móvil): **el total y la fecha salen bien; el desglose falla en 2 de
+cada 8 líneas**. Un total correcto vale; una cesta con dos precios inventados
+es peor que no tener nada. De ahí el alcance.
+
+- El motor (Tesseract) se sirve desde `frontend/vendor/tesseract/`, **nunca
+  desde un CDN**: si viniera de fuera, la CSP lo bloquearía y además la foto
+  pasaría por un tercero.
+- Se descarga **la primera vez que se usa**, no al abrir la app. Son 5,1 MB;
+  después queda en la caché del navegador.
+- La imagen se lee con `preparaFoto` (gris + contraste por percentiles) y se
+  descarta con `URL.revokeObjectURL` al terminar. **No se guarda en ningún
+  sitio**: ni en la base de datos, ni en `localStorage`, ni en el estado.
+- La CSP del `.htaccess` necesita `'wasm-unsafe-eval'` y `worker-src blob:`.
+  Si se toca ese `.htaccess`, el lector deja de arrancar sin decir por qué.
+
+**Para regenerar el motor** si algún día hay que actualizarlo:
+
+```
+npm pack tesseract.js@5 tesseract.js-core@5 @tesseract.js-data/spa
+```
+
+y de ahí salen `dist/tesseract.min.js`, `dist/worker.min.js`,
+`tesseract-core-simd-lstm.js` + `.wasm`, y `4.0.0_best_int/spa.traineddata.gz`.
 
 ## 4 · Dentro de `frontend/acceso.html`
 

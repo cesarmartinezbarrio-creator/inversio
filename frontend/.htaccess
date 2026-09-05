@@ -38,7 +38,18 @@
   # 'unsafe-inline' es inevitable aquí: toda la aplicación es un único
   # fichero con su CSS y su JavaScript dentro. Es el precio de no tener
   # compilación, y está asumido a conciencia.
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://gnrhzddrgsmyxveijcsv.supabase.co https://inversio-lemon.vercel.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+  #
+  # Lo que el lector de tiques añade a esta lista, y por qué:
+  #   'wasm-unsafe-eval'  el motor de OCR es WebAssembly. Sin esto el
+  #                       navegador no lo deja arrancar. NO abre la puerta
+  #                       a eval() de JavaScript: es solo para WASM.
+  #   blob:  en script-src y worker-src, porque el lector se ejecuta en un
+  #          hilo aparte que se crea desde un blob. Gracias a eso la página
+  #          no se congela mientras lee la foto.
+  # Todo se sirve desde 'self': el motor está en vendor/tesseract y no se
+  # descarga de ningún sitio ajeno. La foto tampoco sale: connect-src sigue
+  # sin permitir subirla a ninguna parte.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; child-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' blob: https://gnrhzddrgsmyxveijcsv.supabase.co https://inversio-lemon.vercel.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
 
 </IfModule>
 

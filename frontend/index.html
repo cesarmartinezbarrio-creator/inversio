@@ -1285,6 +1285,58 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
   <div class="dlg-ft" id="buscaPie"></div>
 </dialog>
 
+<!-- ── Foto de un tique ──────────────────────────────────────────
+     La imagen se lee dentro del navegador y NO se guarda en ningún
+     sitio: en cuanto se apunta el gasto, se descarta. Por eso no hay
+     ninguna vista previa que sobreviva al diálogo. -->
+<dialog id="dlgTique">
+  <div class="dlg-hd"><h3>Gasto desde un tique</h3><button class="btn btn-sm btn-quiet" data-close>Cerrar</button></div>
+  <div class="dlg-bd">
+
+    <div id="tiqueLeyendo">
+      <p class="note" id="tiqueEstado">Preparando el lector…</p>
+      <div class="secc-b" style="margin-top:10px"><i id="tiqueBarra" style="width:4%;background:var(--accent);transition:width .25s"></i></div>
+      <p class="help" style="margin-top:14px">La primera vez hay que descargar el lector (unos 5 MB). Después queda guardado y ya no se vuelve a bajar. La foto no sale de este dispositivo.</p>
+    </div>
+
+    <div id="tiqueForm" hidden>
+      <div class="callout" id="tiqueResumen"></div>
+
+      <div class="field"><label for="tqImporte">Importe</label>
+        <input class="cel num" id="tqImporte" inputmode="decimal" placeholder="0,00"></div>
+
+      <div class="field"><label for="tqDesc">¿De qué era?</label>
+        <input class="cel" id="tqDesc" placeholder="Compra"></div>
+
+      <div class="field"><label for="tqSeccion">Sección</label>
+        <select class="cel" id="tqSeccion">
+          <option value="variables">Gastos variables</option>
+          <option value="fijos">Gastos fijos</option>
+          <option value="colchon">Colchón</option>
+        </select></div>
+
+      <div class="field"><label for="tqItem">Partida</label>
+        <select class="cel" id="tqItem"></select>
+        <p class="help" id="tqAvisoItem" hidden>Esta partida lleva un solo importe al mes: lo que apuntes se <strong>sumará</strong> a lo que ya tenga.</p></div>
+
+      <details style="margin-top:16px">
+        <summary class="note" style="cursor:pointer">Ver lo que he leído del tique</summary>
+        <pre class="code" id="tiqueTexto" style="max-height:220px;overflow:auto;white-space:pre-wrap;margin-top:10px"></pre>
+      </details>
+    </div>
+
+    <div id="tiqueFallo" hidden>
+      <div class="callout"><strong>No he podido leerlo.</strong> <span id="tiqueFalloTxt"></span></div>
+      <p class="help">Ayuda mucho: el tique estirado sobre una superficie lisa, con luz por encima y llenando casi toda la foto. Si aun así no sale, apunta el gasto a mano — es más rápido que pelearse.</p>
+    </div>
+  </div>
+  <div class="dlg-ft">
+    <button class="btn" data-close>Cancelar</button>
+    <button class="btn btn-primary" id="btnTiqueOk" disabled>Apuntar el gasto</button>
+  </div>
+</dialog>
+<input type="file" id="ficheroTique" accept="image/*" hidden>
+
 <div id="capaSoltar" aria-hidden="true">
   <div class="caja">
     <h3>Suelta el informe aquí</h3>
@@ -3454,7 +3506,16 @@ function renderMes(){
 
   host.innerHTML =
     card("El mes", barraMes() + `
-      <p class="help" style="margin-top:14px">Rellena solo las casillas que tengan importe este mes; lo que dejes vacío no cuenta. La <strong>chincheta</strong> de cada partida la ancla: si vale lo mismo todos los meses, la anclas una vez y ya no la vuelves a escribir.</p>`) +
+      <p class="help" style="margin-top:14px">Rellena solo las casillas que tengan importe este mes; lo que dejes vacío no cuenta. La <strong>chincheta</strong> de cada partida la ancla: si vale lo mismo todos los meses, la anclas una vez y ya no la vuelves a escribir.</p>
+      <div class="fila-acc" style="margin-top:14px">
+        <button class="btn btn-sm" data-act="foto-tique">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="vertical-align:-2px;margin-right:6px">
+            <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7l1.2-2h6.2l1.2 2h1.7A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <circle cx="11.8" cy="12.4" r="3.2" stroke="currentColor" stroke-width="1.6"/></svg>
+          Apuntar un gasto con una foto
+        </button>
+      </div>
+      <p class="help">Haz una foto del tique o elige una que ya tengas. Se lee <strong>aquí dentro</strong>, saco el importe, y la foto se descarta: no se guarda ni se sube a ningún sitio.</p>`) +
 
     panelFijas +
 
@@ -5337,6 +5398,286 @@ ${cuentas.slice(0, 500).map(l => l.texto).join("\n")}`;
 
 
 /* ═══════════════════════════════════════════════════════════
+   Lector de tiques — la foto se lee aquí y se tira
+   ═══════════════════════════════════════════════════════════
+   Mismo principio que el lector de PDF: el motor de OCR (Tesseract)
+   se descarga desde este mismo servidor y trabaja dentro del
+   navegador. La imagen no se sube a ningún sitio, no se guarda y no
+   llega a la base de datos: se lee, se saca el importe, y se
+   descarta al cerrar el diálogo.
+
+   Lo que se lee y lo que NO. Medido sobre fotos estropeadas a
+   propósito —torcidas, con sombra, con ruido—: el TOTAL y la FECHA
+   salen bien; el desglose de artículos se equivoca en un par de
+   líneas de cada ocho. Por eso esto apunta UN gasto con el total, y
+   no intenta reconstruir la cesta de la compra. Prometer el
+   desglose sería prometer un dato que a veces está mal, y un gasto
+   mal apuntado es peor que un gasto apuntado a mano. */
+
+const TESS_DIR = "vendor/tesseract/";
+let tesseractPromesa = null;
+let TIQUE = null;                       // lo leído, mientras el diálogo está abierto
+
+function cargarTesseract(){
+  if (tesseractPromesa) return tesseractPromesa;
+  tesseractPromesa = new Promise((ok, mal) => {
+    const s = document.createElement("script");
+    s.src = TESS_DIR + "tesseract.min.js";
+    s.onload  = () => window.Tesseract ? ok(window.Tesseract)
+                                       : mal(new Error("El lector se ha cargado a medias."));
+    s.onerror = () => mal(new Error("No encuentro el lector en el servidor. Falta subir la carpeta «vendor/tesseract»."));
+    document.head.appendChild(s);
+  });
+  return tesseractPromesa;
+}
+
+/* Prepara la foto: la pone en gris y estira el contraste. Un tique es
+   texto negro sobre papel claro, así que separar esos dos extremos
+   ayuda más que cualquier otro filtro. Se limita el tamaño porque por
+   encima de ~1.600 px no se acierta más y sí se tarda mucho más. */
+function preparaFoto(img){
+  const MAX = 1600;
+  const lado = Math.max(img.naturalWidth, img.naturalHeight);
+  const esc = Math.min(MAX / lado, 2);
+  const c = document.createElement("canvas");
+  c.width  = Math.max(1, Math.round(img.naturalWidth  * esc));
+  c.height = Math.max(1, Math.round(img.naturalHeight * esc));
+  const x = c.getContext("2d", { willReadFrequently: true });
+  x.imageSmoothingQuality = "high";
+  x.drawImage(img, 0, 0, c.width, c.height);
+  try {
+    const d = x.getImageData(0, 0, c.width, c.height), p = d.data;
+    const n = p.length / 4;
+    const g = new Uint8Array(n);
+    for (let i = 0, j = 0; j < n; i += 4, j++)
+      g[j] = (p[i] * 0.299 + p[i + 1] * 0.587 + p[i + 2] * 0.114) | 0;
+    // Percentiles en vez de mínimo y máximo: una mota negra o un brillo
+    // no deben decidir el contraste de toda la foto.
+    const h = new Uint32Array(256);
+    for (let j = 0; j < n; j++) h[g[j]]++;
+    let lo = 0, hi = 255, acc = 0;
+    for (let v = 0; v < 256; v++){ acc += h[v]; if (acc > n * 0.02){ lo = v; break; } }
+    acc = 0;
+    for (let v = 255; v >= 0; v--){ acc += h[v]; if (acc > n * 0.20){ hi = v; break; } }
+    const r = Math.max(hi - lo, 1);
+    for (let i = 0, j = 0; j < n; i += 4, j++){
+      const v = Math.max(0, Math.min(255, ((g[j] - lo) * 255 / r) | 0));
+      p[i] = p[i + 1] = p[i + 2] = v;
+    }
+    x.putImageData(d, 0, 0);
+  } catch(_){ /* si el navegador no deja leer el lienzo, va la foto tal cual */ }
+  return c;
+}
+
+/* ── Sacar las cifras del texto ─────────────────────────────── */
+
+/* "38,17" · "38.17" · "1.234,56" → 38.17 / 1234.56. El separador
+   decimal es el último que lleve DOS dígitos detrás; lo demás son
+   separadores de millar. */
+function numTique(s){
+  const t = String(s || "").replace(/[^\d.,]/g, "");
+  if (!t) return null;
+  const m = t.match(/^(\d[\d.,]*)[.,](\d{2})$/);
+  if (m){
+    const ent = m[1].replace(/[.,]/g, "");
+    const v = parseFloat(ent + "." + m[2]);
+    return isFinite(v) ? { valor: v, dec: true } : null;
+  }
+  const v = parseInt(t.replace(/[.,]/g, ""), 10);
+  return isFinite(v) ? { valor: v, dec: false } : null;
+}
+
+function importesDe(linea){
+  return (String(linea).match(/\d[\d.,]*\d|\d/g) || [])
+    .map(numTique).filter(Boolean);
+}
+
+/* Estas palabras marcan el total... */
+const RE_TOTAL = /\b(total\s*a\s*pagar|importe\s*total|total|a\s*pagar)\b/i;
+/* ...y estas lo desmienten, aunque contengan "total". */
+const RE_NO_TOTAL = /\b(sub\s*-?\s*total|base|i\.?\s*v\.?\s*a|iva|cambio|entregad|devuelt|efectivo|descuento|ahorr)\b/i;
+
+function fechaDeTique(texto){
+  const m = String(texto).match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b/);
+  if (!m) return null;
+  const d = +m[1], mes = +m[2];
+  let a = +m[3]; if (a < 100) a += 2000;
+  if (mes < 1 || mes > 12 || d < 1 || d > 31 || a < 2000 || a > 2100) return null;
+  return { anio: a, mes, dia: d };
+}
+
+/* El nombre del comercio suele ser la primera línea con letra de
+   verdad: se descartan las que son casi todo cifras (NIF, teléfono). */
+function comercioDeTique(lineas){
+  for (const l of lineas.slice(0, 6)){
+    const t = l.trim();
+    if (t.length < 4) continue;
+    const letras = (t.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g) || []).length;
+    if (letras >= 4 && letras / t.length > 0.6 && !/\b(nif|cif|tel|factura|ticket)\b/i.test(t))
+      return t.replace(/\s+/g, " ").slice(0, 40);
+  }
+  return "";
+}
+
+function analizaTique(texto){
+  const lineas = String(texto || "").split("\n").map(l => l.trim()).filter(Boolean);
+
+  // De abajo arriba: el total está al final, y si hay varios manda el último.
+  let total = null;
+  for (let i = lineas.length - 1; i >= 0 && total === null; i--){
+    const l = lineas[i];
+    if (!RE_TOTAL.test(l) || RE_NO_TOTAL.test(l)) continue;
+    let imp = importesDe(l).filter(v => v.dec);
+    // "TOTAL" en una línea y la cifra en la siguiente pasa a menudo.
+    if (!imp.length && lineas[i + 1]) imp = importesDe(lineas[i + 1]).filter(v => v.dec);
+    if (imp.length) total = imp[imp.length - 1].valor;
+  }
+
+  // Sin palabra clave: la cifra con decimales más alta suele ser el total.
+  if (total === null){
+    const todos = lineas.filter(l => !RE_NO_TOTAL.test(l))
+                        .flatMap(importesDe).filter(v => v.dec).map(v => v.valor);
+    if (todos.length) total = Math.max(...todos);
+  }
+
+  return {
+    total,
+    fecha: fechaDeTique(texto),
+    comercio: comercioDeTique(lineas),
+    texto: lineas.join("\n")
+  };
+}
+
+/* ── El recorrido ───────────────────────────────────────────── */
+
+function abreTique(){ $("#ficheroTique").click(); }
+
+function pasoTique(txt, pct){
+  $("#tiqueEstado").textContent = txt;
+  $("#tiqueBarra").style.width = Math.max(4, Math.min(100, pct)) + "%";
+}
+
+async function leerTique(file){
+  if (!file) return;
+  TIQUE = null;
+  $("#tiqueLeyendo").hidden = false;
+  $("#tiqueForm").hidden = true;
+  $("#tiqueFallo").hidden = true;
+  $("#btnTiqueOk").disabled = true;
+  pasoTique("Preparando el lector…", 4);
+  if (!$("#dlgTique").open) $("#dlgTique").showModal();
+
+  let url = null, worker = null;
+  try {
+    const T = await cargarTesseract();
+    pasoTique("Abriendo la foto…", 12);
+
+    url = URL.createObjectURL(file);
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const lienzo = preparaFoto(img);
+
+    pasoTique("Descargando el lector (solo la primera vez)…", 20);
+    worker = await T.createWorker("spa", 1, {
+      workerPath: TESS_DIR + "worker.min.js",
+      corePath:   TESS_DIR + "tesseract-core-simd-lstm.js",
+      langPath:   TESS_DIR + "lang",
+      gzip: true,
+      logger: m => {
+        if (m.status === "recognizing text") pasoTique("Leyendo el tique…", 55 + (m.progress || 0) * 45);
+        else if (m.progress != null)         pasoTique("Preparando el lector…", 20 + (m.progress || 0) * 30);
+      }
+    });
+
+    const { data } = await worker.recognize(lienzo);
+    const A = analizaTique(data.text);
+    A.confianza = Math.round(data.confidence || 0);
+    TIQUE = A;
+    pintaTique(A);
+  } catch(err){
+    $("#tiqueLeyendo").hidden = true;
+    $("#tiqueFallo").hidden = false;
+    $("#tiqueFalloTxt").textContent = err && err.message ? err.message : "Ha fallado el lector.";
+  } finally {
+    if (worker){ try { await worker.terminate(); } catch(_){} }
+    if (url) URL.revokeObjectURL(url);   // la foto se suelta aquí: no queda copia
+    $("#ficheroTique").value = "";
+  }
+}
+
+function itemsDeSeccion(k){
+  return (S.etiquetas[k] || []).slice();
+}
+
+function pintaItemsTique(){
+  const k = $("#tqSeccion").value;
+  const items = itemsDeSeccion(k);
+  const prefiere = items.find(i => PIDE_DESC.includes(i)) || items[0] || "";
+  $("#tqItem").innerHTML = items.map(i => `<option${i === prefiere ? " selected" : ""}>${esc(i)}</option>`).join("");
+  avisaItemTique();
+}
+
+function avisaItemTique(){
+  $("#tqAvisoItem").hidden = PIDE_DESC.includes($("#tqItem").value);
+}
+
+function pintaTique(A){
+  $("#tiqueLeyendo").hidden = true;
+  $("#tiqueForm").hidden = false;
+  $("#tiqueTexto").textContent = A.texto || "(no he sacado nada de texto)";
+
+  const mes = A.fecha ? `${A.fecha.anio}-${String(A.fecha.mes).padStart(2, "0")}` : S.mes;
+  A.mes = mes;
+
+  const partes = [];
+  partes.push(A.total != null
+    ? `He leído un total de <strong>${dinero(A.total)}</strong>.`
+    : `<strong>No he encontrado el total.</strong> Escríbelo tú.`);
+  if (A.fecha) partes.push(`Fecha del tique: <strong>${A.fecha.dia}/${A.fecha.mes}/${A.fecha.anio}</strong>.`);
+  partes.push(`Se apuntará en <strong>${mesTexto(mes)}</strong>.`);
+  if (mes !== S.mes) partes.push(`Ojo: no es el mes que tienes abierto.`);
+  partes.push(`<br><span class="note">Revísalo antes de guardar: leer una foto no es exacto.</span>`);
+  $("#tiqueResumen").innerHTML = partes.join(" ");
+
+  $("#tqImporte").value = A.total != null ? String(A.total.toFixed(2)).replace(".", ",") : "";
+  $("#tqDesc").value = A.comercio || "Compra";
+  $("#tqSeccion").value = "variables";
+  pintaItemsTique();
+  $("#btnTiqueOk").disabled = false;
+  if (A.total == null) $("#tqImporte").focus();
+}
+
+function confirmarTique(){
+  if (!TIQUE) return;
+  const importe = num($("#tqImporte").value);
+  if (!isN(importe) || importe <= 0){
+    toast("Escribe un importe mayor que cero.");
+    $("#tqImporte").focus();
+    return;
+  }
+  const mes = TIQUE.mes || S.mes;
+  const seccion = $("#tqSeccion").value;
+  const item = $("#tqItem").value;
+  const desc = ($("#tqDesc").value || "").trim() || "Compra";
+
+  if (PIDE_DESC.includes(item)){
+    // Partida de descripción libre: cada tique es su propia línea.
+    S.apuntes.push({ id: uid(), mes, seccion, item, desc, importe: Math.abs(importe) });
+  } else {
+    // Partida de un solo importe al mes: se suma a lo que hubiera.
+    const ya = apunteSimple(mes, seccion, item);
+    ponerImporte(mes, seccion, item, (ya ? ya.importe : 0) + Math.abs(importe));
+  }
+
+  S.mes = mes; S.modulo = "economia"; S.tab = "mes";
+  TIQUE = null;
+  $("#dlgTique").close();
+  render();
+  toast(`Apuntado: ${dinero(importe)} en ${item}.`);
+}
+
+/* ═══════════════════════════════════════════════════════════
    Precios en vivo por conector
    ═══════════════════════════════════════════════════════════
    Las llamadas van con TUS credenciales de claude.ai. La página
@@ -6429,6 +6770,7 @@ function eventos(){
       case "anio-menos": if (act && act.anios.length > 2){
         act.anios.shift(); CLAVES.forEach(k => act.d[k].shift()); render(); } break;
       case "soltar-pdf": $("#ficheroPdf") ? $("#ficheroPdf").click() : (S.tab = "estudio", render()); break;
+      case "foto-tique": abreTique(); break;
       case "copiar-prompt": alPortapapeles(PROMPT, "Prompt copiado. Ábrelo en el chat con el PDF adjunto."); break;
       case "copiar-informe": if (act) alPortapapeles(peticionInforme(act), "Petición copiada. Pégamela en el chat."); break;
       case "pegar-json": if (act){ S.fichaAbierta = act.id; $("#jsonText").value = ""; $("#dlgJson").showModal(); } break;
@@ -6556,6 +6898,9 @@ function eventos(){
   $("#btnInvOk").addEventListener("click", guardarInv);
   $("#btnDoPrecios").addEventListener("click", () => aplicarPrecios($("#preciosText").value));
   $("#btnJsonOk").addEventListener("click", () => cargarJson($("#jsonText").value));
+  $("#btnTiqueOk").addEventListener("click", confirmarTique);
+  // Al cerrar, la foto ya no existe y lo leído tampoco tiene por qué quedarse.
+  $("#dlgTique").addEventListener("close", () => { TIQUE = null; });
   $("#btnTheme").addEventListener("click", () => {
     const a = document.documentElement.getAttribute("data-theme");
     aplicarTema(a === "dark" ? "light" : a === "light" ? "auto" : "dark"); render();
@@ -6629,6 +6974,9 @@ function eventos(){
   });
   document.addEventListener("change", ev => {
     if (ev.target.id === "ficheroPdf"){ const f = ev.target.files[0]; ev.target.value = ""; if (f) leerPdf(f); }
+    if (ev.target.id === "ficheroTique"){ const f = ev.target.files[0]; if (f) leerTique(f); }
+    if (ev.target.id === "tqSeccion") pintaItemsTique();
+    if (ev.target.id === "tqItem")    avisaItemTique();
     if (ev.target.id === "revEscala" && PDF){
       const nueva = parseFloat(ev.target.value), r = nueva / PDF.escala.f;
       if (!isFinite(r) || r === 1) return;
