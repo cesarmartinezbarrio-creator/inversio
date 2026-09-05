@@ -149,9 +149,23 @@ El anillo **se vacía**, no se llena: `@keyframes gasta` va de
 `tras_entrar(recienLlegado)` decide: si es una entrada normal va directo a la app;
 la tarjeta de bienvenida solo sale tras registrarse o canjear código.
 
+**El código de invitación se pide una vez, no dos.** Se escribe al crear la
+cuenta y se guarda en `localStorage` bajo `cyc.codigo`; al volver del correo,
+`tras_entrar` lo canjea solo y `#pasoCodigo` ni se ve. Esa pantalla sigue ahí
+como red: salta si no hay código guardado (se confirmó desde otro dispositivo)
+o si el guardado no vale, y en ese caso el guardado se borra para que no se
+quede pegado. `salir()` también lo borra, por si el ordenador es compartido.
+
 **Trampa conocida**: `cambiaModo()` termina llamando a `aviso(null)`, que borra el
 mensaje en pantalla. Si escribes un aviso *antes* de `cambiaModo`, desaparece.
 Este fallo ya nos costó una tarde.
+
+**Trampa peor, y de la misma familia**: activar la confirmación por correo en
+Supabase dejó código muerto sin avisar. El registro pasó a no devolver sesión,
+y como canjear exige sesión, la línea que canjeaba quedó detrás de un `return`
+y nunca se ejecutaba. El campo seguía ahí, pidiendo un dato que se tiraba. Si
+cambias una opción de autenticación en el panel, repasa qué caminos del código
+dejan de recorrerse.
 
 ---
 

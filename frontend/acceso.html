@@ -307,7 +307,7 @@ body{
       los primeros correos de un dominio nuevo suelen caer ahí. Márcalo como
       «no es spam» y los siguientes llegarán bien.
       <br><br>
-      Y ten a mano el código de invitación: te lo pediremos una vez más al entrar.
+      Tu código ya está guardado: al volver, tu cuenta se activa sola.
     </div>
 
     <button class="btn" id="btnYaConfirme" type="button">Ya lo he confirmado, entrar</button>
@@ -387,6 +387,11 @@ const KEY = meta("supabase-key");
 const DESTINO = meta("destino") || "/index.html";
 const ESPERA  = Math.min(Math.max(parseInt(meta("espera") || "5", 10) || 5, 1), 30);
 const LS  = "cyc.sesion";
+// El código de invitación que se escribió al crear la cuenta. Se guarda
+// aquí porque en ese momento no hay sesión —con la confirmación activada,
+// Supabase no la da hasta que se pulsa el enlace del correo— y canjear
+// exige sesión. Al volver del correo se recupera y se canjea solo.
+const LS_COD = "cyc.codigo";
 
 const $ = s => document.querySelector(s);
 
@@ -407,6 +412,13 @@ function leeSesion(){
   try { return JSON.parse(localStorage.getItem(LS) || "null"); } catch(_){ return null; }
 }
 function borraSesion(){ try { localStorage.removeItem(LS); } catch(_){} }
+
+/* El código pendiente de canjear. Vive en el navegador desde que se crea
+   la cuenta hasta que se activa; si el navegador no lo tiene —porque se
+   confirmó desde el móvil, por ejemplo— se pide como antes. */
+function guardaCodigo(c){ try { localStorage.setItem(LS_COD, c); } catch(_){} }
+function leeCodigo(){ try { return localStorage.getItem(LS_COD) || ""; } catch(_){ return ""; } }
+function borraCodigo(){ try { localStorage.removeItem(LS_COD); } catch(_){} }
 
 /* ── Traducción de los errores de Supabase ──────────────────── */
 /* Sin esto, el usuario ve "Invalid login credentials" y se queda igual.
@@ -553,7 +565,27 @@ async function tras_entrar(recienLlegado){
   catch(err){ aviso(err.message); muestra("acceso"); return; }
 
   const s = leeSesion();
-  if (!filas.length){ muestra("codigo"); return; }
+
+  // Todavía no es miembro. Antes de pedirle el código otra vez, se prueba
+  // con el que escribió al registrarse: en el caso normal —crear la cuenta
+  // y confirmar desde el mismo navegador— se canjea solo y no llega a ver
+  // el segundo formulario. Si no hay guardado, o si no vale, se le pide,
+  // que para eso sigue estando esa pantalla.
+  if (!filas.length){
+    const guardado = leeCodigo();
+    if (guardado){
+      try {
+        await canjear(guardado, token);
+        borraCodigo();
+        filas = [1];              // ya es miembro; no hace falta releerlo
+        recienLlegado = true;     // acaba de activarse: toca la bienvenida
+      } catch(err){
+        borraCodigo();            // no valía: que no se quede pegado
+        aviso(err.message);
+      }
+    }
+    if (!filas.length){ muestra("codigo"); return; }
+  }
 
   if (!recienLlegado){ location.replace(DESTINO); return; }
 
@@ -631,6 +663,10 @@ $("#formAcceso").addEventListener("submit", async ev => {
       // correo. No se puede enseñar la bienvenida —para eso hace falta
       // sesión—, así que va su propia pantalla, que explica la espera en
       // vez de devolver a la gente al formulario sin decir nada.
+      // Aquí es donde el código dejaba de servir: se escribía, y como no
+      // hay sesión todavía, no se podía canjear y se perdía. Ahora se
+      // guarda y se canjea solo al volver, para no pedirlo dos veces.
+      if (codigo) guardaCodigo(codigo);
       correoPendiente = correo;
       $("#correoEnviado").textContent = correo;
       cambiaModo("entrar");
@@ -644,7 +680,7 @@ $("#formAcceso").addEventListener("submit", async ev => {
     // Recién registrado: se canjea el código en el mismo gesto, para que
     // no parezca que hay dos pasos donde el usuario ve uno.
     if (modo === "crear"){
-      try { await canjear(codigo, sesion.access_token); }
+      try { await canjear(codigo, sesion.access_token); borraCodigo(); }
       catch(err){ aviso(err.message + " Tu cuenta está creada; escribe un código válido para activarla.", "malo"); }
     }
     // Bienvenida solo al crear la cuenta; al entrar, paso directo.
@@ -665,6 +701,7 @@ $("#formCodigo").addEventListener("submit", async ev => {
     const token = await tokenValido();
     if (!token){ muestra("acceso"); return; }
     await canjear($("#codigo2").value.trim(), token);
+    borraCodigo();
     await tras_entrar(true);
   } catch(err){
     aviso(err.message);
@@ -681,6 +718,7 @@ async function salir(){
     try { await pide("/auth/v1/logout", { method:"POST" }, token); } catch(_){}
   }
   borraSesion();
+  borraCodigo();              // que no quede pendiente en un ordenador compartido
   $("#correo").value = ""; $("#clave").value = "";
   $("#codigo").value = ""; $("#codigo2").value = "";
   cambiaModo("entrar");
