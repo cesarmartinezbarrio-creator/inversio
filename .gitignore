@@ -3,3 +3,8 @@ node_modules/
 .env.local
 .vercel
 .DS_Store
+
+# Donde la aplicación de escritorio deja los ficheros que se generan en la
+# conversación (capturas, pruebas, borradores). Son de usar y tirar: no
+# forman parte del proyecto y no tienen por qué acabar en GitHub.
+Claude outputs/
