@@ -27,7 +27,14 @@
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
   # La aplicación no necesita cámara, micrófono ni ubicación. Se le quitan.
-  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+  # `camera=(self)` permite la cámara SOLO a esta página, y a nadie más: ni a
+  # un iframe ni a nada de fuera. Hace falta para escanear tiques, porque el
+  # vídeo se abre dentro de la propia página en vez de pedírselo a la
+  # aplicación de cámara del teléfono — que es lo que un móvil con perfil de
+  # trabajo bloquea. Con `camera=()` el navegador lo prohíbe todo, incluida
+  # esta misma web, y el lector no llegaría ni a arrancar.
+  # El micrófono sigue prohibido: para leer un tique no hace ninguna falta.
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(self), payment=(), usb=()"
 
   # ── Política de contenido ────────────────────────────────────
   # Lo que la página puede cargar y con quién puede hablar. Es la

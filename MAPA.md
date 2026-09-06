@@ -132,6 +132,27 @@ petición explícita; no lo "arregles".
 
 ### 3b · El lector de tiques
 
+**Tres cosas que parecen detalles y no lo son.** Las tres costaron una tarde:
+
+1. **La cámara se abre con `getUserMedia`, no con `<input capture>`.** Un
+   `<input type="file">` le pide el fichero a *otra* aplicación de Android. En
+   un móvil con perfil de trabajo eso está prohibido — «no se puede aceptar
+   datos de trabajo desde una aplicación personal» — y no hay forma de
+   esquivarlo desde el código. Con `getUserMedia` el vídeo entra en la propia
+   página: no cruza ninguna frontera y no hay nada que bloquear.
+2. **`workerBlobURL: false` es obligatorio.** Por defecto el motor se ejecuta
+   desde una URL `blob:`, y desde ahí no sabe resolver la ruta de su propio
+   `.wasm`: la petición falla en silencio, la promesa nunca termina y la
+   barra de progreso gira eternamente. Medido: colgado a los 90 s contra
+   1,2 s cargándolo por su URL de verdad.
+3. **El `.htaccess` tenía `camera=()`**, que prohíbe la cámara a todo el
+   mundo, esta web incluida. Ahora es `camera=(self)`.
+
+Y todas las esperas llevan límite de tiempo (`conLimite`). Una barra girando
+sin fin no informa de nada y hace pensar que la aplicación está rota.
+
+
+
 Hace **una** cosa: sacar el importe total de una foto y apuntarlo como un
 gasto. No reconstruye la cesta de la compra, y es a propósito.
 
