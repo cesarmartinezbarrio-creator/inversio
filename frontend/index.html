@@ -1401,9 +1401,9 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
     </div>
 
     <div id="tiqueLeyendo" hidden>
-      <p class="note" id="tiqueEstado">Preparando el lector…</p>
+      <p class="note"><span id="tiqueEstado">Preparando el lector…</span> <strong id="tiqueSegundos" style="color:var(--ink-3);font-weight:600"></strong></p>
       <div class="secc-b" style="margin-top:10px"><i id="tiqueBarra" style="width:4%;background:var(--accent);transition:width .25s"></i></div>
-      <p class="help" style="margin-top:14px">La primera vez hay que descargar el lector (unos 5 MB). Después queda guardado y ya no se vuelve a bajar. La foto no sale de este dispositivo.</p>
+      <p class="help" style="margin-top:14px">La primera vez hay que descargar el lector (unos 5 MB) y prepararlo: en un móvil eso puede tardar un par de minutos. Después queda guardado y ya no se repite.<br><br><strong>Mantén la pantalla encendida</strong> mientras trabaja: si el móvil se bloquea o cambias de aplicación, el navegador frena el proceso y se eterniza. La foto no sale de este dispositivo.</p>
     </div>
 
     <div id="tiqueForm" hidden>
@@ -1435,7 +1435,7 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
     </div>
 
     <div id="tiqueFallo" hidden>
-      <div class="callout"><strong>No he podido leerlo.</strong> <span id="tiqueFalloTxt"></span></div>
+      <div class="callout"><strong>No he podido leerlo.</strong> <span id="tiqueFalloTxt" style="white-space:pre-line"></span></div>
       <p class="help">Ayuda mucho: el tique estirado sobre una superficie lisa, con luz por encima y llenando casi toda la foto. Si aun así no sale, apunta el gasto a mano — es más rápido que pelearse.</p>
     </div>
   </div>
@@ -5680,7 +5680,10 @@ function cargarTesseract(){
    ayuda más que cualquier otro filtro. Se limita el tamaño porque por
    encima de ~1.600 px no se acierta más y sí se tarda mucho más. */
 function preparaFoto(img){
-  const MAX = 1600;
+  // 1.200 px de lado largo. Medido contra 1.600: mismo acierto en el total y
+  // en la fecha, y casi la mitad de píxeles que procesar. En un ordenador da
+  // igual; en un móvil no.
+  const MAX = 1200;
   const lado = Math.max(img.naturalWidth, img.naturalHeight);
   const esc = Math.min(MAX / lado, 2);
   const c = document.createElement("canvas");
@@ -5895,10 +5898,27 @@ async function leerTique(origen){
   pasoTique("Preparando el lector…", 4);
   if (!$("#dlgTique").open) $("#dlgTique").showModal();
 
+  // Un cronómetro por fase. Sirve para dos cosas: enseñar los segundos que
+  // llevan corriendo —una barra sin números parece colgada aunque no lo
+  // esté— y, si falla, poder decir EN QUÉ fase se fue el tiempo en vez de
+  // adivinarlo. En un teléfono lento esto es la diferencia entre saber qué
+  // arreglar y dar palos de ciego.
+  const T0 = Date.now();
+  const fases = {};
+  let faseActual = "arranque";
+  const marca = nombre => { fases[faseActual] = Date.now() - T0 - (fases._acum || 0);
+                            fases._acum = Date.now() - T0; faseActual = nombre; };
+  const seg = () => Math.round((Date.now() - T0) / 1000);
+  const reloj = setInterval(() => {
+    const e = $("#tiqueSegundos");
+    if (e) e.textContent = seg() > 3 ? `${seg()} s` : "";
+  }, 1000);
+
   let url = null, worker = null;
   try {
-    const T = await conLimite(cargarTesseract(), 60000,
+    const T = await conLimite(cargarTesseract(), 120000,
       "El lector tarda demasiado en descargarse. Comprueba la conexión y vuelve a intentarlo.");
+    marca("preparar la foto");
     pasoTique("Abriendo la foto…", 12);
 
     let lienzo;
@@ -5911,8 +5931,9 @@ async function leerTique(origen){
       await img.decode();
       lienzo = preparaFoto(img);
     }
+    marca("arrancar el lector");
 
-    pasoTique("Descargando el lector (solo la primera vez)…", 20);
+    pasoTique("Preparando el lector (la primera vez tarda)…", 20);
     worker = await conLimite(T.createWorker("spa", 1, {
       workerPath: TESS_DIR + "worker.min.js",
       corePath:   TESS_DIR + "tesseract-core-simd-lstm.js",
@@ -5928,18 +5949,34 @@ async function leerTique(origen){
         if (m.status === "recognizing text") pasoTique("Leyendo el tique…", 55 + (m.progress || 0) * 45);
         else if (m.progress != null)         pasoTique("Preparando el lector…", 20 + (m.progress || 0) * 30);
       }
-    }), 90000, "El lector no ha llegado a arrancar. Recarga la página y prueba otra vez.");
+      // En un móvil, arrancar el lector es descargar 5 MB y compilar el
+      // motor: con la pantalla encendida puede irse a varios minutos la
+      // primera vez. Cortarlo antes sería tirar un trabajo casi acabado.
+    }), 300000, "El lector no ha llegado a arrancar en cinco minutos. Recarga la página y prueba otra vez.");
+    marca("leer el tique");
 
-    const { data } = await conLimite(worker.recognize(lienzo), 60000,
-      "La lectura se ha hecho demasiado larga. Prueba con una foto más cercana al tique.");
+    // Un tique es una columna de texto, no una revista: decírselo evita que
+    // pierda tiempo analizando la maquetación. Medido: mismo acierto.
+    try { await worker.setParameters({ tessedit_pageseg_mode: "6" }); } catch(_){}
+
+    const { data } = await conLimite(worker.recognize(lienzo), 240000,
+      "La lectura se ha hecho demasiado larga. Prueba con una foto más cercana al tique, o apunta el gasto a mano.");
+    marca("fin");
 
     const A = analizaTique(data.text);
     A.confianza = Math.round(data.confidence || 0);
     TIQUE = A;
     pintaTique(A);
   } catch(err){
-    falloTique(err && err.message ? err.message : "Ha fallado el lector.");
+    marca("fin");
+    delete fases._acum;
+    const detalle = Object.entries(fases)
+      .filter(([k, v]) => v > 400)
+      .map(([k, v]) => `${k}: ${(v / 1000).toFixed(1)} s`).join(" · ");
+    falloTique((err && err.message ? err.message : "Ha fallado el lector.") +
+               (detalle ? `\n\nDónde se ha ido el tiempo — ${detalle}. Enséñame esta línea y sabré qué arreglar.` : ""));
   } finally {
+    clearInterval(reloj);
     if (worker){ try { await worker.terminate(); } catch(_){} }
     if (url) URL.revokeObjectURL(url);   // la foto se suelta aquí: no queda copia
     $("#ficheroTique").value = "";

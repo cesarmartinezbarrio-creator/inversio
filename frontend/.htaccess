@@ -68,3 +68,14 @@
     Header set Cache-Control "no-cache, must-revalidate"
   </IfModule>
 </FilesMatch>
+
+# El motor de lectura de tiques son 5 MB que en un móvil tardan un buen rato
+# en bajar y en compilarse. No cambia nunca —es una versión concreta de una
+# librería—, así que se le dice al navegador que lo guarde un año. Sin esto,
+# cada visita podría volver a pedirlo y la espera larga se repetiría siempre.
+# Si algún día hay que actualizarlo, se sube con otro nombre de carpeta.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(wasm|traineddata\.gz)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
