@@ -16,7 +16,7 @@
  * perfil de uno se le quede pegado al navegador del siguiente.
  */
 
-const VERSION = "cyc-v1";
+const VERSION = "cyc-v2";
 const ARMAZON = [
   "/",
   "/index.html",
@@ -65,6 +65,19 @@ self.addEventListener("fetch", ev => {
   // 3. Por si algún día el backend vive en el mismo dominio: nada que
   //    empiece por /api/ se cachea, bajo ningún concepto.
   if (url.pathname.startsWith("/api/")) return;
+
+  // 3b. EL MOTOR DE LECTURA DE TIQUES NO SE TOCA. Son 5 MB en dos ficheros
+  //     (/vendor/tesseract/…): el .wasm y el modelo de idioma. Guardarlos
+  //     aquí obliga a hacer `response.clone()` de varios megas y a
+  //     escribirlos en el almacén del navegador MIENTRAS el motor los está
+  //     leyendo. En un ordenador se nota poco; en un móvil el clonado se
+  //     atraganta, la descarga se queda a medias y el lector no arranca
+  //     nunca — barra de progreso parada para siempre.
+  //
+  //     No hace falta cachearlos aquí: el .htaccess ya les pone un año de
+  //     caché, y de eso se encarga el navegador nativamente, sin copiar
+  //     megas de un sitio a otro.
+  if (url.pathname.startsWith("/vendor/")) return;
 
   // 4. El HTML va "primero la red": si hay conexión siempre ves la última
   //    versión publicada, y si no la hay, tiras de la copia guardada. Así

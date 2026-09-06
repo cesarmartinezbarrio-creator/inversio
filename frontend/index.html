@@ -5945,9 +5945,23 @@ async function leerTique(origen){
       // eternamente. Cargándolo por su URL de verdad, las rutas relativas
       // salen bien. Medido: colgado a los 90 s contra 1,2 s.
       workerBlobURL: false,
+      // El nombre del paso, en cristiano. Un porcentaje solo no dice nada
+      // cuando algo se atasca; saber que lleva dos minutos en «cargando el
+      // motor» y no en «cargando el idioma» es la mitad del diagnóstico.
       logger: m => {
-        if (m.status === "recognizing text") pasoTique("Leyendo el tique…", 55 + (m.progress || 0) * 45);
-        else if (m.progress != null)         pasoTique("Preparando el lector…", 20 + (m.progress || 0) * 30);
+        const PASOS = {
+          "loading tesseract core":     "Cargando el motor",
+          "initializing tesseract":     "Arrancando el motor",
+          "initialized tesseract":      "Motor listo",
+          "loading language traineddata":"Cargando el idioma",
+          "loaded language traineddata": "Idioma listo",
+          "initializing api":           "Últimos ajustes",
+          "initialized api":            "Casi listo",
+          "recognizing text":           "Leyendo el tique"
+        };
+        const t = PASOS[m.status] || "Preparando el lector";
+        if (m.status === "recognizing text") pasoTique(t + "…", 55 + (m.progress || 0) * 45);
+        else                                 pasoTique(t + "…", 20 + (m.progress || 0) * 30);
       }
       // En un móvil, arrancar el lector es descargar 5 MB y compilar el
       // motor: con la pantalla encendida puede irse a varios minutos la
