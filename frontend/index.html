@@ -999,19 +999,92 @@ textarea.code{
 .btn-scan.solo{padding:7px;border-radius:50%;line-height:0}
 
 /* ── La cámara, dentro del diálogo ─────────────────────────── */
-.tique-orig{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-.tique-orig .btn{flex:1;min-width:150px;justify-content:center;display:inline-flex;align-items:center;gap:8px}
-.camara-marco{
-  position:relative;background:#000;border-radius:var(--r-sm);overflow:hidden;
-  aspect-ratio:3/4;max-height:52vh;margin:0 auto;display:flex;
+/* ── La tarjeta del veredicto ──────────────────────────────────
+   Es lo primero que se ve de una ficha, así que manda el número. El color
+   dice lo mismo que el texto: nunca solo el color, porque hay gente que no
+   los distingue. */
+.veredicto{
+  display:block;width:100%;text-align:left;font:inherit;cursor:pointer;
+  background:var(--surface);border:1px solid var(--rule);border-left:5px solid var(--ink-3);
+  border-radius:var(--r);box-shadow:var(--rise);padding:20px 24px;margin-bottom:18px;
+  transition:transform .12s, box-shadow .12s;
 }
-.camara-marco video{width:100%;height:100%;object-fit:cover;display:block}
-/* Un marco de referencia para encuadrar. Es solo una guía: se lee la foto
-   entera, no solo lo que quede dentro. */
-.camara-guia{
-  position:absolute;inset:8% 14%;border:2px dashed rgba(255,255,255,.55);
-  border-radius:10px;pointer-events:none;
+.veredicto:hover{transform:translateY(-1px)}
+.veredicto.ok {border-left-color:var(--good)}
+.veredicto.mid{border-left-color:var(--accent)}
+.veredicto.bad{border-left-color:var(--crit)}
+.ver-pct{
+  display:block;font-size:52px;line-height:1;font-weight:800;letter-spacing:-.03em;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
 }
+.ver-pct i{font-size:26px;font-style:normal;font-weight:700;margin-left:2px;opacity:.65}
+.veredicto.ok  .ver-pct{color:var(--good-ink)}
+.veredicto.mid .ver-pct{color:var(--accent)}
+.veredicto.bad .ver-pct{color:var(--crit)}
+.ver-cual{display:block;font-size:12px;color:var(--ink-3);margin:2px 0 12px;
+          text-transform:uppercase;letter-spacing:.07em}
+.ver-t{display:block;font-size:21px;font-weight:700;letter-spacing:-.01em}
+.veredicto.ok  .ver-t{color:var(--good-ink)}
+.veredicto.mid .ver-t{color:var(--accent)}
+.veredicto.bad .ver-t{color:var(--crit)}
+.ver-s{display:block;font-size:14px;color:var(--ink-2);margin-top:2px}
+.ver-aviso{display:inline-block;margin-top:10px;font-size:12px;color:var(--warn-ink);
+           background:var(--accent-wash);border-radius:999px;padding:4px 11px}
+.ver-mas{display:block;margin-top:14px;font-size:13px;color:var(--accent);font-weight:600}
+
+/* ── El «por qué» ─────────────────────────────────────────── */
+.pq-cab{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.pq-pct{font-size:40px;font-weight:800;line-height:1;letter-spacing:-.03em;
+        font-family:"IBM Plex Mono",ui-monospace,monospace}
+.pq-pct i{font-size:20px;font-style:normal;opacity:.65}
+.pq-cab.ok  .pq-pct,.pq-cab.ok  strong{color:var(--good-ink)}
+.pq-cab.mid .pq-pct,.pq-cab.mid strong{color:var(--accent)}
+.pq-cab.bad .pq-pct,.pq-cab.bad strong{color:var(--crit)}
+.pq-cab strong{display:block;font-size:19px}
+.pq-cab span span,.pq-cab div span{display:block;font-size:13.5px;color:var(--ink-2)}
+/* La altura va en los hijos, no en el contenedor: puesta arriba, algo la
+   dejaba en cero y la barra desaparecía sin decir nada. */
+.pq-barra{display:flex;gap:4px;align-items:stretch;min-height:10px}
+.pq-barra i{flex:1;height:10px;border-radius:3px;background:var(--rule);display:block}
+.pq-barra i.ok{background:var(--good)}
+.pq-barra i.mid{background:var(--accent)}
+.pq-barra i.bad{background:var(--crit)}
+.pq-grupo{margin-top:22px}
+.pq-h{margin:0 0 2px;font-size:13px;text-transform:uppercase;letter-spacing:.07em;
+      display:flex;align-items:center;gap:8px}
+.pq-h span{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;
+           background:var(--surface-2);border-radius:999px;padding:1px 8px;color:var(--ink-2)}
+.pq-h.ok{color:var(--good-ink)} .pq-h.mid{color:var(--accent)}
+.pq-h.bad{color:var(--crit)}    .pq-h.na{color:var(--ink-3)}
+.pq-fila{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:10px;align-items:center;
+         padding:8px 0;border-bottom:1px solid var(--rule)}
+.pq-fila:last-child{border-bottom:none}
+.pq-punto{width:10px;height:10px;border-radius:50%;background:var(--rule)}
+.pq-punto.ok{background:var(--good)} .pq-punto.mid{background:var(--accent)}
+.pq-punto.bad{background:var(--crit)}
+.pq-n{font-size:13.5px}
+.pq-crit{display:block;font-size:11px;color:var(--crit);font-weight:600}
+.pq-v{font-size:13px;color:var(--ink-2);font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+/* ── Pantalla de arranque ─────────────────────────────────── */
+.arr-bloque{margin:0 0 22px}
+.arr-bloque h4{margin:0 0 2px;font-size:14px;letter-spacing:-.01em}
+.arr-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.arr-chip{
+  font:inherit;font-size:13px;padding:7px 13px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);
+}
+.arr-chip:hover{border-color:var(--accent);color:var(--accent)}
+.arr-chip[aria-pressed="true"]{
+  background:var(--accent-wash);border-color:var(--accent);color:var(--ink);font-weight:600;
+}
+.arr-chip[aria-pressed="true"]::before{content:"✓ ";color:var(--accent);font-weight:700}
+
+/* Importe traído por la chincheta y todavía sin confirmar. Discreto a
+   propósito: es un aviso, no un error. */
+.partida.porconfirmar input.cel.num,
+.partida.porconfirmar .partida-suma{border-color:var(--accent);border-style:dashed}
+.partida-f.porconfirmar{color:var(--accent);font-weight:600}
 
 /* ── El detalle de una partida ─────────────────────────────── */
 .dosCol{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:22px;align-items:center}
@@ -1365,40 +1438,15 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
      La imagen se lee dentro del navegador y NO se guarda en ningún
      sitio: en cuanto se apunta el gasto, se descarta. Por eso no hay
      ninguna vista previa que sobreviva al diálogo. -->
+<dialog id="dlgPorQue">
+  <div class="dlg-hd"><h3 id="pqTitulo">Por qué</h3><button class="btn btn-sm btn-quiet" data-close>Cerrar</button></div>
+  <div class="dlg-bd" id="pqCuerpo"></div>
+  <div class="dlg-ft"><button class="btn btn-primary" data-close>Entendido</button></div>
+</dialog>
+
 <dialog id="dlgTique">
   <div class="dlg-hd"><h3>Gasto desde un tique</h3><button class="btn btn-sm btn-quiet" data-close>Cerrar</button></div>
   <div class="dlg-bd">
-
-    <!-- ── Elegir cómo entra la foto ─────────────────────────────
-         La cámara NO se abre con <input capture>: eso le pide el fichero a
-         la aplicación de cámara del teléfono, y en un móvil con perfil de
-         trabajo Android lo bloquea («no se puede aceptar datos de trabajo
-         desde una aplicación personal»). Con getUserMedia el vídeo entra
-         en esta misma página: no cruza ninguna frontera y no hay nada que
-         bloquear. Elegir un fichero se queda para el ordenador. -->
-    <div id="tiqueOrigen">
-      <p class="note" id="tiqueDestinoTxt">Se apuntará como gasto variable.</p>
-      <div class="tique-orig">
-        <button class="btn btn-primary" id="btnTiqueCam">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7l1.2-2h6.2l1.2 2h1.7A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="11.8" cy="12.4" r="3.2" stroke="currentColor" stroke-width="1.7"/></svg>
-          Usar la cámara
-        </button>
-        <button class="btn" id="btnTiqueArchivo">Elegir una imagen</button>
-      </div>
-      <p class="help" style="margin-top:14px">La foto se lee <strong>aquí dentro</strong> y se descarta al terminar. No se guarda ni se sube a ningún sitio.</p>
-    </div>
-
-    <div id="tiqueCamara" hidden>
-      <div class="camara-marco">
-        <video id="tiqueVideo" playsinline muted autoplay></video>
-        <div class="camara-guia" aria-hidden="true"></div>
-      </div>
-      <p class="help" style="margin:10px 0 0">Encuadra el tique de arriba abajo, estirado y con luz. Cuanto más llene la pantalla, mejor se lee.</p>
-      <div class="tique-orig" style="margin-top:12px">
-        <button class="btn btn-primary" id="btnDisparar">Hacer la foto</button>
-        <button class="btn" id="btnCamCancelar">Cancelar</button>
-      </div>
-    </div>
 
     <div id="tiqueLeyendo" hidden>
       <p class="note"><span id="tiqueEstado">Preparando el lector…</span> <strong id="tiqueSegundos" style="color:var(--ink-3);font-weight:600"></strong></p>
@@ -1444,7 +1492,11 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
     <button class="btn btn-primary" id="btnTiqueOk" disabled>Apuntar el gasto</button>
   </div>
 </dialog>
-<input type="file" id="ficheroTique" accept="image/*" hidden>
+<!-- Los formatos habituales, nombrados uno a uno: algunos móviles y
+     escritorios filtran mejor con la lista que con el comodín. El HEIC es
+     el del iPhone, que al subirlo se convierte solo a JPEG. -->
+<input type="file" id="ficheroTique" hidden
+       accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif,image/bmp,image/tiff,image/*">
 
 <div id="capaSoltar" aria-hidden="true">
   <div class="caja">
@@ -1520,11 +1572,31 @@ const SECCIONES = {
 };
 const ORDEN_SECC = ["ingresos", "fijos", "variables", "colchon", "inversion"];
 
+/* Lo mínimo con lo que se puede empezar a apuntar. NO es una propuesta de
+   cómo debe gastar nadie: es el esqueleto para que la primera pantalla no
+   esté vacía. Lo demás lo elige cada uno al entrar, en la pantalla de
+   arranque, y lo puede cambiar cuando quiera.
+
+   Aquí estuvieron durante meses las partidas de una persona concreta
+   —«Comida Dulce», «Propina Hugo», «Gimnasio»—. Funcionaba de maravilla
+   para ella y no tenía ningún sentido para nadie más. */
 const ITEMS_INICIALES = {
-  ingresos:  ["Nómina", "H1", "H2", "H3", "Otros"],
-  fijos:     ["Alquiler", "Comunidad", "Luz", "Agua y basuras", "Gas", "Teléfono", "Gimnasio", "Comida Dulce", "Comida", "Propina Hugo", "Otros"],
-  variables: ["Gastos personales", "Peluquería", "Otros"],
+  ingresos:  ["Nómina", "Otros"],
+  fijos:     ["Otros"],
+  variables: ["Otros"],
   colchon:   ["Aporte al colchón"]
+};
+
+/* El catálogo que se ofrece en la pantalla de arranque. Son sugerencias
+   marcables, no obligaciones: se puede entrar sin marcar ninguna. El orden
+   es el de lo más común primero, que es por donde mira la gente. */
+const SUGERIDAS = {
+  ingresos:  ["Nómina", "Autónomo", "Alquileres", "Pensión", "Ayudas", "Extra"],
+  fijos:     ["Alquiler o hipoteca", "Comunidad", "Luz", "Agua", "Gas",
+              "Internet", "Móvil", "Seguros", "Colegio", "Guardería",
+              "Préstamo", "Suscripciones", "Gimnasio"],
+  variables: ["Comida", "Transporte", "Gasolina", "Ocio", "Ropa", "Salud",
+              "Farmacia", "Restaurantes", "Regalos", "Casa", "Mascotas", "Viajes"]
 };
 /* En estas partidas se pide una descripción libre, porque «Otros» sin más no dice nada */
 const PIDE_DESC = ["Otros", "Gastos personales"];
@@ -1681,8 +1753,8 @@ const AJUSTES = {
   maxPosicion: 0.25,
   objetivoAhorro: 0.20,
   mesesColchon: 4,
-  autoFijas: 0,
-  horizonteVal: 25        /* años de la valoración de empresas */            /* 1 = los anclados entran solos al abrir un mes vacío */
+  autoFijas: 1,          /* 1 = los anclados entran solos al abrir un mes */
+  horizonteVal: 25        /* años de la valoración de empresas */
 };
 
 let S = {
@@ -1698,6 +1770,7 @@ let S = {
   periodo: "mes",
   catAbierta: null,
   fichaAbierta: null,
+  configurado: false,       /* false = todavía no ha pasado por la pantalla de arranque */
   franjaAbierta: false,
   ajustes: { ...AJUSTES },
   preciosTs: null,
@@ -1742,6 +1815,7 @@ function saneaEstado(x){
     etiquetas: JSON.parse(JSON.stringify(ITEMS_INICIALES)),
     mes: mesHoy(), modulo: "portada", tab: "portada",
     seccionAbierta: "ingresos", periodo: "mes", catAbierta: null, fichaAbierta: null, franjaAbierta: false,
+    configurado: false,
     // La partida abierta en su propia página ("seccion|item"). NO se recuerda
     // entre sesiones: al abrir la aplicación se empieza siempre en el
     // listado, nunca dentro de un detalle.
@@ -1751,6 +1825,16 @@ function saneaEstado(x){
   };
   if (!x || typeof x !== "object") return o;
 
+  /* La pantalla de arranque es solo para cuentas nuevas. Se da por
+     configurado a quien ya tenga algo dentro —apuntes, cartera o partidas
+     propias—, aunque nunca haya visto esa pantalla porque no existía. Sería
+     absurdo preguntarle sus categorías a quien lleva meses usándolas. */
+  o.configurado = x.configurado === true
+    || (Array.isArray(x.apuntes) && x.apuntes.length > 0)
+    || (Array.isArray(x.activos) && x.activos.length > 0)
+    || (Array.isArray(x.fijas)   && x.fijas.length   > 0);
+
+
   if (Array.isArray(x.apuntes)) o.apuntes = x.apuntes.filter(a => a && a.mes && a.seccion).map(a => ({
     id: a.id || uid(), mes: String(a.mes), seccion: a.seccion,
     item: String(a.item || ""), desc: String(a.desc || ""),
@@ -1758,6 +1842,10 @@ function saneaEstado(x){
     // quedan sin ella a propósito. Inventarles una sería mentir sobre cuándo
     // ocurrió el gasto; en el detalle simplemente sale un guion.
     fecha: /^\d{4}-\d{2}-\d{2}$/.test(a.fecha || "") ? a.fecha : null,
+    // true mientras sea el importe que trajo la chincheta y nadie lo haya
+    // mirado. Se marca en pantalla: un número heredado del mes pasado no es
+    // un dato, es una suposición, y la luz no cuesta lo mismo en enero.
+    auto: a.auto === true,
     importe: isN(a.importe) ? a.importe : (num(a.importe) ?? 0)
   }));
   if (Array.isArray(x.aportaciones)) o.aportaciones = x.aportaciones.filter(a => a && a.mes).map(a => ({
@@ -2179,7 +2267,8 @@ function totalFijas(){ return suma(S.fijas.map(f => f.importe)); }
 
 function aplicarFijas(mes){
   const faltan = fijasFaltan(mes);
-  faltan.forEach(f => S.apuntes.push({ id: uid(), mes, seccion: f.seccion, item: f.item, desc: "", importe: f.importe }));
+  faltan.forEach(f => S.apuntes.push({ id: uid(), mes, seccion: f.seccion, item: f.item,
+                                       desc: "", fecha: fechaParaMes(mes), auto: true, importe: f.importe }));
   return faltan.length;
 }
 
@@ -3562,6 +3651,52 @@ function barraMes(){
    pestaña propia: es un sitio al que se entra y del que se sale, no un
    apartado permanente. Por eso `partidaAbierta` no se guarda entre
    sesiones — al abrir la aplicación siempre se empieza en el listado. */
+/* ═══════════════════════════════════════════════════════════
+   Arranque · qué gastos tiene cada uno
+   ═══════════════════════════════════════════════════════════
+   Se ve UNA vez, en cuentas nuevas. Antes, todo el mundo empezaba con las
+   partidas de la persona que escribió la aplicación —«Propina Hugo»
+   incluida—, y eso obliga a cada usuario a borrar la vida de otro antes de
+   poder apuntar la suya.
+
+   No es obligatorio marcar nada: se puede entrar en blanco y crear las
+   partidas sobre la marcha. Y nada de lo que se elija aquí es definitivo:
+   todo se renombra y se borra después. */
+function renderArranque(host){
+  const bloque = (k, titulo, ayuda) => `
+    <div class="arr-bloque">
+      <h4>${titulo}</h4>
+      <p class="help" style="margin:0 0 10px">${ayuda}</p>
+      <div class="arr-chips">
+        ${SUGERIDAS[k].map(n => `
+          <button class="arr-chip" data-sug="${k}|${esc(n)}"
+                  aria-pressed="${(S.etiquetas[k] || []).includes(n)}">${esc(n)}</button>`).join("")}
+      </div>
+      <div class="partida sub nueva" style="padding-left:0;padding-right:0">
+        <input class="cel" placeholder="¿Falta alguna? Escríbela aquí" data-nueva="${k}"
+               aria-label="Otra partida de ${titulo.toLowerCase()}">
+        <button class="btn btn-sm" data-act="nueva-partida" data-k="${k}">Añadir</button>
+      </div>
+    </div>`;
+
+  const cuantas = ["ingresos","fijos","variables"]
+    .reduce((n, k) => n + (S.etiquetas[k] || []).filter(x => x !== "Otros").length, 0);
+
+  host.innerHTML = card("Vamos a montar tus cuentas",
+    `<p class="help">Marca lo que tengas. Es para que la aplicación hable de <strong>tu</strong> dinero desde el primer día en vez de enseñarte partidas que no son tuyas.<br><br>
+     No hace falta acertar ahora: <strong>todo esto se puede añadir, renombrar y borrar</strong> cuando quieras. Y si prefieres empezar en blanco, entra sin marcar nada.</p>
+
+     ${bloque("ingresos",  "Lo que entra",     "De dónde te viene el dinero cada mes.")}
+     ${bloque("fijos",     "Gastos fijos",     "Los que se repiten con un importe parecido y no decides otra vez: el recibo llega solo.")}
+     ${bloque("variables", "Gastos variables", "Los que cambian según lo que hagas. Son los que de verdad puedes recortar.")}
+
+     <div class="fila-acc" style="margin-top:22px">
+       <button class="btn btn-primary" data-act="arranque-listo">
+         ${cuantas ? `Empezar con estas ${cuantas}` : "Empezar en blanco"}
+       </button>
+     </div>`);
+}
+
 function renderPartida(host){
   const [k, item] = String(S.partidaAbierta).split("|");
   const s = SECCIONES[k];
@@ -3596,7 +3731,18 @@ function renderPartida(host){
 
   host.innerHTML =
     card(`<button class="btn btn-sm btn-quiet" data-act="cerrar-partida" style="margin-right:10px">← ${esc(s.corto)}</button>${esc(item)}`,
-      `<p class="help">Todo lo apuntado en <strong>${esc(item)}</strong> durante ${mesTexto(S.mes)}. Puedes corregir un importe aquí mismo o borrar un apunte; el total de arriba se recalcula solo.</p>`,
+      `<p class="help">Todo lo apuntado en <strong>${esc(item)}</strong> durante ${mesTexto(S.mes)}. Puedes corregir un importe aquí mismo o borrar un apunte; el total de arriba se recalcula solo.</p>
+
+       <div class="partida sub nueva" style="padding-left:0;padding-right:0;margin-top:14px">
+         <input class="cel" value="${esc(item)}" data-renombre="${esc(S.partidaAbierta)}"
+                aria-label="Nombre de la partida">
+         <button class="btn btn-sm" data-act="renombrar-partida">Renombrar</button>
+       </div>
+       <p class="help">Al renombrarla, <strong>todos sus apuntes la siguen</strong> —los de este mes y los de todos los demás— y también su chincheta. No se pierde nada.</p>
+
+       <div class="fila-acc" style="margin-top:16px">
+         <button class="btn btn-sm btn-quiet" data-act="borrar-partida">Borrar esta partida</button>
+       </div>`,
       `<span class="secc-tot">${dinero(total)}</span>`) +
 
     card("En qué se ha ido", grafico) +
@@ -3609,6 +3755,8 @@ function renderPartida(host){
 
 function renderMes(){
   const host = $("#p-mes");
+  // Cuenta nueva: primero se le pregunta de qué son sus cuentas.
+  if (!S.configurado) return renderArranque(host);
   if (S.partidaAbierta) return renderPartida(host);
   const T = resumenMes(S.mes);
   const maxSecc = Math.max(T.ingresos, T.fijos + T.variables + T.colchon + T.inversion, 1);
@@ -3630,14 +3778,17 @@ function renderMes(){
     const sencilla = partidaSencilla(S.mes, k, item);
     const clave = `${k}|${item}`;
 
-    const nombre = aps.length
-      ? `<button class="partida-n comoLink" data-partida="${esc(clave)}"
-           title="Ver el desglose de ${esc(item)}"
-           aria-label="Ver los ${aps.length} apuntes de ${esc(item)}">${esc(item)}${
-             marcada ? `<span class="partida-f">fijo · ${dinero(fija.importe)}</span>`
-                     : (aps.length > 1 ? `<span class="partida-f">${aps.length} apuntes</span>` : "")
-           }</button>`
-      : `<span class="partida-n">${esc(item)}${marcada ? `<span class="partida-f">fijo · ${dinero(fija.importe)}</span>` : ""}</span>`;
+    /* El nombre siempre se puede pulsar, tenga apuntes o no: su página es
+       también donde se renombra y se borra. Si solo fuera pulsable con
+       apuntes dentro, una partida escrita mal el primer día no habría forma
+       de arreglarla nunca. */
+    const auto = aps.some(a => a.auto);
+    const nombre = `<button class="partida-n comoLink" data-partida="${esc(clave)}"
+        title="Abrir ${esc(item)}"
+        aria-label="Abrir ${esc(item)}${aps.length ? `, ${aps.length} apuntes` : ", sin apuntes"}">${esc(item)}${
+          marcada ? `<span class="partida-f">fijo · ${dinero(fija.importe)}</span>`
+                  : (aps.length > 1 ? `<span class="partida-f">${aps.length} apuntes</span>` : "")
+        }${auto ? `<span class="partida-f porconfirmar">del mes pasado · confírmalo</span>` : ""}</button>`;
 
     const valor = sencilla
       ? `<input class="cel num" inputmode="decimal" placeholder="—" value="${aps.length ? String(aps[0].importe).replace(".", ",") : ""}"
@@ -3646,7 +3797,7 @@ function renderMes(){
            title="Suma de ${aps.length} apuntes · pulsa para verlos"
            aria-label="${dinero(total)}, suma de ${aps.length} apuntes. Ver el desglose">${dinero(total)}</button>`;
 
-    return `<div class="partida${marcada ? " anclada" : ""}${aps.length ? " tocable" : ""}">
+    return `<div class="partida tocable${marcada ? " anclada" : ""}${auto ? " porconfirmar" : ""}">
       ${nombre}
       <button class="pin${marcada ? " on" : ""}" data-pin="${k}|${esc(item)}"
         aria-pressed="${marcada}" title="${marcada ? "Está anclada: se trae sola cada mes. Pulsa para desanclar." : "Anclar: este importe se repetirá cada mes"}"
@@ -3696,7 +3847,7 @@ function renderMes(){
         <h4>${SECCIONES[k].corto}${infoTxt(SECCIONES[k].nombre, SECCIONES[k].ayuda)}</h4>
         <span class="bloque-tot">${dinero(T[k])}</span>
         <button class="btn-scan solo" data-act="foto-tique" data-seccion="${k}"
-                title="Escanear un tique y apuntarlo en ${SECCIONES[k].nombre.toLowerCase()}"
+                title="Cargar la foto de un tique y apuntarlo en ${SECCIONES[k].nombre.toLowerCase()}"
                 aria-label="Escanear un gasto ${k === "fijos" ? "fijo" : "variable"}">${ICO_CAM}</button>
       </div>
       ${barraTipo(k)}
@@ -3706,7 +3857,7 @@ function renderMes(){
   const tarjetaGastos = () => card(
     "Gastos" + infoTxt("Gastos", "Los fijos se repiten cada mes y casi no los decides; los variables cambian según lo que hagas y son los que de verdad puedes recortar."),
     bloqueGasto("fijos") + bloqueGasto("variables") +
-    `<p class="help" style="margin-top:12px">Pulsa el nombre de una partida que tenga apuntes para ver en qué se ha ido el dinero. La cámara de cada bloque apunta el gasto en ese bloque.</p>`,
+    `<p class="help" style="margin-top:12px">Pulsa el nombre de una partida que tenga apuntes para ver en qué se ha ido el dinero. El botón de la cámara de cada bloque lee un tique y lo apunta <strong>en ese bloque</strong>: haz la foto con el móvil y luego elígela aquí.</p>`,
     `<span class="secc-tot">${dinero(totalGastos)}</span>`, true);
 
   /* ── Inversión: viene de la cartera, no se teclea aquí ───── */
@@ -4520,6 +4671,147 @@ const TEXTO_TIPO = {
              pie: "<strong>Aquí no hay veredicto de calidad, y es a propósito.</strong> Esto no genera beneficios, ni caja, ni dividendos: no hay ningún número del que salga un precio justo. Cualquiera que te dé un «precio objetivo» se lo está inventando. La única decisión real es <strong>cuánto</strong>, y esa sí se puede medir." }
 };
 
+/* ═══════════════════════════════════════════════════════════
+   La tarjeta del veredicto
+   ═══════════════════════════════════════════════════════════
+   Arriba, grande, el porcentaje de comprobaciones que pasa. Debajo, en una
+   palabra, qué hacer.
+
+   QUÉ ES Y QUÉ NO ES ESE PORCENTAJE. Es la proporción de TUS comprobaciones
+   que salen verdes: 7 de 10 → 70%. Nada más. NO es la probabilidad de ganar
+   dinero, ni una predicción del precio, ni tiene nada que ver con la
+   rentabilidad esperada. Eso no se puede calcular y fingir que sí sería
+   mentir sobre el dinero de alguien. Lo que mide es cuánto encaja este
+   producto con los criterios que tú mismo fijaste — que es justo para lo que
+   sirve una lista de comprobación. Por eso el número va siempre con la
+   frase que explica de dónde sale, y por eso la tarjeta se puede abrir. */
+function puntuaVeredicto(R){
+  if (!R || !R.checks || !R.checks.length) return null;
+  // Las comprobaciones sin dato no cuentan: no se puede suspender por algo
+  // que no se ha podido mirar. Si faltan demasiadas, la nota no vale.
+  const conDato = R.checks.filter(c => c.estado !== "na");
+  if (!conDato.length) return null;
+  const verdes = conDato.filter(c => c.estado === "ok").length;
+  const medias = conDato.filter(c => c.estado === "mid").length;
+  return {
+    pct: Math.round((verdes + medias * 0.5) / conDato.length * 100),
+    verdes, medias,
+    rojas: conDato.filter(c => c.estado === "bad").length,
+    sinDato: R.checks.length - conDato.length,
+    total: conDato.length,
+    flojo: conDato.length < Math.ceil(R.checks.length * 0.6)   // faltan demasiados datos
+  };
+}
+
+/* El semáforo original solo mira si hay comprobaciones críticas en rojo, y
+   eso deja casos raros: una empresa que suspende 8 de 10 pero ninguna de las
+   críticas salía como «Observar». Un 17% en naranja no lo entiende nadie, y
+   con razón.
+
+   Así que la tarjeta cruza las dos cosas y se queda con la PEOR. La regla
+   crítica sigue mandando —una roja de las que no se negocian es «No
+   invertir» aunque saque un 90%—, pero además la nota por sí sola puede
+   bajar el veredicto. Nunca lo sube: aprobar por puntos algo que falla en lo
+   esencial sería justo el error que esta lista existe para evitar. */
+function estadoVeredicto(R, P){
+  const porNota = !P ? "mid" : P.pct < 35 ? "bad" : P.pct < 65 ? "mid" : "ok";
+  const orden = { bad: 0, mid: 1, ok: 2 };
+  return orden[porNota] < orden[R.vEstado] ? porNota : R.vEstado;
+}
+
+const VEREDICTO_TXT = {
+  ok:  { t: "Invertir",     s: "Pasa tus comprobaciones" },
+  mid: { t: "Observar",     s: "Le falta algo por confirmar" },
+  bad: { t: "No invertir",  s: "Falla en algo que no negocias" }
+};
+
+function tarjetaVeredicto(a, R){
+  if (!R) return "";
+  const P = puntuaVeredicto(R);
+  if (!P) return "";
+  const est = estadoVeredicto(R, P);
+  const V = VEREDICTO_TXT[est] || VEREDICTO_TXT.mid;
+
+  return `<button class="veredicto ${est}" data-act="por-que" data-id="${a.id}"
+      aria-label="${P.pct}% de tus comprobaciones. ${V.t}. Pulsa para ver por qué">
+    <span class="ver-pct">${P.pct}<i>%</i></span>
+    <span class="ver-cual">de tus comprobaciones</span>
+    <span class="ver-t">${V.t}</span>
+    <span class="ver-s">${V.s}</span>
+    ${P.flojo ? `<span class="ver-aviso">Con ${P.sinDato} datos sin rellenar, tómatelo flojo</span>` : ""}
+    <span class="ver-mas">Ver por qué →</span>
+  </button>`;
+}
+
+/* El «por qué», en una pantalla y sin tecnicismos: una barra por
+   comprobación, agrupadas en a favor / a medias / en contra. Lo que decide
+   va primero y en grande; el detalle, debajo. */
+function porQue(a){
+  const R = veredictoDe(a);
+  if (!R){ toast("Todavía no hay datos suficientes para explicar nada."); return; }
+  const P = puntuaVeredicto(R);
+  const est = estadoVeredicto(R, P);
+  const V = VEREDICTO_TXT[est] || VEREDICTO_TXT.mid;
+
+  const grupo = (titulo, lista, clase, explica) => !lista.length ? "" : `
+    <div class="pq-grupo">
+      <h4 class="pq-h ${clase}">${titulo} <span>${lista.length}</span></h4>
+      <p class="help" style="margin:0 0 10px">${explica}</p>
+      ${lista.map(c => `
+        <div class="pq-fila">
+          <span class="pq-punto ${c.estado}"></span>
+          <span class="pq-n">${esc(c.t)}${c.crit ? `<span class="pq-crit">no se negocia</span>` : ""}</span>
+          <span class="pq-v">${esc(c.v || "—")}</span>
+        </div>`).join("")}
+    </div>`;
+
+  const verdes  = R.checks.filter(c => c.estado === "ok");
+  const medias  = R.checks.filter(c => c.estado === "mid");
+  const rojas   = R.checks.filter(c => c.estado === "bad");
+  const sinDato = R.checks.filter(c => c.estado === "na");
+
+  // Lo que de verdad ha decidido el veredicto, dicho en una frase.
+  const decide = R.rojasCrit.length
+    ? `Falla en <strong>${R.rojasCrit.map(c => c.t.toLowerCase()).join("</strong> y en <strong>")}</strong>, que en tu método no se negocia. Por mucho que acierte en lo demás, con eso en rojo no se compra.`
+    : rojas.length
+      ? `Ninguna comprobación crítica está en rojo, pero hay <strong>${rojas.length}</strong> en contra. No es un no: es un «entérate de esto antes».`
+      : `No hay nada en rojo y ${verdes.length} comprobaciones salen a favor. Encaja con lo que te habías propuesto buscar.`;
+  const porNota = est !== R.vEstado
+    ? `<br><br>Además, solo pasa <strong>${P.pct}%</strong> de tus comprobaciones. Ninguna de las que no se negocian está en rojo, pero suspender tantas ya basta para no seguir adelante.`
+    : "";
+
+  $("#pqTitulo").textContent = a.nombre;
+  $("#pqCuerpo").innerHTML = `
+    <div class="pq-cab ${est}">
+      <span class="pq-pct">${P.pct}<i>%</i></span>
+      <div><strong>${V.t}</strong><span>${V.s}</span></div>
+    </div>
+
+    <div class="pq-barra" aria-hidden="true">
+      ${R.checks.map(c => `<i class="${c.estado}"></i>`).join("")}
+    </div>
+    <p class="help" style="margin:8px 0 20px">
+      Una marca por comprobación: ${verdes.length} a favor, ${medias.length} a medias,
+      ${rojas.length} en contra${sinDato.length ? `, ${sinDato.length} sin datos` : ""}.
+    </p>
+
+    <div class="callout" style="border-left-color:var(--${est === "ok" ? "good" : est === "bad" ? "crit" : "accent"})">
+      ${decide}${porNota}
+    </div>
+
+    ${grupo("En contra", rojas, "bad", "Lo que no cumple. Si alguna dice «no se negocia», esa sola decide.")}
+    ${grupo("A medias", medias, "mid", "Ni bien ni mal. Son las que conviene mirar de cerca antes de decidir.")}
+    ${grupo("A favor", verdes, "ok", "Lo que sí cumple.")}
+    ${grupo("Sin datos", sinDato, "na", "No he podido comprobarlas: faltan cifras. No cuentan ni a favor ni en contra.")}
+
+    <p class="note" style="margin-top:20px">
+      Este porcentaje cuenta <strong>cuántas de tus comprobaciones pasa</strong>, nada más.
+      No es la probabilidad de ganar dinero ni una previsión del precio: eso no se puede
+      calcular. Mide lo que encaja con tu método, que es de lo único que responde esta lista.
+    </p>`;
+  $("#dlgPorQue").showModal();
+}
+
 function panelChecks(a, R){
   const tipo = tipoAnalisis(a);
   if (tipo === "indefinido")
@@ -4762,6 +5054,11 @@ function renderFicha(){
     .map(x => ({ ...x, gc: gan(x.cons), go: gan(x.opt) }));
 
   host.innerHTML =
+    // Lo primero que se ve al abrir una ficha: qué hacer con ella. Todo lo
+    // demás —las cuentas, los escenarios, los indicadores— es el porqué, y
+    // el porqué va después de la conclusión, no antes.
+    tarjetaVeredicto(a, Vd) +
+
     card(esc(a.nombre), `
       <div class="field-row">
         <div class="field"><label for="k-nom">Nombre</label><input id="k-nom" data-act-f="nombre" data-id="${a.id}" value="${esc(a.nombre)}"></div>
@@ -5799,24 +6096,28 @@ function analizaTique(texto){
 
 /* ── Por dónde entra la foto ─────────────────────────────────────
    `seccionTique` guarda si el escáner que se pulsó era el de fijos o el de
-   variables, para no tener que preguntarlo. */
+   variables, para no tener que preguntarlo.
+
+   AQUÍ HUBO UNA CÁMARA Y SE QUITÓ A CONCIENCIA. Se probaron las dos formas
+   que existen: pedirle la foto a la aplicación de cámara del teléfono
+   (`<input capture>`), que un móvil con perfil de trabajo bloquea, y abrir
+   el vídeo dentro de la propia página (`getUserMedia`), que tampoco llegó a
+   funcionar en el aparato real. Dos caminos, dos fracasos: se elige el que
+   sí funciona —cargar una imagen ya hecha— en vez de dejar un botón que
+   falla. Haces la foto con la cámara del móvil como siempre, y luego la
+   eliges aquí. */
 let seccionTique = "variables";
-let camaraStream = null;
 
 function abreTique(seccion){
   seccionTique = SECCIONES[seccion] ? seccion : "variables";
   TIQUE = null;
-  $("#tiqueDestinoTxt").textContent =
-    `Se apuntará como ${seccionTique === "fijos" ? "gasto fijo" : seccionTique === "colchon" ? "colchón" : "gasto variable"}.`;
-  pasoTique("Preparando el lector…", 4);
-  muestraTique("origen");
   $("#btnTiqueOk").disabled = true;
-  if (!$("#dlgTique").open) $("#dlgTique").showModal();
+  // Sin cámara solo queda un camino, así que no se pregunta: se abre
+  // directamente el selector de imágenes. Un toque menos.
+  $("#ficheroTique").click();
 }
 
 function muestraTique(paso){
-  $("#tiqueOrigen").hidden  = paso !== "origen";
-  $("#tiqueCamara").hidden  = paso !== "camara";
   $("#tiqueLeyendo").hidden = paso !== "leyendo";
   $("#tiqueForm").hidden    = paso !== "form";
   $("#tiqueFallo").hidden   = paso !== "fallo";
@@ -5826,53 +6127,6 @@ function falloTique(msg){
   muestraTique("fallo");
   $("#tiqueFalloTxt").textContent = msg;
   $("#btnTiqueOk").disabled = true;
-}
-
-/* La cámara, dentro de la página. `environment` pide la trasera; si el
-   aparato solo tiene una, el navegador da la que haya en vez de fallar. */
-async function abreCamara(){
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    falloTique("Este navegador no deja abrir la cámara desde una página. Usa «Elegir una imagen».");
-    return;
-  }
-  muestraTique("camara");
-  try {
-    camaraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-      audio: false
-    });
-    const v = $("#tiqueVideo");
-    v.srcObject = camaraStream;
-    await v.play().catch(() => {});
-  } catch(err){
-    cierraCamara();
-    const n = err && err.name;
-    falloTique(
-      n === "NotAllowedError"  ? "No me has dado permiso para la cámara. Vuelve a intentarlo y acepta, o usa «Elegir una imagen»."
-    : n === "NotFoundError"    ? "No encuentro ninguna cámara en este aparato."
-    : n === "NotReadableError" ? "La cámara está ocupada por otra aplicación. Ciérrala y vuelve a probar."
-    : "No he podido abrir la cámara: " + (err && err.message ? err.message : "sin detalle") + ".");
-  }
-}
-
-/* Soltar la cámara en cuanto deja de hacer falta. Si no, el piloto del
-   móvil se queda encendido y parece que la aplicación te está grabando. */
-function cierraCamara(){
-  if (camaraStream){ camaraStream.getTracks().forEach(t => t.stop()); camaraStream = null; }
-  const v = $("#tiqueVideo");
-  if (v) v.srcObject = null;
-}
-
-/* Congela el fotograma en un lienzo. De ahí sale directo al lector: la foto
-   no llega a ser un fichero, así que no hay nada que guardar ni que borrar. */
-function disparaCamara(){
-  const v = $("#tiqueVideo");
-  if (!v || !v.videoWidth){ falloTique("La cámara todavía no da imagen. Espera un segundo y vuelve a darle."); return; }
-  const c = document.createElement("canvas");
-  c.width = v.videoWidth; c.height = v.videoHeight;
-  c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
-  cierraCamara();
-  leerTique(c);
 }
 
 function pasoTique(txt, pct){
@@ -6065,7 +6319,6 @@ function confirmarTique(){
   const nuevoTotal = totalPartida(mes, seccion, item);
   S.mes = mes; S.modulo = "economia"; S.tab = "mes";
   TIQUE = null;
-  cierraCamara();
   $("#dlgTique").close();
   render();
   toast(`Apuntado: ${dinero(importe)} en ${item}. Total de la partida: ${dinero(nuevoTotal)}.`);
@@ -6103,7 +6356,11 @@ function textoErrorMcp(err, servidor){
     cancelled:           `La petición a ${servidor} se canceló.`,
     not_granted:         `Esta vista no tiene permiso para usar tus conectores. Abre la app desde tu propio enlace.`,
     capability_disabled: `Los conectores no están disponibles en esta vista.`,
-    capability_removed:  `Los conectores no están disponibles en esta vista.`
+    capability_removed:  `Los conectores no están disponibles en esta vista.`,
+    // Este no es un fallo del conector: es que la cuenta todavía no tiene
+    // acceso. Decir «no he podido leer de Twelve Data» despista, porque
+    // Twelve Data no ha llegado a enterarse de nada.
+    sin_invitacion:      `Tu cuenta aún no está activada: te falta canjear el código de invitación. Cierra sesión, vuelve a entrar y escríbelo cuando te lo pida. Mientras tanto puedes usar la aplicación, pero no traer precios ni datos.`
   };
   return M[c] || `No he podido leer de ${servidor}${err && err.message ? ": " + err.message : "."}`;
 }
@@ -6890,10 +7147,13 @@ function irAlMes(m){
   S.mes = m;
   // Cambiar de mes cierra el detalle: esa partida era la de otro mes.
   S.partidaAbierta = null;
-  if (S.ajustes.autoFijas && S.fijas.length && !S.apuntes.some(a => a.mes === m)){
+  /* Los anclados entran solos, pero NUNCA hacia atrás: rellenar un mes ya
+     cerrado con las cifras de hoy sería inventarse el pasado. Y solo los que
+     falten, no los que ya estén puestos. */
+  if (S.ajustes.autoFijas && S.fijas.length && m >= mesHoy()){
     const n = aplicarFijas(m);
     if (n){ render(); programarGuardado();
-      toast(`${n} ${n === 1 ? "fijo puesto" : "fijos puestos"} en ${mesTexto(m)} automáticamente. Revisa lo que haya cambiado.`);
+      toast(`${n} ${n === 1 ? "fijo puesto" : "fijos puestos"} en ${mesTexto(m)}. Están marcados hasta que los confirmes.`);
       return; }
   }
   render();
@@ -7011,6 +7271,16 @@ function eventos(){
     if (cat){ S.catAbierta = cat.dataset.cat || null; render(); return; }
     // El detalle de una partida. Se sube arriba del todo porque la página
     // nueva empieza por su cabecera, no por donde estaba el dedo.
+    // Etiquetas de la pantalla de arranque: marcar añade, desmarcar quita.
+    const sug = ev.target.closest("[data-sug]");
+    if (sug){
+      const [k, n] = String(sug.dataset.sug).split("|");
+      const lista = S.etiquetas[k] || (S.etiquetas[k] = []);
+      const i = lista.indexOf(n);
+      if (i >= 0) lista.splice(i, 1); else lista.push(n);
+      render();
+      return;
+    }
     const par = ev.target.closest("[data-partida]");
     if (par){ S.partidaAbierta = par.dataset.partida; render(); window.scrollTo(0, 0); return; }
     const abr = ev.target.closest("[data-abrir]");
@@ -7175,6 +7445,60 @@ function eventos(){
       // preguntárselo a nadie.
       case "foto-tique": abreTique(b.dataset.seccion || "variables"); break;
       case "cerrar-partida": S.partidaAbierta = null; render(); window.scrollTo(0, 0); break;
+      case "por-que": { const x = S.activos.find(y => y.id === b.dataset.id); if (x) porQue(x); break; }
+
+      case "arranque-listo":
+        S.configurado = true;
+        render(); window.scrollTo(0, 0);
+        toast("Listo. Puedes añadir, renombrar o borrar partidas cuando quieras.");
+        break;
+
+      case "renombrar-partida": {
+        const inp = document.querySelector("[data-renombre]");
+        if (!inp) break;
+        const [k, viejo] = String(inp.dataset.renombre).split("|");
+        const nuevo = (inp.value || "").trim();
+        if (!nuevo){ toast("El nombre no puede quedar vacío.", true); break; }
+        if (nuevo === viejo) break;
+        if ((S.etiquetas[k] || []).some(x => x.toLowerCase() === nuevo.toLowerCase())){
+          toast(`«${nuevo}» ya existe en ${SECCIONES[k].nombre.toLowerCase()}.`, true); break; }
+        // Renombrar es cambiar la etiqueta Y arrastrar TODO lo que la
+        // nombra: los apuntes de todos los meses y la chincheta. Si se
+        // cambiara solo la lista, los apuntes viejos quedarían huérfanos y
+        // el dinero desaparecería del total sin que nadie lo borrara.
+        S.etiquetas[k] = (S.etiquetas[k] || []).map(x => x === viejo ? nuevo : x);
+        S.apuntes.forEach(a => { if (a.seccion === k && a.item === viejo) a.item = nuevo; });
+        S.fijas.forEach(f  => { if (f.seccion === k && f.item === viejo) f.item = nuevo; });
+        S.partidaAbierta = `${k}|${nuevo}`;
+        render();
+        toast(`Ahora se llama «${nuevo}».`);
+        break;
+      }
+
+      case "borrar-partida": {
+        if (!S.partidaAbierta) break;
+        const [k, item] = String(S.partidaAbierta).split("|");
+        const aps = apuntesDe(S.mes, k, item);
+        const todos = S.apuntes.filter(a => a.seccion === k && a.item === item);
+        const hacer = () => {
+          S.etiquetas[k] = (S.etiquetas[k] || []).filter(x => x !== item);
+          S.apuntes = S.apuntes.filter(a => !(a.seccion === k && a.item === item));
+          S.fijas   = S.fijas.filter(f => !(f.seccion === k && f.item === item));
+          S.partidaAbierta = null;
+          render(); window.scrollTo(0, 0);
+          toast(`«${item}» borrada.`);
+        };
+        // Si lleva dinero dentro se avisa con el número por delante: borrar
+        // una partida con apuntes es borrar gasto de meses que ya cerraste.
+        if (todos.length){
+          confirmar(`Borrar «${item}»`,
+            `Tiene ${todos.length} ${todos.length === 1 ? "apunte" : "apuntes"} por un total de ` +
+            `${dinero(suma(todos.map(a => Math.abs(a.importe))))}, contando todos los meses. ` +
+            `Se van con ella y no hay vuelta atrás. Si solo quieres dejar de usarla, déjala a cero y ya está.`,
+            hacer, "crit");
+        } else hacer();
+        break;
+      }
       case "copiar-prompt": alPortapapeles(PROMPT, "Prompt copiado. Ábrelo en el chat con el PDF adjunto."); break;
       case "copiar-informe": if (act) alPortapapeles(peticionInforme(act), "Petición copiada. Pégamela en el chat."); break;
       case "pegar-json": if (act){ S.fichaAbierta = act.id; $("#jsonText").value = ""; $("#dlgJson").showModal(); } break;
@@ -7193,12 +7517,14 @@ function eventos(){
     const t = ev.target;
     if (t.dataset.imp){
       const [seccion, item] = t.dataset.imp.split("|");
-      ponerImporte(S.mes, seccion, item, num(t.value));
+      const a = ponerImporte(S.mes, seccion, item, num(t.value));
+      // Si lo tocas, ya lo has mirado: deja de ser una cifra heredada.
+      if (a) a.auto = false;
       return;
     }
     if (t.dataset.apimp){
       const a = S.apuntes.find(x => x.id === t.dataset.apimp); if (!a) return;
-      const v = num(t.value); if (isN(v) && v !== 0) a.importe = Math.abs(v);
+      const v = num(t.value); if (isN(v) && v !== 0){ a.importe = Math.abs(v); a.auto = false; }
       return;
     }
     if (t.dataset.desc){
@@ -7303,13 +7629,8 @@ function eventos(){
   $("#btnDoPrecios").addEventListener("click", () => aplicarPrecios($("#preciosText").value));
   $("#btnJsonOk").addEventListener("click", () => cargarJson($("#jsonText").value));
   $("#btnTiqueOk").addEventListener("click", confirmarTique);
-  $("#btnTiqueCam").addEventListener("click", abreCamara);
-  $("#btnTiqueArchivo").addEventListener("click", () => $("#ficheroTique").click());
-  $("#btnDisparar").addEventListener("click", disparaCamara);
-  $("#btnCamCancelar").addEventListener("click", () => { cierraCamara(); muestraTique("origen"); });
-  // Al cerrar: soltar la cámara (si no, el piloto se queda encendido) y
-  // olvidar lo leído. La foto no existía como fichero, así que no hay más.
-  $("#dlgTique").addEventListener("close", () => { TIQUE = null; cierraCamara(); });
+  // Al cerrar, lo leído se olvida. La imagen ya se soltó al terminar.
+  $("#dlgTique").addEventListener("close", () => { TIQUE = null; });
   $("#btnTheme").addEventListener("click", () => {
     const a = document.documentElement.getAttribute("data-theme");
     aplicarTema(a === "dark" ? "light" : a === "light" ? "auto" : "dark"); render();

@@ -129,7 +129,11 @@ async function identifica(req, res) {
     return null;
   }
   if (!(await esMiembro(usuario.id))) {
-    res.status(403).json({ code: "sin_invitacion", message: "Esta cuenta todavía no ha canjeado un código de invitación." });
+    // El mensaje lo traduce la aplicación (textoErrorMcp): aquí lo que
+    // importa es el `code`, que es lo que ella mira. El texto es el de por si
+    // alguien llama a esta API desde fuera.
+    res.status(403).json({ code: "sin_invitacion",
+      message: "Cuenta sin activar: falta canjear el código de invitación." });
     return null;
   }
   return { tipo: "usuario", ...usuario };

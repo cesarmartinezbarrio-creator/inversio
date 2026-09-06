@@ -86,7 +86,7 @@ grep -n '^function \|^async function ' frontend/index.html   # las funciones
 | 4030 | INVERSIÓN · Señales | `renderSenales` |
 | 4077 | INVERSIÓN · Precios | `renderPrecios`, `peticionPrecios` |
 | 4132 | MERCADO · Lista de fichas | `renderEstudio` + los paneles de análisis |
-| 4424 | MERCADO · La ficha | `renderFicha` — la pantalla más grande. Empieza por `tarjetaVeredicto` (ver §3c) |
+| 4424 | MERCADO · La ficha | `renderFicha` — la pantalla más grande |
 | 4747 | MERCADO · Observación | `renderObservacion` |
 | 4797 | MERCADO · Cómo se valora | `renderMetodo` |
 | 4892 | INTERÉS COMPUESTO | `renderCompuesto` |
@@ -188,29 +188,6 @@ npm pack tesseract.js@5 tesseract.js-core@5 @tesseract.js-data/spa
 
 y de ahí salen `dist/tesseract.min.js`, `dist/worker.min.js`,
 `tesseract-core-simd-lstm.js` + `.wasm`, y `4.0.0_best_int/spa.traineddata.gz`.
-
-### 3c · La tarjeta del veredicto
-
-Lo primero que se ve al abrir una ficha: un porcentaje grande, y debajo una
-palabra — **Invertir · Observar · No invertir** — con su color. Al pulsarla se
-abre el «por qué»: una marca por comprobación, agrupadas en a favor, a
-medias, en contra y sin datos, y la frase que explica qué ha decidido.
-
-**Qué es ese porcentaje, y qué no.** Es la proporción de comprobaciones que
-salen verdes, contando las medias como media (`puntuaVeredicto`). Las que no
-tienen datos no cuentan: no se puede suspender por algo que no se ha podido
-mirar. **No es la probabilidad de ganar dinero ni una previsión del precio**,
-y la propia tarjeta lo dice. Fingir que un número así predice un resultado
-financiero sería mentir sobre el dinero de alguien; lo que mide es cuánto
-encaja el producto con los criterios que el usuario mismo fijó.
-
-**El veredicto cruza dos reglas y se queda con la peor** (`estadoVeredicto`):
-la del semáforo original —una comprobación crítica en rojo es «No invertir»
-aunque saque un 90%— y la de la nota, que puede bajarlo pero **nunca
-subirlo**. Aprobar por puntos algo que falla en lo esencial sería justo el
-error que la lista existe para evitar. Antes de cruzarlas, una empresa que
-suspendía 8 de 10 salía como «Observar» solo porque ninguna crítica estaba en
-rojo, y un 17% en naranja no lo entiende nadie.
 
 ## 4 · Dentro de `frontend/acceso.html`
 
