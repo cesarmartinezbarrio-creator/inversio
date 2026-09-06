@@ -1013,6 +1013,8 @@ textarea.code{
 .veredicto.ok {border-left-color:var(--good)}
 .veredicto.mid{border-left-color:var(--accent)}
 .veredicto.bad{border-left-color:var(--crit)}
+.veredicto.vacia{border-left-color:var(--ink-3);border-style:dashed}
+.veredicto.vacia .ver-pct{color:var(--ink-3);font-size:44px}
 .ver-pct{
   display:block;font-size:52px;line-height:1;font-weight:800;letter-spacing:-.03em;
   font-family:"IBM Plex Mono",ui-monospace,monospace;
@@ -1027,9 +1029,10 @@ textarea.code{
 .veredicto.ok  .ver-t{color:var(--good-ink)}
 .veredicto.mid .ver-t{color:var(--accent)}
 .veredicto.bad .ver-t{color:var(--crit)}
-.ver-s{display:block;font-size:14px;color:var(--ink-2);margin-top:2px}
+.ver-s{display:block;font-size:14px;color:var(--ink-2);margin-top:2px;max-width:62ch;line-height:1.45}
 .ver-aviso{display:inline-block;margin-top:10px;font-size:12px;color:var(--warn-ink);
-           background:var(--accent-wash);border-radius:999px;padding:4px 11px}
+           background:var(--accent-wash);border-radius:999px;padding:4px 11px;
+           max-width:100%;line-height:1.4}
 .ver-mas{display:block;margin-top:14px;font-size:13px;color:var(--accent);font-weight:600}
 
 /* ── El «por qué» ─────────────────────────────────────────── */
@@ -1079,6 +1082,8 @@ textarea.code{
   background:var(--accent-wash);border-color:var(--accent);color:var(--ink);font-weight:600;
 }
 .arr-chip[aria-pressed="true"]::before{content:"✓ ";color:var(--accent);font-weight:700}
+.arr-chip.propia[data-usada]{opacity:.75;cursor:not-allowed}
+.arr-lock{display:block;font-size:10.5px;color:var(--ink-3);font-weight:400;letter-spacing:.02em}
 
 /* Importe traído por la chincheta y todavía sin confirmar. Discreto a
    propósito: es un aviso, no un error. */
@@ -3663,6 +3668,9 @@ function barraMes(){
    partidas sobre la marcha. Y nada de lo que se elija aquí es definitivo:
    todo se renombra y se borra después. */
 function renderArranque(host){
+  // `configurado` ya en true = no es el primer día, viene a rehacer su lista.
+  // Cambia el tono entero: ni «vamos a empezar» ni pantalla de bienvenida.
+  const rehaciendo = S.configurado;
   const bloque = (k, titulo, ayuda) => `
     <div class="arr-bloque">
       <h4>${titulo}</h4>
@@ -3672,6 +3680,22 @@ function renderArranque(host){
           <button class="arr-chip" data-sug="${k}|${esc(n)}"
                   aria-pressed="${(S.etiquetas[k] || []).includes(n)}">${esc(n)}</button>`).join("")}
       </div>
+      ${rehaciendo ? (() => {
+        // Las que ya tiene y no están entre las sugeridas: las suyas de toda
+        // la vida. Se enseñan para poder quitarlas, que es justo lo que trae
+        // aquí a quien ya llevaba tiempo usando la aplicación.
+        const propias = (S.etiquetas[k] || []).filter(x => !SUGERIDAS[k].includes(x));
+        return propias.length ? `
+          <p class="help" style="margin:10px 0 6px">Las tuyas. Pulsa para quitar una que ya no uses:</p>
+          <div class="arr-chips">
+            ${propias.map(n => {
+              const usada = S.apuntes.some(a => a.seccion === k && a.item === n);
+              return `<button class="arr-chip propia" data-sug="${k}|${esc(n)}" aria-pressed="true"
+                        ${usada ? `data-usada="1" title="Tiene apuntes: para borrarla, ábrela desde el listado"` : ""}
+                        >${esc(n)}${usada ? `<span class="arr-lock">con apuntes</span>` : ""}</button>`;
+            }).join("")}
+          </div>` : "";
+      })() : ""}
       <div class="partida sub nueva" style="padding-left:0;padding-right:0">
         <input class="cel" placeholder="¿Falta alguna? Escríbela aquí" data-nueva="${k}"
                aria-label="Otra partida de ${titulo.toLowerCase()}">
@@ -3682,9 +3706,11 @@ function renderArranque(host){
   const cuantas = ["ingresos","fijos","variables"]
     .reduce((n, k) => n + (S.etiquetas[k] || []).filter(x => x !== "Otros").length, 0);
 
-  host.innerHTML = card("Vamos a montar tus cuentas",
-    `<p class="help">Marca lo que tengas. Es para que la aplicación hable de <strong>tu</strong> dinero desde el primer día en vez de enseñarte partidas que no son tuyas.<br><br>
-     No hace falta acertar ahora: <strong>todo esto se puede añadir, renombrar y borrar</strong> cuando quieras. Y si prefieres empezar en blanco, entra sin marcar nada.</p>
+  host.innerHTML = card(rehaciendo ? "Tus categorías" : "Vamos a montar tus cuentas",
+    `<p class="help">${rehaciendo
+      ? `Marca las que quieras tener y desmarca las que ya no uses. Las que <strong>tienen apuntes no se pueden quitar desde aquí</strong>: para esas, ábrelas desde el listado y bórralas allí, que te avisa del dinero que se lleva por delante.`
+      : `Marca lo que tengas. Es para que la aplicación hable de <strong>tu</strong> dinero desde el primer día en vez de enseñarte partidas que no son tuyas.<br><br>
+     No hace falta acertar ahora: <strong>todo esto se puede añadir, renombrar y borrar</strong> cuando quieras. Y si prefieres empezar en blanco, entra sin marcar nada.`}</p>
 
      ${bloque("ingresos",  "Lo que entra",     "De dónde te viene el dinero cada mes.")}
      ${bloque("fijos",     "Gastos fijos",     "Los que se repiten con un importe parecido y no decides otra vez: el recibo llega solo.")}
@@ -3692,7 +3718,7 @@ function renderArranque(host){
 
      <div class="fila-acc" style="margin-top:22px">
        <button class="btn btn-primary" data-act="arranque-listo">
-         ${cuantas ? `Empezar con estas ${cuantas}` : "Empezar en blanco"}
+         ${rehaciendo ? `Guardar (${cuantas})` : (cuantas ? `Empezar con estas ${cuantas}` : "Empezar en blanco")}
        </button>
      </div>`);
 }
@@ -3755,8 +3781,8 @@ function renderPartida(host){
 
 function renderMes(){
   const host = $("#p-mes");
-  // Cuenta nueva: primero se le pregunta de qué son sus cuentas.
-  if (!S.configurado) return renderArranque(host);
+  // Cuenta nueva —o alguien que viene a rehacer su lista.
+  if (!S.configurado || pantallaCategorias) return renderArranque(host);
   if (S.partidaAbierta) return renderPartida(host);
   const T = resumenMes(S.mes);
   const maxSecc = Math.max(T.ingresos, T.fijos + T.variables + T.colchon + T.inversion, 1);
@@ -3908,7 +3934,10 @@ function renderMes(){
 
   host.innerHTML =
     card("El mes", barraMes() + `
-      <p class="help" style="margin-top:14px">Rellena solo las casillas que tengan importe este mes; lo que dejes vacío no cuenta. La <strong>chincheta</strong> de cada partida la ancla: si vale lo mismo todos los meses, la anclas una vez y ya no la vuelves a escribir.</p>`) +
+      <p class="help" style="margin-top:14px">Rellena solo las casillas que tengan importe este mes; lo que dejes vacío no cuenta. La <strong>chincheta</strong> de cada partida la ancla: si vale lo mismo todos los meses, la anclas una vez y ya no la vuelves a escribir.</p>
+      <div class="fila-acc" style="margin-top:12px">
+        <button class="btn btn-sm btn-quiet" data-act="rehacer-categorias">Cambiar mis categorías</button>
+      </div>`) +
 
     panelFijas +
 
@@ -4685,6 +4714,51 @@ const TEXTO_TIPO = {
    producto con los criterios que tú mismo fijaste — que es justo para lo que
    sirve una lista de comprobación. Por eso el número va siempre con la
    frase que explica de dónde sale, y por eso la tarjeta se puede abrir. */
+/* ── Veredicto con indicadores, cuando no hay cuentas ──────────
+   El veredicto bueno sale de las cuentas anuales (`semaforo`), pero
+   cargarlas cuesta un rato y hasta entonces la ficha no decía nada. Mal
+   asunto: los conectores traen PER, ROE, márgenes y crecimiento — de esta
+   empresa, no de su categoría—, y con eso ya se puede opinar.
+
+   Es un juicio MÁS FLOJO y se dice: mide lo que el mercado paga y cuánto
+   gana la empresa, no si el negocio es bueno ni si aguantará diez años. Por
+   eso ninguna comprobación de aquí es «de las que no se negocian»: no hay
+   dato suficiente para descartar nada a cara de perro, solo para orientar. */
+const CHECKS_KPI = [
+  { k:"per",        t:"Lo que pagas por sus beneficios", verde:18,   ambar:28,   mayor:false, f:v=>mult(v),      s:"PER · cuanto más bajo, más barato" },
+  { k:"perFwd",     t:"Lo que pagarás el año que viene", verde:18,   ambar:28,   mayor:false, f:v=>mult(v),      s:"con el beneficio esperado" },
+  { k:"roe",        t:"Lo que gana con el dinero propio",verde:0.15, ambar:0.08, mayor:true,  f:v=>pct(v,0),     s:"ROE · por encima del 15% es bueno" },
+  { k:"margenNeto", t:"Lo que le queda de cada euro",    verde:0.10, ambar:0.04, mayor:true,  f:v=>pct(v,0),     s:"margen neto" },
+  { k:"margenOp",   t:"Lo que gana el negocio en sí",    verde:0.15, ambar:0.07, mayor:true,  f:v=>pct(v,0),     s:"margen operativo" },
+  { k:"evEbitda",   t:"Lo que costaría comprarla entera",verde:10,   ambar:16,   mayor:false, f:v=>mult(v),      s:"EV/EBITDA" },
+  { k:"pb",         t:"Lo que pagas sobre lo que tiene", verde:3,    ambar:6,    mayor:false, f:v=>mult(v),      s:"precio / libros" },
+  { k:"crecVentas", t:"Si está creciendo",               verde:0.08, ambar:0.02, mayor:true,  f:v=>pctS(v,1),    s:"ventas del último trimestre" },
+  { k:"crecBeneficio", t:"Si gana más que antes",        verde:0.08, ambar:0,    mayor:true,  f:v=>pctS(v,1),    s:"beneficio del último trimestre" },
+  { k:"beta",       t:"Cuánto se va a mover",            verde:1,    ambar:1.5,  mayor:false, f:v=>mult(v),      s:"beta · 1 es como el mercado" }
+];
+
+function semaforoKpi(a){
+  const k = a.kpi || {};
+  const checks = CHECKS_KPI.map(c => {
+    const v = k[c.k];
+    if (!isN(v)) return { t:c.t, s:c.s, crit:false, estado:"na", v:"—" };
+    const estado = c.mayor ? (v >= c.verde ? "ok" : v >= c.ambar ? "mid" : "bad")
+                           : (v <= c.verde ? "ok" : v <= c.ambar ? "mid" : "bad");
+    return { t:c.t, s:c.s, crit:false, estado, v:c.f(v) };
+  });
+  const conDato = checks.filter(c => c.estado !== "na");
+  if (conDato.length < 4) return null;      // con menos de cuatro no se opina
+  const verdes = conDato.filter(c => c.estado === "ok").length;
+  const rojas  = conDato.filter(c => c.estado === "bad").length;
+  const vEstado = rojas >= 3 ? "bad" : (rojas || verdes < conDato.length * 0.6) ? "mid" : "ok";
+  return { checks, rojasCrit: [], rojas: conDato.filter(c=>c.estado==="bad"),
+           verdes: conDato.filter(c=>c.estado==="ok"), vEstado, tipo:"indicadores",
+           ligero: true,
+           veredicto: vEstado === "bad" ? "Los números del mercado no acompañan"
+                    : vEstado === "mid" ? "Ni bien ni mal con los indicadores"
+                    : "Los indicadores acompañan" };
+}
+
 function puntuaVeredicto(R){
   if (!R || !R.checks || !R.checks.length) return null;
   // Las comprobaciones sin dato no cuentan: no se puede suspender por algo
@@ -4725,20 +4799,48 @@ const VEREDICTO_TXT = {
   bad: { t: "No invertir",  s: "Falla en algo que no negocias" }
 };
 
-function tarjetaVeredicto(a, R){
-  if (!R) return "";
-  const P = puntuaVeredicto(R);
-  if (!P) return "";
+/* El veredicto que toque, por orden de calidad: primero las cuentas
+   anuales; si no hay, los indicadores del conector; si tampoco, nada. */
+function veredictoUsable(a){
+  return veredictoDe(a) || semaforoKpi(a) || null;
+}
+
+/* ESTA TARJETA NUNCA DESAPARECE. Es lo primero de la ficha y responde a la
+   única pregunta que trae aquí a nadie: ¿invierto o no? Si falta información
+   lo dice y explica qué hacer, pero no se esfuma dejando la página muda —que
+   es lo que hacía antes y era justo el peor comportamiento posible: parecía
+   que la aplicación no tenía opinión cuando lo que pasaba es que no se lo
+   habíamos preguntado bien. */
+function tarjetaVeredicto(a, _R){
+  const R = veredictoUsable(a);
+  const P = R ? puntuaVeredicto(R) : null;
+
+  if (!R || !P){
+    const tipo = tipoAnalisis(a);
+    return `<button class="veredicto vacia" data-act="traer-datos" data-id="${a.id}"
+        aria-label="Faltan datos para juzgar esta ficha">
+      <span class="ver-pct">—</span>
+      <span class="ver-cual">todavía no puedo juzgarlo</span>
+      <span class="ver-t">Faltan datos</span>
+      <span class="ver-s">${tipo === "cesta"
+        ? "Pulsa aquí para traer los datos del fondo, o rellena a mano los cuatro del folleto."
+        : "Pulsa aquí para traer los indicadores del mercado. Para el veredicto completo, carga además sus cuentas anuales."}</span>
+      <span class="ver-mas">Traer los datos →</span>
+    </button>`;
+  }
+
   const est = estadoVeredicto(R, P);
   const V = VEREDICTO_TXT[est] || VEREDICTO_TXT.mid;
 
   return `<button class="veredicto ${est}" data-act="por-que" data-id="${a.id}"
-      aria-label="${P.pct}% de tus comprobaciones. ${V.t}. Pulsa para ver por qué">
+      aria-label="${P.pct}% de las comprobaciones. ${V.t}. Pulsa para ver por qué">
     <span class="ver-pct">${P.pct}<i>%</i></span>
-    <span class="ver-cual">de tus comprobaciones</span>
+    <span class="ver-cual">${R.ligero ? "de los indicadores del mercado" : "de tus comprobaciones"}</span>
     <span class="ver-t">${V.t}</span>
     <span class="ver-s">${V.s}</span>
-    ${P.flojo ? `<span class="ver-aviso">Con ${P.sinDato} datos sin rellenar, tómatelo flojo</span>` : ""}
+    ${R.ligero
+      ? `<span class="ver-aviso">Juzgado solo con indicadores. Carga sus cuentas y el veredicto será de verdad</span>`
+      : (P.flojo ? `<span class="ver-aviso">Con ${P.sinDato} datos sin rellenar, tómatelo flojo</span>` : "")}
     <span class="ver-mas">Ver por qué →</span>
   </button>`;
 }
@@ -4747,7 +4849,7 @@ function tarjetaVeredicto(a, R){
    comprobación, agrupadas en a favor / a medias / en contra. Lo que decide
    va primero y en grande; el detalle, debajo. */
 function porQue(a){
-  const R = veredictoDe(a);
+  const R = veredictoUsable(a);
   if (!R){ toast("Todavía no hay datos suficientes para explicar nada."); return; }
   const P = puntuaVeredicto(R);
   const est = estadoVeredicto(R, P);
@@ -4771,7 +4873,13 @@ function porQue(a){
   const sinDato = R.checks.filter(c => c.estado === "na");
 
   // Lo que de verdad ha decidido el veredicto, dicho en una frase.
-  const decide = R.rojasCrit.length
+  const decide = R.ligero
+    ? (rojas.length >= 3
+        ? `Suspende en <strong>${rojas.length}</strong> indicadores de ${R.checks.filter(c=>c.estado!=="na").length}. Con los números del mercado en contra, no es el momento de mirar más.`
+        : rojas.length
+          ? `Falla en <strong>${rojas.length}</strong> indicador${rojas.length===1?"":"es"} y acierta en ${verdes.length}. Ni bien ni mal: mira qué falla antes de decidir.`
+          : `Los ${verdes.length} indicadores que he podido mirar salen a favor. Buen punto de partida, pero <strong>no has visto sus cuentas todavía</strong>.`)
+    : R.rojasCrit.length
     ? `Falla en <strong>${R.rojasCrit.map(c => c.t.toLowerCase()).join("</strong> y en <strong>")}</strong>, que en tu método no se negocia. Por mucho que acierte en lo demás, con eso en rojo no se compra.`
     : rojas.length
       ? `Ninguna comprobación crítica está en rojo, pero hay <strong>${rojas.length}</strong> en contra. No es un no: es un «entérate de esto antes».`
@@ -4782,6 +4890,11 @@ function porQue(a){
 
   $("#pqTitulo").textContent = a.nombre;
   $("#pqCuerpo").innerHTML = `
+    ${R.ligero ? `<div class="callout" style="margin-bottom:16px">
+      <strong>Esto lo he juzgado solo con los indicadores del mercado</strong>, no con sus cuentas.
+      Dice lo que el mercado paga y cuánto gana hoy la empresa; no si el negocio es sólido ni si
+      aguantará diez años. Carga su informe anual y el veredicto pasa a salir de sus cuentas.
+    </div>` : ""}
     <div class="pq-cab ${est}">
       <span class="pq-pct">${P.pct}<i>%</i></span>
       <div><strong>${V.t}</strong><span>${V.s}</span></div>
@@ -6106,6 +6219,11 @@ function analizaTique(texto){
    sí funciona —cargar una imagen ya hecha— en vez de dejar un botón que
    falla. Haces la foto con la cámara del móvil como siempre, y luego la
    eliges aquí. */
+/* Cuando alguien pide cambiar sus categorías se abre la misma pantalla del
+   primer día. No se guarda en el estado: es un sitio del que se sale, no un
+   ajuste. Al recargar se vuelve al listado. */
+let pantallaCategorias = false;
+
 let seccionTique = "variables";
 
 function abreTique(seccion){
@@ -7277,6 +7395,13 @@ function eventos(){
       const [k, n] = String(sug.dataset.sug).split("|");
       const lista = S.etiquetas[k] || (S.etiquetas[k] = []);
       const i = lista.indexOf(n);
+      // Quitar aquí una partida que tenga apuntes dejaría el dinero huérfano:
+      // desaparecería de los totales sin que nadie lo borrara. Para eso está
+      // el botón de borrar del detalle, que avisa de cuánto se lleva.
+      if (i >= 0 && sug.dataset.usada){
+        toast(`«${n}» tiene apuntes. Ábrela desde el listado para borrarla con su dinero.`, true);
+        return;
+      }
       if (i >= 0) lista.splice(i, 1); else lista.push(n);
       render();
       return;
@@ -7447,7 +7572,17 @@ function eventos(){
       case "cerrar-partida": S.partidaAbierta = null; render(); window.scrollTo(0, 0); break;
       case "por-que": { const x = S.activos.find(y => y.id === b.dataset.id); if (x) porQue(x); break; }
 
+      // Rehacer la lista NO es volver al primer día: la cuenta sigue
+      // configurada. Solo se abre la misma pantalla, que se comporta
+      // distinta al saberlo.
+      case "rehacer-categorias":
+        S.partidaAbierta = null;
+        pantallaCategorias = true;
+        render(); window.scrollTo(0, 0);
+        break;
+
       case "arranque-listo":
+        pantallaCategorias = false;
         S.configurado = true;
         render(); window.scrollTo(0, 0);
         toast("Listo. Puedes añadir, renombrar o borrar partidas cuando quieras.");
