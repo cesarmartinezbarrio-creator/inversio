@@ -3,5 +3,11 @@
   "private": true,
   "version": "1.0.0",
   "description": "Backend de Inversio (Cuentas y Cartera): funciones serverless en Vercel para precios y guardado de estado.",
-  "engines": { "node": ">=18" }
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node tests/correr.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
 }

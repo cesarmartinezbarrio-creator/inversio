@@ -486,8 +486,26 @@ const entrar = (correo, clave) =>
 const refrescar = refresh =>
   pide("/auth/v1/token?grant_type=refresh_token", { method:"POST", body: JSON.stringify({ refresh_token: refresh }) });
 
-const canjear = (codigo, token) =>
-  pide("/rest/v1/rpc/canjear_invitacion", { method:"POST", body: JSON.stringify({ codigo_txt: codigo }) }, token);
+// La función de la base de datos ya no lanza errores para los fallos
+// normales (código inválido, caducado, demasiados intentos…): devuelve
+// un ESTADO en texto, para que el contador de intentos no se revierta.
+// Aquí se traduce ese estado a un mensaje y, si es un fallo, se lanza —
+// así el resto del flujo (que ya tiene su try/catch) no cambia.
+const MENSAJE_CANJE = {
+  "sin-sesion": "Hay que iniciar sesión antes de canjear un código.",
+  "vacio":      "Escribe el código de invitación.",
+  "frenado":    "Demasiados intentos con códigos que no valen. Espera una hora y vuelve a probar.",
+  "invalido":   "Ese código no es válido.",
+  "caducado":   "Ese código ha caducado.",
+  "usado":      "Ese código ya se ha usado."
+};
+const canjear = async (codigo, token) => {
+  const r = await pide("/rest/v1/rpc/canjear_invitacion", { method:"POST", body: JSON.stringify({ codigo_txt: codigo }) }, token);
+  const estado = typeof r === "string" ? r : (r && r.canjear_invitacion) || r;
+  const msg = MENSAJE_CANJE[estado];
+  if (msg){ const e = new Error(msg); e.estado = estado; throw e; }
+  return estado; // "alta-correcta" o "ya-era-miembro"
+};
 
 const miMembresia = token =>
   pide("/rest/v1/miembros?select=user_id,alta,codigo", {}, token);

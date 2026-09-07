@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía · Cuentas y Cartera</title>
+<meta name="description" content="Manual de uso de Cuentas y Cartera: economía del mes, cartera, mercado, con ejemplos interactivos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3ECE0; --surface:#FBF7F0; --surface-2:#EAE1D4; --ink:#2A2118; --ink-2:#5C5142;
+    --ink-3:#8A7D6A; --rule:#E0D6C6; --accent:#B84400; --accent-wash:rgba(184,68,0,.10);
+    --good-ink:#076B4A; --shadow:0 10px 30px rgba(120,102,80,.16); --radio:18px;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#0C2E29; --surface:#0F3A34; --surface-2:#082A26; --ink:#EAF3EF; --ink-2:#AFC6BE;
+    --ink-3:#7F9A92; --rule:#1C4A43; --accent:#E4622A; --accent-wash:rgba(228,98,42,.15);
+    --good-ink:#3FD8A0; --shadow:0 14px 40px rgba(0,0,0,.45);
+  }}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;line-height:1.6;
+    font-size:16px;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:"Outfit","Helvetica Neue",Arial,sans-serif;line-height:1.2;letter-spacing:-.01em}
+  a{color:var(--accent)}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px}
+
+  header.hero{padding:64px 0 40px;text-align:center}
+  .logo{display:inline-flex;align-items:center;gap:10px;font-family:"Outfit";font-weight:800;font-size:20px}
+  .logo svg{color:var(--accent)}
+  header.hero h1{font-size:clamp(30px,5vw,46px);font-weight:800;margin:22px 0 10px}
+  header.hero p{font-size:19px;color:var(--ink-2);max-width:56ch;margin:0 auto}
+  .cta{display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:26px}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:100px;
+    padding:12px 22px;font:inherit;font-family:"Outfit";font-weight:700;font-size:15px;cursor:pointer;
+    text-decoration:none;transition:transform .14s, box-shadow .14s}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:var(--shadow)}
+  .btn-primary:hover{transform:translateY(-2px)}
+  .btn-ghost{background:var(--surface);color:var(--ink);border:1px solid var(--rule)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+  nav.indice{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
+  nav.indice .wrap{display:flex;gap:6px;overflow-x:auto;padding:12px 20px}
+  nav.indice a{white-space:nowrap;text-decoration:none;color:var(--ink-2);font-size:13.5px;font-weight:600;
+    padding:6px 12px;border-radius:100px}
+  nav.indice a:hover{background:var(--surface);color:var(--accent)}
+
+  section{padding:46px 0;border-bottom:1px solid var(--rule)}
+  section h2{font-size:27px;font-weight:700;margin:0 0 6px;display:flex;align-items:center;gap:12px}
+  section h2 .n{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;
+    border-radius:11px;background:var(--accent-wash);color:var(--accent);font-size:16px;flex:none}
+  section > .wrap > p{color:var(--ink-2);max-width:64ch}
+  h3{font-size:18px;margin:26px 0 6px}
+  .paso{display:grid;grid-template-columns:26px 1fr;gap:12px;margin:12px 0;align-items:start}
+  .paso .b{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:13px;font-weight:700;font-family:"Outfit";flex:none;margin-top:2px}
+  .paso div p{margin:0;color:var(--ink-2)}
+  .tarjetas{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:18px 0}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radio);padding:18px}
+  .card h4{margin:0 0 6px;font-family:"Outfit";font-size:16px}
+  .card p{margin:0;font-size:14px;color:var(--ink-2)}
+  .nota{background:var(--surface);border-left:3px solid var(--accent);border-radius:10px;
+    padding:12px 16px;margin:16px 0;font-size:14.5px;color:var(--ink-2)}
+  .nota strong{color:var(--ink)}
+
+  .demo{margin:20px 0;border:1px solid var(--rule);border-radius:var(--radio);overflow:hidden;background:var(--surface);box-shadow:var(--shadow)}
+  .demo-hd{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--rule);font-size:13px;color:var(--ink-3)}
+  .demo-hd .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .demo-hd .crece{flex:1}
+  .demo-hd a{font-size:12.5px;font-weight:600;text-decoration:none}
+  .demo iframe{width:100%;height:560px;border:0;display:block;background:var(--bg)}
+  .demo .cargar{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:280px;text-align:center;padding:20px}
+  .demo .cargar p{color:var(--ink-3);font-size:14px;max-width:44ch;margin:0}
+
+  details{background:var(--surface);border:1px solid var(--rule);border-radius:12px;margin:10px 0;padding:2px 16px}
+  details summary{cursor:pointer;font-weight:600;padding:12px 0;font-family:"Outfit"}
+  details p{margin:0 0 14px;color:var(--ink-2);font-size:14.5px}
+
+  footer{padding:40px 0 70px;text-align:center;color:var(--ink-3);font-size:14px}
+  @media (max-width:640px){ .demo iframe{height:480px} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      Cuentas y Cartera
+    </span>
+    <h1>Aprende a usarla en cinco minutos</h1>
+    <p>Tu economía del mes, tu cartera de inversión y un método claro para decidir qué comprar. Esta guía te lleva paso a paso, con ejemplos que puedes tocar.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="../acceso.html">Entrar en la aplicación</a>
+      <a class="btn btn-ghost" href="../index.html?demo=1" target="_blank" rel="noopener">Probar el modo demo ↗</a>
+    </div>
+  </div>
+</header>
+
+<nav class="indice">
+  <div class="wrap">
+    <a href="#empezar">Primeros pasos</a>
+    <a href="#economia">Mi economía</a>
+    <a href="#tiques">Tiques</a>
+    <a href="#inversion">Inversión</a>
+    <a href="#mercado">Mercado</a>
+    <a href="#datos">Copia de seguridad</a>
+    <a href="#faq">Preguntas</a>
+  </div>
+</nav>
+
+<main>
+
+<section id="empezar">
+  <div class="wrap">
+    <h2><span class="n">1</span> Primeros pasos</h2>
+    <p>Para entrar necesitas un <strong>código de invitación</strong>. Con él, la aplicación es tuya y tus datos son solo tuyos: viajan cifrados y ni siquiera desde otra cuenta se pueden ver.</p>
+    <div class="paso"><span class="b">1</span><div><p><strong>Regístrate</strong> en la pantalla de acceso con tu correo y una contraseña.</p></div></div>
+    <div class="paso"><span class="b">2</span><div><p><strong>Confirma el correo</strong>: te llega un enlace, lo pulsas y vuelves.</p></div></div>
+    <div class="paso"><span class="b">3</span><div><p><strong>Canjea tu código</strong> de invitación. A partir de ahí, entras y sales cuando quieras.</p></div></div>
+    <div class="nota">¿Solo quieres curiosear? Abre el <a href="../index.html?demo=1" target="_blank" rel="noopener">modo demo</a>: es la aplicación entera con datos de ejemplo, sin registrarte y sin guardar nada.</div>
+  </div>
+</section>
+
+<section id="economia">
+  <div class="wrap">
+    <h2><span class="n">2</span> Mi economía: el mes</h2>
+    <p>Aquí no hay una lista que rellenar: <strong>escribes tu categoría</strong> —«Comida», «Luz», lo que sea— y aparece como un azulejo con su importe. Solo se ve lo que tiene dinero este mes.</p>
+    <div class="tarjetas">
+      <div class="card"><h4>Añade tu gasto</h4><p>Pulsa el azulejo con el «+», escribe la categoría y el importe. Ya está.</p></div>
+      <div class="card"><h4>La chincheta 📌</h4><p>Marca «repetir cada mes» y esa categoría volverá sola el mes que viene con su importe, lista para confirmar.</p></div>
+      <div class="card"><h4>Cambia el importe</h4><p>Pulsa un azulejo para cambiar lo que vale este mes. La categoría no se pierde.</p></div>
+      <div class="card"><h4>El colchón, aparte</h4><p>Lo que ahorras no es un gasto: va a su propio sitio, porque es dinero tuyo reservado.</p></div>
+    </div>
+    <p>Pruébalo tú mismo aquí abajo — es la aplicación de verdad, con datos de ejemplo:</p>
+    <div class="demo" data-demo>
+      <div class="demo-hd"><span class="dot"></span><span class="crece">Ejemplo interactivo · Mi economía</span><a href="../index.html?demo=1" target="_blank" rel="noopener">Abrir aparte ↗</a></div>
+      <div class="cargar"><p>El ejemplo se carga cuando pulses, para no consumir datos sin querer.</p><button class="btn btn-primary" data-cargar>Cargar el ejemplo</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="tiques">
+  <div class="wrap">
+    <h2><span class="n">3</span> Escanear un tique</h2>
+    <p>Dentro de <strong>Gastos</strong>, cada bloque (fijos y variables) tiene un botón de cámara. Cargas la foto de un tique y la aplicación lee el total y lo <strong>suma</strong> a la categoría que le digas. Si «Comida» tenía 200 € y el tique son 50 €, la categoría pasa a 250 €.</p>
+    <div class="nota"><strong>Tu foto no sale de tu teléfono.</strong> El texto se lee dentro del propio navegador; en cuanto se apunta el número, la imagen se descarta. No se sube a ninguna parte.</div>
+    <h3>Ver el desglose</h3>
+    <p>Cuando una categoría tiene varios apuntes, pulsa su azulejo: se abre una página con cada gasto, su fecha y un gráfico circular de cuánto pesa cada uno.</p>
+  </div>
+</section>
+
+<section id="inversion">
+  <div class="wrap">
+    <h2><span class="n">4</span> Inversión: tu cartera</h2>
+    <p>Apunta lo que tienes y la aplicación te dice cuánto vale a precio de hoy, cuánto has ganado o perdido de verdad, y qué conviene hacer con cada posición. Los precios se traen del mercado real.</p>
+    <div class="tarjetas">
+      <div class="card"><h4>Cartera</h4><p>Todo lo que tienes, con su valor actual y su ganancia o pérdida.</p></div>
+      <div class="card"><h4>Señales</h4><p>Avisos cuando una posición pide que la mires.</p></div>
+      <div class="card"><h4>Escenarios</h4><p>Qué pasaría con tu dinero según cómo evolucione.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="mercado">
+  <div class="wrap">
+    <h2><span class="n">5</span> Mercado: ¿invertir o no?</h2>
+    <p>Al abrir la ficha de un producto, lo primero que ves es una tarjeta con un <strong>porcentaje de acierto</strong> y una palabra de color: <span style="color:var(--good-ink);font-weight:700">Invertir</span>, <span style="color:#B8860B;font-weight:700">Observar</span> o <span style="color:#B00;font-weight:700">No invertir</span>. Pulsa la tarjeta y te explica, en cristiano, por qué.</p>
+    <div class="nota"><strong>Qué es ese porcentaje.</strong> Es cuántas de las comprobaciones salen bien, no una promesa de ganar dinero. La propia aplicación lo deja claro: te ayuda a decidir con criterio, no adivina el futuro.</div>
+    <p>Míralo en el ejemplo (entra en <strong>Mercado</strong> dentro del demo):</p>
+    <div class="demo" data-demo>
+      <div class="demo-hd"><span class="dot"></span><span class="crece">Ejemplo interactivo · Mercado</span><a href="../index.html?demo=1" target="_blank" rel="noopener">Abrir aparte ↗</a></div>
+      <div class="cargar"><p>La aplicación de verdad, con una ficha de ejemplo para que pruebes el veredicto.</p><button class="btn btn-primary" data-cargar>Cargar el ejemplo</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="datos">
+  <div class="wrap">
+    <h2><span class="n">6</span> Tus datos y la copia de seguridad</h2>
+    <p>Tus datos se guardan en tu cuenta y los ves desde cualquier dispositivo con el mismo enlace. Aun así, conviene tener una copia propia.</p>
+    <div class="paso"><span class="b">1</span><div><p>Pulsa el icono de <strong>datos</strong> en la barra de arriba (junto al de tema).</p></div></div>
+    <div class="paso"><span class="b">2</span><div><p><strong>Descargar una copia</strong>: baja un fichero con todo tu estado. Guárdalo en sitio seguro.</p></div></div>
+    <div class="paso"><span class="b">3</span><div><p>Para volver atrás, pega el contenido de esa copia y pulsa <strong>Restaurar</strong>.</p></div></div>
+    <div class="nota">Ahí mismo, abajo, ves la <strong>versión</strong> de la aplicación que estás usando: útil si algo no cuadra y quieres contármelo.</div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2><span class="n">7</span> Preguntas frecuentes</h2>
+    <details><summary>¿Pueden ver otros mis datos?</summary><p>No. El aislamiento lo impone la base de datos, no la página: cada quien solo puede leer y escribir lo suyo, aunque manipule el navegador. Se ha probado atacándolo de verdad.</p></details>
+    <details><summary>¿La foto del tique se guarda en algún sitio?</summary><p>No. Se lee dentro de tu navegador y se descarta en cuanto se apunta el número. No se sube a ningún servidor.</p></details>
+    <details><summary>He perdido mi código de invitación.</summary><p>Los códigos los gestiona quien administra la aplicación. Pídele uno nuevo; cada código es de un solo uso.</p></details>
+    <details><summary>¿Funciona sin conexión?</summary><p>La aplicación se puede instalar y abrir sin conexión, pero para traer precios de mercado o guardar en tu cuenta necesita internet.</p></details>
+    <details><summary>¿Puedo usarla en el móvil?</summary><p>Sí, está pensada para el móvil. Abre el mismo enlace y tendrás tus datos igual que en el ordenador.</p></details>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    Cuentas y Cartera · <a href="../acceso.html">Entrar</a> · <a href="../index.html?demo=1" target="_blank" rel="noopener">Modo demo</a>
+  </div>
+</footer>
+
+<script>
+  // Los ejemplos se cargan solo al pulsar: así la guía abre ligera y el
+  // navegador no monta la aplicación entera hasta que de verdad se quiere ver.
+  document.querySelectorAll("[data-cargar]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const caja = btn.closest("[data-demo]");
+      const cargar = caja.querySelector(".cargar");
+      const ifr = document.createElement("iframe");
+      ifr.src = "../index.html?demo=1";
+      ifr.loading = "lazy";
+      ifr.title = "Ejemplo interactivo de Cuentas y Cartera";
+      cargar.replaceWith(ifr);
+    });
+  });
+</script>
+</body>
+</html>

@@ -1372,6 +1372,9 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
       <span class="bell-badge" id="bellBadge" hidden>0</span>
     </button>
     <button class="btn btn-sm btn-primary" id="btnSave">Guardar ya</button>
+    <button class="btn btn-icon btn-quiet" id="btnDatos" aria-label="Tus datos y copia de seguridad" title="Tus datos y copia de seguridad">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="1.7"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" stroke="currentColor" stroke-width="1.7"/></svg>
+    </button>
     <button class="btn btn-icon btn-quiet" id="btnTheme" aria-label="Cambiar tema" title="Cambiar tema">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v2m0 14v2m9-9h-2M5 12H3m14.7-6.7-1.4 1.4M7.7 16.3l-1.4 1.4m11 0-1.4-1.4M7.7 7.7 6.3 6.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/></svg>
     </button>
@@ -1500,6 +1503,25 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
   <div class="dlg-ft">
     <button class="btn" data-close>Cancelar</button>
     <button class="btn btn-primary" id="btnInvOk">Apuntar</button>
+  </div>
+</dialog>
+
+<dialog id="dlgDatos">
+  <div class="dlg-hd"><h3>Tus datos</h3><button class="btn btn-sm btn-quiet" data-close>Cerrar</button></div>
+  <div class="dlg-bd">
+    <div class="callout"><strong>Copia de seguridad.</strong> Tus datos ya se guardan en tu cuenta, pero conviene tener una copia propia. Descárgala de vez en cuando; es un fichero de texto que puedes volver a cargar aquí.</div>
+    <div class="fila-acc" style="margin-top:12px">
+      <button class="btn btn-primary" data-act="exportar-datos">Descargar una copia</button>
+    </div>
+    <div class="field" style="margin-top:18px"><label for="datosText">Restaurar desde una copia</label>
+      <textarea class="code" id="datosText" placeholder='Pega aquí el contenido de un fichero cuentas-y-cartera-….json'></textarea></div>
+    <div class="fila-acc">
+      <button class="btn btn-quiet" data-act="restaurar-datos">Restaurar (reemplaza todo)</button>
+    </div>
+  </div>
+  <div class="dlg-ft">
+    <span class="note" style="flex:1">Versión <b id="verApp"></b></span>
+    <button class="btn btn-primary" data-close>Cerrar</button>
   </div>
 </dialog>
 
@@ -1670,7 +1692,6 @@ function mesMas(m, n){
   const d = new Date(a, b - 1 + n, 1);
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
 }
-const trimestreDe = m => Math.floor((+String(m).split("-")[1] - 1) / 3) + 1;
 const semestreDe  = m => (+String(m).split("-")[1] <= 6 ? 1 : 2);
 const anioDe      = m => String(m).split("-")[0];
 
@@ -1859,6 +1880,17 @@ const AYUDA = {
 
 /* ── Estado ───────────────────────────────────────────────── */
 const LS_KEY = "cyc.estado.v1";
+
+/* Sello de versión visible. Cámbialo al subir una versión nueva; sirve
+   para saber de un vistazo qué build corre (aparece en «Tus datos»). No
+   es el nombre de la caché del service worker —eso vive en sw.js—, es el
+   número que ve la persona. */
+const VERSION_APP = "2026.09.07";
+
+/* Modo demo: con ?demo en la URL, la app arranca sin sesión, con datos
+   de ejemplo, y NO guarda nada en la nube. Es lo que embebe la web de
+   guía para enseñar la aplicación sin tener que registrarse. */
+const DEMO = new URLSearchParams(location.search).has("demo");
 const AJUSTES = {
   moneda: "€", usdEur: 0.8635,
   rentabilidad: 0.06,     /* hipótesis conservadora general */
@@ -2036,7 +2068,7 @@ function saneaEstado(x){
   if (["mes","trimestre","semestre","anio"].includes(x.periodo)) o.periodo = x.periodo;
   return o;
 }
-function guardarLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(_){} }
+function guardarLocal(){ if (DEMO) return; try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(_){} }
 function cargarLocal(){
   try { const r = localStorage.getItem(LS_KEY); if (!r) return null;
     const o = JSON.parse(r); return (o && Array.isArray(o.apuntes)) ? o : null; } catch(_){ return null; }
@@ -3122,32 +3154,6 @@ function barChart(labels, values, color, fy, opts){
     `aria-label="${esc(opts.alt||"Gráfico de barras")}"`);
 }
 
-/* Barras apiladas al 100% — asignación de capital */
-function stackChart(labels, filas, datos){
-  const sc = { min:0, max:1, y:v => M.t + PH - v*PH };
-  const x = ejeBanda(labels.length);
-  const banda = PW / Math.max(1, labels.length);
-  const bw = Math.min(52, banda * 0.66);
-  let cuerpo = "";
-  datos.forEach((d,i) => {
-    if (!d) return;
-    let acc = 0;
-    filas.forEach(f => {
-      const v = d[f.k] || 0; if (v <= 0.002) { acc += v; return; }
-      const y0 = sc.y(acc + v), y1 = sc.y(acc);
-      cuerpo += `<rect x="${(x(i)-bw/2).toFixed(1)}" y="${y0.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1,(y1-y0)-2).toFixed(1)}" rx="2" fill="${f.color}"/>`;
-      acc += v;
-    });
-  });
-  const hit = zonasHit(labels, x, i => datos[i]
-    ? filas.map(f => ({n:f.name, c:f.color, v:pct(datos[i][f.k]||0,0)}))
-    : [{n:"Sin flujo de caja libre", c:"var(--ink-3)", v:"—"}], banda);
-  const ejeYs = [0,.25,.5,.75,1].map(v =>
-    `<line class="grid-line" x1="${M.l}" x2="${W-M.r}" y1="${sc.y(v).toFixed(1)}" y2="${sc.y(v).toFixed(1)}"/>`+
-    `<text class="axis-t" x="${M.l-8}" y="${(sc.y(v)+3.5).toFixed(1)}" text-anchor="end">${pct(v,0)}</text>`).join("");
-  return chartSVG(ejeYs+cuerpo+etiquetasX(labels,x)+hit, `aria-label="Reparto del flujo de caja libre por año"`);
-}
-
 /* Áreas apiladas en valores absolutos — la bola de nieve */
 function areaChart(labels, filas, datos, fy, opts){
   opts = opts || {};
@@ -3342,46 +3348,6 @@ function barrasH(filas, fy, opts){
       <span class="barraH-t"><i style="width:${(Math.abs(f.v)/max*100).toFixed(1)}%;background:${f.c}"></i></span>
       <span class="barraH-v num">${fy(f.v)}</span>
     </div>`).join("")}</div>`;
-}
-
-/* ── Termómetro de precio contra valor ─────────────────────
-   Enseña de un vistazo si está cara o barata: dónde cae el
-   precio de hoy frente a lo que las cuentas dicen que vale. */
-function barraValor(precio, viCons, viOpt, fy){
-  const vals = [precio, viCons, viOpt].filter(isN);
-  if (vals.length < 2) return "";
-  const min = Math.min(...vals) * 0.88, max = Math.max(...vals) * 1.12;
-  const X = v => ((v - min) / (max - min)) * 100;
-  const marca = (v, c, t, arriba) => !isN(v) ? "" : `
-    <div class="tv-m${arriba ? " up" : ""}" style="left:${X(v).toFixed(1)}%">
-      <span class="tv-p" style="background:${c}"></span>
-      <span class="tv-t" style="color:${c}">${esc(t)}<b>${fy(v)}</b></span>
-    </div>`;
-  const zona = isN(viCons) && isN(precio)
-    ? `<i class="tv-z" style="left:${Math.min(X(precio), X(viCons)).toFixed(1)}%;width:${Math.abs(X(viCons)-X(precio)).toFixed(1)}%;
-         background:${precio <= viCons ? "var(--good)" : "var(--crit)"}"></i>` : "";
-  return `<div class="termo">
-    <div class="tv-riel">${zona}</div>
-    ${marca(precio, "var(--ink)", "Precio hoy ", false)}
-    ${marca(viCons, "var(--good-ink)", "Vale (prudente) ", true)}
-    ${isN(viOpt) && Math.abs(X(viOpt) - X(viCons)) > 9 ? marca(viOpt, "var(--ink-3)", "Optimista ", true) : ""}
-  </div>`;
-}
-
-/* Minigráfica con su nombre y su última cifra: para las cuentas */
-function mmini(nombre, valores, color, fy, ayuda){
-  const v = valores.filter(isN);
-  const u = v.length ? v[v.length - 1] : null;
-  const p = v.length >= 2 ? v[0] : null;
-  const cagr = (isN(u) && isN(p) && p > 0 && v.length >= 2) ? Math.pow(u / p, 1 / (v.length - 1)) - 1 : null;
-  return `<div class="evocard">
-    <span class="evocard-h">${esc(nombre)}${ayuda ? infoTxt(nombre, ayuda) : ""}</span>
-    <span class="evocard-v" style="color:${color}">${isN(u) ? fy(u) : "—"}</span>
-    <span class="evocard-d">${isN(cagr)
-      ? `<span class="delta" style="color:${cagr >= 0 ? "var(--good-ink)" : "var(--crit-ink)"}">${pctS(cagr, 1)}</span><span class="evocard-s">al año</span>`
-      : `<span class="evocard-s">un solo ejercicio</span>`}</span>
-    ${mini(valores, color, { h: 36 })}
-  </div>`;
 }
 
 /* ── Precio contra valor: el margen de seguridad, dibujado ──
@@ -3945,8 +3911,18 @@ function renderPartida(host){
   const nombreDe = a => a.desc || "Sin concepto";
 
   /* El gráfico: una porción por apunte. Con un solo apunte no dice nada
-     —siempre sería el 100%—, así que ahí no se enseña. */
-  const partes = aps.map((a, i) => ({ n: nombreDe(a), v: Math.abs(a.importe), c: PAL[i % PAL.length] }));
+     —siempre sería el 100%—, así que ahí no se enseña. Y el anillo no
+     aguanta cientos de porciones: si hay muchas, se queda con las mayores
+     y mete el resto en «Otros», que si no es ilegible y lento. */
+  const TOPE_ARCOS = 11;
+  const partesTodas = aps.map((a, i) => ({ n: nombreDe(a), v: Math.abs(a.importe), c: PAL[i % PAL.length] }));
+  let partes = partesTodas;
+  if (partesTodas.length > TOPE_ARCOS){
+    const orden = partesTodas.slice().sort((a, b) => b.v - a.v);
+    const resto = orden.slice(TOPE_ARCOS);
+    partes = orden.slice(0, TOPE_ARCOS)
+      .concat([{ n: `Otros (${resto.length})`, v: suma(resto.map(p => p.v)), c: "var(--ink-3)" }]);
+  }
   const grafico = aps.length > 1
     ? `<div class="dosCol">
          <div>${anillo(partes, { centro: dinero(total), sub: mesTexto(S.mes), alt: `Reparto de ${item}` })}</div>
@@ -3954,7 +3930,12 @@ function renderPartida(host){
        </div>`
     : `<p class="note">Con un solo apunte no hay nada que repartir. El gráfico aparece cuando haya dos o más.</p>`;
 
-  const filas = aps.map((a, i) => `
+  /* La lista se pinta entera hasta cierto punto; por encima de unos
+     cientos de apuntes (tiques a mansalva) ralentiza el navegador, así
+     que se enseñan los más recientes y se dice cuántos quedan. */
+  const TOPE_FILAS = 150;
+  const apsVis = aps.slice(0, TOPE_FILAS);
+  const filas = apsVis.map((a, i) => `
     <div class="apunte">
       <span class="apunte-c" style="background:${PAL[i % PAL.length]}"></span>
       <span class="apunte-n">${esc(nombreDe(a))}<span class="apunte-f">${fechaCorta(a.fecha)}</span></span>
@@ -3962,6 +3943,9 @@ function renderPartida(host){
       <input class="cel num" inputmode="decimal" value="${String(a.importe).replace(".", ",")}" data-apimp="${a.id}" aria-label="Importe de ${esc(nombreDe(a))}">
       <button class="linea-x" data-borrar="ap-n:${a.id}" aria-label="Borrar ${esc(nombreDe(a))}" title="Borrar este apunte">${ICO_X}</button>
     </div>`).join("");
+  const masFilas = aps.length > TOPE_FILAS
+    ? `<p class="note" style="margin-top:12px">Se muestran los <strong>${TOPE_FILAS}</strong> apuntes más recientes de <strong>${aps.length}</strong>. El total de arriba sí los suma todos.</p>`
+    : "";
 
   host.innerHTML =
     card(`<button class="btn btn-sm btn-quiet" data-act="cerrar-partida" style="margin-right:10px">← ${esc(s.corto)}</button>${esc(item)}`,
@@ -3982,7 +3966,7 @@ function renderPartida(host){
     card("En qué se ha ido", grafico) +
 
     card("Los apuntes", aps.length
-      ? `<div class="apuntes">${filas}</div>
+      ? `<div class="apuntes">${filas}</div>${masFilas}
          <p class="note" style="margin-top:14px">Los que no tienen fecha son anteriores a que la aplicación empezara a guardarla. No me la invento.</p>`
       : `<p class="note">Aquí no queda nada. Vuelve a ${esc(s.corto.toLowerCase())}.</p>`);
 }
@@ -7679,6 +7663,8 @@ function eventos(){
     const act = id ? S.activos.find(a => a.id === id) : null;
     switch (b.dataset.act){
       case "ver-avisos": abrirAvisos(false); break;
+      case "exportar-datos": exportarDatos(); break;
+      case "restaurar-datos": restaurarDatos($("#datosText").value); break;
       case "toggle-franja": S.franjaAbierta = !S.franjaAbierta; render(); break;
       case "genera-caja": if (act){
         act.generaCaja = b.dataset.v === "1";
@@ -7993,6 +7979,11 @@ function eventos(){
     const a = document.documentElement.getAttribute("data-theme");
     aplicarTema(a === "dark" ? "light" : a === "light" ? "auto" : "dark"); render();
   });
+  $("#btnDatos").addEventListener("click", () => {
+    const v = $("#verApp"); if (v) v.textContent = VERSION_APP;
+    $("#datosText").value = "";
+    $("#dlgDatos").showModal();
+  });
   $("#btnSave").addEventListener("click", async () => {
     const btn = $("#btnSave"); btn.disabled = true; btn.textContent = "Guardando…";
     await guardarYa(false);
@@ -8096,6 +8087,104 @@ function cargarJson(txt){
   $("#dlgJson").close();
   render();
   toast(`Cargados ${a.anios.length} ejercicios. Revisa las cifras antes de fiarte del resultado.`);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Copia de seguridad — exportar e importar TODO tu estado
+   ═══════════════════════════════════════════════════════════
+   La nube ya guarda tus datos, pero depender de un solo sitio da vértigo.
+   Esto te baja un fichero con todo (cartera, economía, ajustes) y te lo
+   vuelve a meter si algún día hace falta. Es texto JSON, legible. */
+
+function exportarDatos(){
+  try {
+    const json = JSON.stringify(S, null, 2);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+    const hoy = new Date().toISOString().slice(0, 10);
+    a.download = `cuentas-y-cartera-${hoy}.json`;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    toast("Copia descargada. Guárdala en sitio seguro.");
+  } catch(_){ toast("No he podido preparar la descarga.", true); }
+}
+
+function restaurarDatos(txt){
+  const o = primerJSON(txt);
+  if (!o || typeof o !== "object"){ toast("Eso no parece una copia válida.", true); return; }
+  if (!Array.isArray(o.apuntes) && !Array.isArray(o.activos)){
+    toast("A esa copia le faltan tus datos (ni apuntes ni activos).", true); return;
+  }
+  confirmar("Restaurar esta copia",
+    "Reemplaza TODO lo que tienes ahora por lo que hay en la copia. Lo que no esté en el fichero se pierde. ¿Seguro?",
+    () => {
+      S = saneaEstado(o);
+      $("#dlgDatos") && $("#dlgDatos").close();
+      render(); programarGuardado();
+      toast("Copia restaurada.");
+    }, "crit");
+}
+
+/* ── Modo demo · datos de ejemplo generados al azar ────────────
+   Una cuenta de mentira, coherente pero aleatoria, para enseñar la app
+   en la web de guía sin que nadie tenga que registrarse. No se guarda en
+   ninguna parte: vive solo en memoria mientras la pestaña esté abierta. */
+function datosDemo(){
+  const az  = (min, max) => Math.round(min + Math.random() * (max - min));
+  const az2 = (min, max) => Math.round((min + Math.random() * (max - min)) * 100) / 100;
+  const elige = arr => arr[Math.floor(Math.random() * arr.length)];
+  const S0 = saneaEstado({});
+  S0.configurado = true;
+  const mes = mesHoy();
+
+  const pon = (seccion, item, importe, anclar_) => {
+    (S0.etiquetas[seccion] = S0.etiquetas[seccion] || []);
+    if (!S0.etiquetas[seccion].includes(item)) S0.etiquetas[seccion].push(item);
+    S0.apuntes.push({ id: uid(), mes, seccion, item, fecha: mes + "-" + String(az(1, 27)).padStart(2, "0"), importe });
+    if (anclar_) S0.fijas.push({ seccion, item, importe });
+  };
+
+  pon("ingresos", "Nómina", az(1500, 2400), true);
+  if (Math.random() < 0.5) pon("ingresos", "Extra", az(150, 600), false);
+
+  pon("fijos", "Alquiler o hipoteca", az(600, 1050), true);
+  pon("fijos", "Luz", az2(40, 95), true);
+  pon("fijos", "Internet", 39, true);
+  if (Math.random() < 0.6) pon("fijos", "Gimnasio", az(20, 45), true);
+
+  ["Comida","Transporte","Ocio","Restaurantes","Ropa"].forEach(c => {
+    if (Math.random() < 0.8) pon("variables", c, az2(25, 260), false);
+  });
+  // un par de tiques dentro de Comida, para enseñar la suma
+  ["Mercadona","Frutería"].forEach(d => {
+    if (Math.random() < 0.7){
+      if (!S0.etiquetas.variables.includes("Comida")) S0.etiquetas.variables.push("Comida");
+      S0.apuntes.push({ id: uid(), mes, seccion: "variables", item: "Comida", desc: d, fecha: mes + "-" + String(az(1, 27)).padStart(2, "0"), importe: az2(8, 70) });
+    }
+  });
+
+  pon("colchon", "Aporte al colchón", az(50, 300), false);
+
+  // Un par de posiciones de cartera y una ficha en estudio.
+  const empresas = [
+    { nombre: "Compañía del Faro",  simbolo: "FARO" },
+    { nombre: "Industrias Aliso",   simbolo: "ALIS" },
+    { nombre: "Naviera del Cabo",   simbolo: "CABO" },
+    { nombre: "Molinos Reunidos",   simbolo: "MOLI" },
+  ];
+  const barajadas = empresas.slice().sort(() => Math.random() - 0.5);
+  barajadas.slice(0, 2).forEach(e => {
+    const a = activoVacio(e.nombre);
+    a.simbolo = e.simbolo; a.categoria = "Acciones"; a.estado = "cartera"; a.moneda = "€";
+    a.precio = az2(8, 60);
+    S0.activos.push(a);
+  });
+  const est = activoVacio(barajadas[2].nombre);
+  est.simbolo = barajadas[2].simbolo; est.categoria = "Acciones"; est.estado = "estudio"; est.moneda = "€";
+  S0.activos.push(est);
+
+  S0.mes = mes;
+  return S0;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -8307,6 +8396,16 @@ const apiMcpBackend = {
 
 (async function init(){
   try { aplicarTema(localStorage.getItem("cyc.tema") || "auto"); } catch(_){}
+
+  // Modo demo: sin sesión, con datos de ejemplo, y sin guardar nada. Es
+  // lo que embebe la web de guía. Se corta aquí antes de pedir sesión.
+  if (DEMO){
+    montaTip(); montaGlobo(); eventos();
+    S = datosDemo();
+    apiArtifact = null; esEscritor = false; estadoSync = "local"; pintaSync();
+    render();
+    return;
+  }
 
   // Lo primero de todo: ¿hay sesión? Si no, ni se monta la aplicación.
   if (!SB_URL || !SB_KEY){
