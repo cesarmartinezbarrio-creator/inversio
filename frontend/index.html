@@ -979,6 +979,90 @@ textarea.code{
 }
 .partida-suma:hover{border-color:var(--accent);color:var(--accent)}
 
+/* ── El mosaico de categorías ──────────────────────────────────
+   Cada categoría es un azulejo con su inicial de color, su nombre y su
+   cifra grande. Lo que manda es la cifra: se lee de un vistazo sin buscar
+   en una columna. La barra de abajo dice cuánto pesa dentro del bloque.
+
+   Se toca entero —no un trocito de texto—, que en el móvil es lo único
+   que funciona de verdad. */
+.mosaico{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));
+  gap:10px;padding:12px 22px 18px;
+}
+.teja{
+  position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  font:inherit;text-align:left;cursor:pointer;color:var(--ink);
+  border:1px solid var(--rule);border-radius:14px;background:var(--surface);
+  padding:12px 13px 15px;overflow:hidden;min-height:104px;
+  transition:border-color .12s, transform .12s, box-shadow .12s;
+}
+.teja:hover,.teja:focus-visible{
+  border-color:var(--accent);transform:translateY(-1px);box-shadow:var(--shadow);
+}
+.teja:active{transform:translateY(0)}
+.teja-ini{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:4px;
+}
+.teja-n{
+  font-size:13px;font-weight:600;line-height:1.25;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.teja-v{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  font-size:20px;font-weight:700;line-height:1.1;margin-top:2px;
+}
+.teja-s{font-size:11px;color:var(--ink-3);line-height:1.3}
+.teja-pin{position:absolute;top:10px;right:10px;color:var(--accent);line-height:0}
+.teja-peso{
+  position:absolute;left:0;bottom:0;height:3px;min-width:2px;
+  border-radius:0 3px 0 0;transition:width .25s;
+}
+.teja.porconfirmar{border-color:var(--accent);background:var(--accent-wash)}
+
+/* El azulejo de añadir. Es el único con borde discontinuo: se distingue de
+   una categoría de verdad sin necesidad de leerlo. */
+.teja.nueva{
+  align-items:center;justify-content:center;text-align:center;gap:6px;
+  border-style:dashed;border-color:var(--ink-3);background:transparent;
+  color:var(--ink-2);font-size:12.5px;font-weight:600;padding:12px;
+}
+.teja.nueva:hover,.teja.nueva:focus-visible{border-color:var(--accent);color:var(--accent)}
+.teja-mas{font-size:24px;font-weight:400;line-height:1}
+
+/* ── Diálogo de añadir ─────────────────────────────────────── */
+.sug-cat{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.sug-cat-b{
+  font:inherit;font-size:12.5px;cursor:pointer;border-radius:999px;padding:5px 11px;
+  border:1px solid var(--rule);background:var(--surface-2);color:var(--ink-2);
+}
+.sug-cat-b:hover{border-color:var(--accent);color:var(--accent)}
+.chk-fija{
+  display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;
+  margin-top:16px;cursor:pointer;font-size:13.5px;font-weight:600;
+}
+.chk-fija input{width:18px;height:18px;margin-top:1px;accent-color:var(--accent)}
+.chk-fija small{display:block;font-weight:400;font-size:12px;color:var(--ink-3);margin-top:3px;line-height:1.45}
+.cel.grande{font-size:22px;font-weight:700;padding:12px 14px;text-align:right}
+/* Las dos casillas del diálogo ocupan el ancho: el nombre se escribe de
+   izquierda a derecha como cualquier texto, el importe se lee alineado a la
+   derecha como cualquier cifra. */
+#anCat{
+  width:100%;text-align:left;padding:11px 13px;font-size:15px;
+  font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;font-weight:600;
+}
+#anImp{width:100%}
+/* .btn es inline-flex y eso gana al atributo hidden: sin esto, el botón de
+   borrar aparecería también al crear una categoría nueva. */
+.btn[hidden]{display:none!important}
+
+@media (max-width:520px){
+  .mosaico{grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:8px;padding:10px 14px 16px}
+  .teja{min-height:96px;padding:11px 11px 14px}
+  .teja-v{font-size:18px}
+}
+
 /* ── Gastos: los dos bloques ──────────────────────────────── */
 .bloque-gasto.segundo{margin-top:18px;padding-top:4px;border-top:1px solid var(--rule)}
 .bloque-hd{display:flex;align-items:center;gap:10px;padding:12px 22px 4px}
@@ -1443,6 +1527,34 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
      La imagen se lee dentro del navegador y NO se guarda en ningún
      sitio: en cuanto se apunta el gasto, se descarta. Por eso no hay
      ninguna vista previa que sobreviva al diálogo. -->
+<dialog id="dlgAnadir">
+  <div class="dlg-hd"><h3 id="anTitulo">Añadir</h3><button class="btn btn-sm btn-quiet" data-close>Cerrar</button></div>
+  <div class="dlg-bd">
+
+    <div class="field"><label for="anCat">Categoría</label>
+      <input class="cel" id="anCat" autocomplete="off" spellcheck="false" placeholder="Comida, Luz, Gasolina…">
+      <div class="sug-cat" id="anSug"></div>
+    </div>
+
+    <div class="field"><label for="anImp">Importe</label>
+      <input class="cel num grande" id="anImp" inputmode="decimal" placeholder="0,00"></div>
+
+    <label class="chk-fija" id="anFijaCaja">
+      <input type="checkbox" id="anFija">
+      <span>Repetir cada mes
+        <small>Volverá sola el mes que viene con este mismo importe, marcada hasta que la confirmes. Para lo que no cambia: alquiler, cuotas, seguros.</small></span>
+    </label>
+
+    <p class="note" id="anAviso" hidden></p>
+  </div>
+  <div class="dlg-ft">
+    <button class="btn btn-quiet" id="btnAnBorrar" hidden>Borrar</button>
+    <div style="flex:1"></div>
+    <button class="btn" data-close>Cancelar</button>
+    <button class="btn btn-primary" id="btnAnOk">Añadir</button>
+  </div>
+</dialog>
+
 <dialog id="dlgPorQue">
   <div class="dlg-hd"><h3 id="pqTitulo">Por qué</h3><button class="btn btn-sm btn-quiet" data-close>Cerrar</button></div>
   <div class="dlg-bd" id="pqCuerpo"></div>
@@ -3645,6 +3757,7 @@ function barraMes(){
     <div style="flex:1"></div>
     ${S.mes !== mesHoy() ? `<button class="btn btn-sm btn-quiet" data-act="mes-hoy">Ir al mes actual</button>` : ""}
     <button class="btn btn-sm" data-act="copiar-mes">Copiar del mes anterior</button>
+    <button class="btn btn-sm" data-act="rehacer-categorias">Mis categorías</button>
   </div>`;
 }
 
@@ -3656,6 +3769,101 @@ function barraMes(){
    pestaña propia: es un sitio al que se entra y del que se sale, no un
    apartado permanente. Por eso `partidaAbierta` no se guarda entre
    sesiones — al abrir la aplicación siempre se empieza en el listado. */
+/* ═══════════════════════════════════════════════════════════
+   Añadir o cambiar una categoría del mes
+   ═══════════════════════════════════════════════════════════
+   Un solo diálogo para las dos cosas, porque para quien lo usa son la
+   misma: decir cuánto va en una categoría. Si ya existe, viene rellenado.
+
+   No abre para las categorías con varios apuntes —un tique, y otro, y
+   otro—: ahí el importe no es un número que se escriba, es una suma. Esas
+   llevan a su página de detalle. */
+let ANADIR = null;     // {seccion, item|null}
+
+function abreAnadir(seccion, item){
+  if (!SECCIONES[seccion]) return;
+  const aps = item ? apuntesDe(S.mes, seccion, item) : [];
+  const fija = item ? fijaDe(seccion, item) : null;
+  ANADIR = { seccion, item: item || null };
+
+  const esIngreso = seccion === "ingresos";
+  $("#anTitulo").textContent = item ? item
+    : esIngreso ? "Añade tu ingreso"
+    : seccion === "colchon" ? "Añade tu aporte"
+    : "Añade tu gasto";
+  $("#anCat").value = item || "";
+  $("#anCat").disabled = !!item;          // renombrar es otra cosa, y vive en el detalle
+  $("#anImp").value = aps.length ? String(suma(aps.map(a => Math.abs(a.importe)))).replace(".", ",") : "";
+  $("#anFija").checked = !!fija;
+  $("#btnAnOk").textContent = item ? "Guardar" : "Añadir";
+  $("#btnAnBorrar").hidden = !item;
+
+  const aviso = $("#anAviso");
+  if (item && fija && aps.some(a => a.auto)){
+    aviso.textContent = "Este importe lo trajo la chincheta del mes pasado. Confírmalo o cámbialo.";
+    aviso.hidden = false;
+  } else aviso.hidden = true;
+
+  // Sugerencias: primero las suyas que no estén ya puestas este mes, luego
+  // las de la lista general. Sin repetir y sin abrumar.
+  const yaPuestas = (S.etiquetas[seccion] || []).filter(x =>
+    apuntesDe(S.mes, seccion, x).length || fijaDe(seccion, x));
+  const suyas = (S.etiquetas[seccion] || []).filter(x => !yaPuestas.includes(x));
+  const generales = (SUGERIDAS[seccion] || []).filter(x =>
+    !yaPuestas.includes(x) && !suyas.includes(x));
+  const lista = [...suyas, ...generales].slice(0, 14);
+  $("#anSug").innerHTML = item ? "" : lista.map(n =>
+    `<button type="button" class="sug-cat-b" data-sugcat="${esc(n)}">${esc(n)}</button>`).join("");
+
+  $("#dlgAnadir").showModal();
+  setTimeout(() => (item ? $("#anImp") : $("#anCat")).focus(), 60);
+}
+
+function guardaAnadir(){
+  if (!ANADIR) return;
+  const k = ANADIR.seccion;
+  const item = (ANADIR.item || $("#anCat").value || "").trim();
+  if (!item){ toast("Escribe primero el nombre de la categoría.", true); $("#anCat").focus(); return; }
+
+  const imp = num($("#anImp").value);
+  if (!isN(imp) || imp === 0){ toast("Escribe un importe.", true); $("#anImp").focus(); return; }
+
+  // Categoría nueva: se guarda en la lista para volver a sugerirla.
+  const lista = S.etiquetas[k] || (S.etiquetas[k] = []);
+  const yaEsta = lista.find(x => x.toLowerCase() === item.toLowerCase());
+  const nombre = yaEsta || item;
+  if (!yaEsta) lista.push(item);
+
+  ponerImporte(S.mes, k, nombre, Math.abs(imp));
+  const a = apunteSimple(S.mes, k, nombre);
+  if (a){ a.auto = false; a.fecha = a.fecha || fechaParaMes(S.mes); }
+
+  // La chincheta
+  if ($("#anFija").checked) anclar(k, nombre, Math.abs(imp));
+  else desanclar(k, nombre);
+
+  ANADIR = null;
+  $("#dlgAnadir").close();
+  render(); programarGuardado();
+  toast(`${nombre}: ${dinero(Math.abs(imp))}.`);
+}
+
+function borraAnadir(){
+  if (!ANADIR || !ANADIR.item) return;
+  const { seccion: k, item } = ANADIR;
+  const total = totalPartida(S.mes, k, item);
+  $("#dlgAnadir").close();
+  confirmar(`Quitar «${item}» de ${mesTexto(S.mes)}`,
+    `Se borra lo apuntado en esta categoría este mes (${dinero(total)}). La categoría se queda guardada y te la seguiré sugiriendo; los otros meses no se tocan.`,
+    () => {
+      S.apuntes = S.apuntes.filter(a => !(a.mes === S.mes && a.seccion === k && a.item === item));
+      desanclar(k, item);
+      ANADIR = null;
+      render(); programarGuardado();
+      toast(`«${item}» fuera de ${mesTexto(S.mes)}.`);
+    }, "crit");
+}
+
 /* ═══════════════════════════════════════════════════════════
    Arranque · qué gastos tiene cada uno
    ═══════════════════════════════════════════════════════════
@@ -3796,59 +4004,74 @@ function renderMes(){
      Siempre enseña la SUMA de todo lo que hay en esa partida este mes: lo
      escrito a mano y lo que haya entrado por un tique. Si la partida tiene
      algo dentro, su nombre se puede pulsar para ver el desglose. */
-  const filaPartida = (k, item) => {
+  /* ── Un azulejo por categoría ────────────────────────────────
+     SOLO se enseña lo que existe: una categoría con dinero este mes, o
+     anclada con la chincheta. Las demás no ocupan sitio — siguen guardadas
+     y salen como sugerencia al escribir.
+
+     Ahí está la despersonalización: antes la lista venía puesta y todo el
+     mundo empezaba con las partidas de quien escribió la aplicación
+     —«Comida Dulce», «Propina Hugo»—, once filas casi todas vacías. Ahora
+     la pantalla no enseña categorías: enseña TU dinero. */
+  const INICIAL = n => (String(n).trim()[0] || "?").toUpperCase();
+  const COLOR_TEJA = ["var(--s1)","var(--s2)","var(--s3)","var(--s4)","var(--s5)"];
+  const colorDe = n => COLOR_TEJA[[...String(n)].reduce((a,c) => a + c.charCodeAt(0), 0) % COLOR_TEJA.length];
+
+  const tejaPartida = (k, item, base) => {
     const aps   = apuntesDe(S.mes, k, item);
     const total = suma(aps.map(a => Math.abs(a.importe)));
     const fija  = fijaDe(k, item);
-    const marcada = !!fija;
-    const sencilla = partidaSencilla(S.mes, k, item);
-    const clave = `${k}|${item}`;
+    const auto  = aps.some(a => a.auto);
+    const tiques = aps.filter(a => a.desc).length;
+    const peso  = base > 0 ? Math.min(100, total / base * 100) : 0;
+    const c     = colorDe(item);
 
-    /* El nombre siempre se puede pulsar, tenga apuntes o no: su página es
-       también donde se renombra y se borra. Si solo fuera pulsable con
-       apuntes dentro, una partida escrita mal el primer día no habría forma
-       de arreglarla nunca. */
-    const auto = aps.some(a => a.auto);
-    const nombre = `<button class="partida-n comoLink" data-partida="${esc(clave)}"
-        title="Abrir ${esc(item)}"
-        aria-label="Abrir ${esc(item)}${aps.length ? `, ${aps.length} apuntes` : ", sin apuntes"}">${esc(item)}${
-          marcada ? `<span class="partida-f">fijo · ${dinero(fija.importe)}</span>`
-                  : (aps.length > 1 ? `<span class="partida-f">${aps.length} apuntes</span>` : "")
-        }${auto ? `<span class="partida-f porconfirmar">del mes pasado · confírmalo</span>` : ""}</button>`;
+    // Debajo del importe, lo único que merece la pena decir de esa categoría.
+    const sub = auto     ? `del mes pasado · confírmalo`
+              : tiques > 1 ? `${tiques} tiques · ver el desglose`
+              : aps.length > 1 ? `${aps.length} apuntes · ver el desglose`
+              : base > 0 && total > 0 ? `${peso.toFixed(0)}% de ${k === "ingresos" ? "lo que entra" : "este bloque"}`
+              : "";
 
-    const valor = sencilla
-      ? `<input class="cel num" inputmode="decimal" placeholder="—" value="${aps.length ? String(aps[0].importe).replace(".", ",") : ""}"
-           data-imp="${k}|${esc(item)}" aria-label="Importe de ${esc(item)} en ${mesTexto(S.mes)}">`
-      : `<button class="partida-suma num" data-partida="${esc(clave)}"
-           title="Suma de ${aps.length} apuntes · pulsa para verlos"
-           aria-label="${dinero(total)}, suma de ${aps.length} apuntes. Ver el desglose">${dinero(total)}</button>`;
-
-    return `<div class="partida tocable${marcada ? " anclada" : ""}${auto ? " porconfirmar" : ""}">
-      ${nombre}
-      <button class="pin${marcada ? " on" : ""}" data-pin="${k}|${esc(item)}"
-        aria-pressed="${marcada}" title="${marcada ? "Está anclada: se trae sola cada mes. Pulsa para desanclar." : "Anclar: este importe se repetirá cada mes"}"
-        aria-label="${marcada ? "Desanclar" : "Anclar"} ${esc(item)}">${ICO_PIN}</button>
-      ${valor}
-    </div>` + (PIDE_DESC.includes(item)
-      ? `<div class="partida sub nueva">
-          <input class="cel" placeholder="Añadir: ¿de qué era?" data-nd="${k}|${esc(item)}" aria-label="Descripción del nuevo apunte">
-          <input class="cel num" inputmode="decimal" placeholder="0,00" data-ni="${k}|${esc(item)}" aria-label="Importe del nuevo apunte">
-          <button class="btn btn-sm" data-act="add-libre" data-k="${k}|${esc(item)}">Añadir</button>
-        </div>`
-      : "");
+    return `<button class="teja${auto ? " porconfirmar" : ""}" data-teja="${esc(k + "|" + item)}"
+        aria-label="${esc(item)}, ${dinero(total)}${sub ? ". " + sub : ""}">
+      ${fija ? `<span class="teja-pin" title="Vuelve sola cada mes">${ICO_PIN}</span>` : ""}
+      <span class="teja-ini" style="background:color-mix(in srgb, ${c} 16%, transparent);color:${c}">${esc(INICIAL(item))}</span>
+      <b class="teja-n">${esc(item)}</b>
+      <span class="teja-v"${k === "ingresos" ? ' style="color:var(--good-ink)"' : (auto ? ' style="color:var(--accent)"' : "")}>${dinero(total, total % 1 ? 2 : 0)}</span>
+      ${sub ? `<span class="teja-s">${sub}</span>` : ""}
+      <i class="teja-peso" style="width:${peso.toFixed(1)}%;background:${auto ? "var(--accent)" : c}"></i>
+    </button>`;
   };
 
-  /* El cuerpo de una sección: sus partidas y la casilla de crear otra. */
-  const cuerpoSeccion = k => `
-    <div class="partidas">${(S.etiquetas[k] || []).map(item => filaPartida(k, item)).join("")}</div>
-    <div class="partida nueva-part">
-      <input class="cel" placeholder="Crear otra partida en ${SECCIONES[k].nombre.toLowerCase()}…" data-nueva="${k}" aria-label="Nombre de la partida nueva">
-      <button class="btn btn-sm" data-act="nueva-partida" data-k="${k}">Crear</button>
+  /* El mosaico de una sección: sus categorías vivas y el azulejo de añadir.
+
+     «Viva» es la que tiene dinero este mes o está anclada. Y se busca en el
+     dinero, no en la lista de etiquetas: un tique puede apuntar en una
+     categoría que nadie registró en la lista, y si el mosaico se guiara solo
+     por las etiquetas ese gasto sumaría en el total pero no se vería en
+     ninguna parte —dinero fantasma, que es peor que no tenerlo. */
+  const mosaicoSeccion = (k, base) => {
+    const orden = S.etiquetas[k] || [];
+    const conDinero = [...new Set(S.apuntes.filter(a => a.mes === S.mes && a.seccion === k).map(a => a.item))];
+    const ancladas  = S.fijas.filter(f => f.seccion === k).map(f => f.item);
+    const vivas = [...new Set([...conDinero, ...ancladas])]
+      .sort((a, b) => {
+        const ia = orden.indexOf(a), ib = orden.indexOf(b);
+        return (ia < 0 ? 1e6 : ia) - (ib < 0 ? 1e6 : ib) || a.localeCompare(b, "es");
+      });
+    return `<div class="mosaico">
+      ${vivas.map(item => tejaPartida(k, item, base)).join("")}
+      <button class="teja nueva" data-anadir="${k}">
+        <span class="teja-mas">+</span>
+        <span>${k === "ingresos" ? "Añade tu ingreso" : k === "colchon" ? "Añade tu aporte" : "Añade tu gasto"}</span>
+      </button>
     </div>`;
+  };
 
   const tarjetaSeccion = k => card(
     SECCIONES[k].nombre + infoTxt(SECCIONES[k].nombre, SECCIONES[k].ayuda),
-    cuerpoSeccion(k),
+    mosaicoSeccion(k, T[k]),
     `<span class="secc-tot" style="color:${T[k] > 0 ? (k === "ingresos" ? "var(--good-ink)" : "var(--ink)") : "var(--ink-3)"}">${dinero(T[k])}</span>`,
     true);
 
@@ -3877,13 +4100,13 @@ function renderMes(){
                 aria-label="Escanear un gasto ${k === "fijos" ? "fijo" : "variable"}">${ICO_CAM}</button>
       </div>
       ${barraTipo(k)}
-      ${cuerpoSeccion(k)}
+      ${mosaicoSeccion(k, T[k])}
     </div>`;
 
   const tarjetaGastos = () => card(
     "Gastos" + infoTxt("Gastos", "Los fijos se repiten cada mes y casi no los decides; los variables cambian según lo que hagas y son los que de verdad puedes recortar."),
     bloqueGasto("fijos") + bloqueGasto("variables") +
-    `<p class="help" style="margin-top:12px">Pulsa el nombre de una partida que tenga apuntes para ver en qué se ha ido el dinero. El botón de la cámara de cada bloque lee un tique y lo apunta <strong>en ese bloque</strong>: haz la foto con el móvil y luego elígela aquí.</p>`,
+    `<p class="help" style="margin-top:14px">Cada azulejo es una categoría: la cifra es lo que llevas gastado en ella este mes y la barra de abajo, cuánto pesa. Pulsa uno para cambiar el importe o ver el desglose. La cámara de cada bloque lee un tique y lo suma <strong>en ese bloque</strong>.</p>`,
     `<span class="secc-tot">${dinero(totalGastos)}</span>`, true);
 
   /* ── Inversión: viene de la cartera, no se teclea aquí ───── */
@@ -3916,7 +4139,7 @@ function renderMes(){
         <input type="checkbox" data-auto-fijas ${S.ajustes.autoFijas ? "checked" : ""}>
         <span>Traerlos solos cuando abra un mes nuevo y vacío</span>
       </label>
-      <p class="help" style="margin-top:8px">Total anclado: <strong>${dinero(totalFijas())}</strong> al mes, repartido en ${S.fijas.length} ${S.fijas.length === 1 ? "partida" : "partidas"}. Las reconoces abajo porque están marcadas; para desanclar una, pulsa su chincheta.</p>`,
+      <p class="help" style="margin-top:8px">Total anclado: <strong>${dinero(totalFijas())}</strong> al mes, repartido en ${S.fijas.length} ${S.fijas.length === 1 ? "partida" : "partidas"}. Las reconoces abajo porque su azulejo lleva la chincheta; para desanclar una, ábrela y quita la marca de <em>repetir cada mes</em>.</p>`,
     `${S.fijas.length}`) : "";
 
   /* ── Resumen visual ──────────────────────────────────────── */
@@ -3934,10 +4157,8 @@ function renderMes(){
 
   host.innerHTML =
     card("El mes", barraMes() + `
-      <p class="help" style="margin-top:14px">Rellena solo las casillas que tengan importe este mes; lo que dejes vacío no cuenta. La <strong>chincheta</strong> de cada partida la ancla: si vale lo mismo todos los meses, la anclas una vez y ya no la vuelves a escribir.</p>
-      <div class="fila-acc" style="margin-top:12px">
-        <button class="btn btn-sm btn-quiet" data-act="rehacer-categorias">Cambiar mis categorías</button>
-      </div>`) +
+      <p class="help" style="margin-top:14px">Aquí no hay una lista que rellenar: <strong>escribes tu categoría</strong> —«Comida», «Luz», lo que sea— y aparece con su importe. Solo se ve lo que tiene dinero este mes. Si vale lo mismo todos los meses, marca <strong>repetir cada mes</strong> y volverá sola sin escribirla otra vez.</p>
+`) +
 
     panelFijas +
 
@@ -7406,6 +7627,23 @@ function eventos(){
       render();
       return;
     }
+    /* ── El mosaico ────────────────────────────────────────────
+       Un azulejo con un solo apunte a mano se edita en el diálogo, que es
+       el camino corto. En cuanto lleva varios —tiques— el importe deja de
+       ser un número que se escriba y pasa a ser una suma: entonces el
+       azulejo abre el desglose, que es donde se puede tocar cada línea. */
+    const tej = ev.target.closest("[data-teja]");
+    if (tej){
+      const [k, item] = String(tej.dataset.teja).split("|");
+      if (partidaSencilla(S.mes, k, item)) abreAnadir(k, item);
+      else { S.partidaAbierta = k + "|" + item; render(); window.scrollTo(0, 0); }
+      return;
+    }
+    const nue = ev.target.closest("[data-anadir]");
+    if (nue){ abreAnadir(nue.dataset.anadir, null); return; }
+    const sgc = ev.target.closest("[data-sugcat]");
+    if (sgc){ $("#anCat").value = sgc.dataset.sugcat; $("#anImp").focus(); return; }
+
     const par = ev.target.closest("[data-partida]");
     if (par){ S.partidaAbierta = par.dataset.partida; render(); window.scrollTo(0, 0); return; }
     const abr = ev.target.closest("[data-abrir]");
@@ -7414,28 +7652,9 @@ function eventos(){
     if (fic){ S.fichaAbierta = fic.dataset.ficha; S.modulo = "mercado"; S.tab = "ficha"; render(); window.scrollTo(0, 0); return; }
     const an = ev.target.closest("[data-anios]");
     if (an){ S.ajustes.anios = +an.dataset.anios; render(); return; }
-    const pin = ev.target.closest("[data-pin]");
-    if (pin){
-      const [seccion, item] = pin.dataset.pin.split("|");
-      if (fijaDe(seccion, item)){
-        desanclar(seccion, item);
-        toast(`«${item}» desanclada. El apunte de este mes se queda como está.`);
-      } else {
-        const inp = document.querySelector(`[data-imp="${CSS.escape(pin.dataset.pin)}"]`);
-        const v = num(inp && inp.value);
-        const ap = apunteSimple(S.mes, seccion, item);
-        const importe = isN(v) && v !== 0 ? v : (ap ? ap.importe : null);
-        if (!isN(importe) || importe === 0){
-          toast(`Escribe primero cuánto vale «${item}» al mes y después ánclala.`, true);
-          if (inp) inp.focus();
-          return;
-        }
-        ponerImporte(S.mes, seccion, item, importe);
-        anclar(seccion, item, importe);
-        toast(`«${item}» anclada por ${dinero(Math.abs(importe))}: entrará sola cada mes.`);
-      }
-      render(); programarGuardado(); return;
-    }
+    /* La chincheta ya no es un botón suelto en la fila: el azulejo la
+       enseña y se pone o se quita dentro del diálogo, con «repetir cada
+       mes». Por eso aquí no hay nada que atender. */
 
     const bor = ev.target.closest("[data-borrar]");
     if (bor){
@@ -7764,6 +7983,10 @@ function eventos(){
   $("#btnDoPrecios").addEventListener("click", () => aplicarPrecios($("#preciosText").value));
   $("#btnJsonOk").addEventListener("click", () => cargarJson($("#jsonText").value));
   $("#btnTiqueOk").addEventListener("click", confirmarTique);
+  $("#btnAnOk").addEventListener("click", guardaAnadir);
+  $("#btnAnBorrar").addEventListener("click", borraAnadir);
+  $("#anImp").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); guardaAnadir(); } });
+  $("#anCat").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); $("#anImp").focus(); } });
   // Al cerrar, lo leído se olvida. La imagen ya se soltó al terminar.
   $("#dlgTique").addEventListener("close", () => { TIQUE = null; });
   $("#btnTheme").addEventListener("click", () => {

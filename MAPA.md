@@ -212,6 +212,50 @@ error que la lista existe para evitar. Antes de cruzarlas, una empresa que
 suspendía 8 de 10 salía como «Observar» solo porque ninguna crítica estaba en
 rojo, y un 17% en naranja no lo entiende nadie.
 
+### 3d · El mosaico del mes (maqueta B)
+
+`Mi economía → El mes` ya no es una lista de filas con casillas. Cada
+categoría es un **azulejo** (`.teja`, lo pinta `tejaPartida`): inicial de
+color, nombre, la cifra grande, una línea de contexto y una barra de peso.
+El mosaico de una sección lo monta `mosaicoSeccion`, y cierra con el azulejo
+`+ Añade tu ingreso / gasto / aporte`.
+
+**La despersonalización está aquí.** El mosaico **no** lee `S.etiquetas` para
+saber qué enseñar: lee el dinero. Vivas son las categorías con apuntes ese
+mes más las ancladas, y `S.etiquetas` solo decide el **orden** y alimenta las
+sugerencias al escribir. Por eso una cuenta nueva empieza en blanco y nadie
+hereda «Propina Hugo».
+
+> **Trampa.** Si el mosaico se guiara solo por `S.etiquetas`, un tique
+> apuntado en una categoría no registrada sumaría en el total y **no se
+> vería en ninguna parte**: dinero fantasma. De ahí que `mosaicoSeccion`
+> parta de `S.apuntes` y `S.fijas`, no de la lista de etiquetas.
+
+**Un solo diálogo para las dos cosas** (`#dlgAnadir`, `abreAnadir` /
+`guardaAnadir` / `borraAnadir`): escribir una categoría nueva y cambiar el
+importe de una que ya está son, para quien lo usa, lo mismo — decir cuánto
+va en una categoría. Al editar, el nombre se bloquea: renombrar arrastra los
+apuntes de todos los meses y vive en el detalle, no aquí. La chincheta es la
+casilla **«repetir cada mes»** del propio diálogo; ya no hay botón de pin
+suelto en la fila.
+
+**A dónde lleva pulsar un azulejo**, y es la regla que evita perder dinero:
+si `partidaSencilla` (cero apuntes, o uno sin concepto) abre el diálogo, que
+es el camino corto; en cuanto hay varios —tiques— el importe deja de ser un
+número que se escriba y pasa a ser una **suma**, así que abre el desglose.
+Dejarlo editable ahí borraría en silencio los apuntes de debajo.
+
+Dos colisiones que costaron un rato y conviene no repetir: `data-cat` ya lo
+usaba el filtro de Mercado (las sugerencias usan `data-sugcat`), y `.check`
+ya era la lista de comprobaciones del veredicto (la casilla usa
+`.chk-fija`). Y `.btn` es `inline-flex`, que gana al atributo `hidden`: sin
+`.btn[hidden]{display:none!important}` el botón de borrar salía también al
+crear una categoría nueva.
+
+Batería: `/tmp/mosaico.js`, 34 comprobaciones — incluidas la suma del tique
+dentro de la categoría, que lo anclado vuelve solo el mes siguiente marcado
+para confirmar, y que lo no anclado no se arrastra.
+
 ## 4 · Dentro de `frontend/acceso.html`
 
 La puerta. Cuatro pantallas que se enseñan una cada vez con `muestra(...)`:
