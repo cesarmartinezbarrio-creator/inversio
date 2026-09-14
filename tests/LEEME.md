@@ -1,10 +1,14 @@
 # Pruebas de Cuentas y Cartera
 
-Once baterías que abren la aplicación en un navegador de verdad y comprueban,
-sin tocar producción, que lo importante funciona: el mosaico del mes, las
-categorías propias, la suma de tiques, el veredicto de mercado, el lector de
-tiques, que no entra ningún XSS, el aguante ante entradas absurdas, la copia
-de seguridad y el modo demo, y el canje de invitaciones.
+Doce baterías que comprueban, sin tocar producción, que lo importante
+funciona: el mosaico del mes, las categorías propias, la suma de tiques, el
+veredicto de mercado, el lector de tiques, que no entra ningún XSS, el aguante
+ante entradas absurdas, la copia de seguridad y el modo demo, el canje de
+invitaciones, y el portero de la API.
+
+Once abren la aplicación en un navegador de verdad. La última, `puerta`, es la
+excepción: prueba el backend (`api/_common.js`) directamente en Node, con
+`fetch` sustituido, sin navegador.
 
 ## Correrlas todas
 
@@ -28,6 +32,10 @@ continua).
 - `_pw.js` — resuelve Playwright y el navegador de forma portable.
 - `fixtures/` — ficheros que piden algunas pruebas (la foto de un tique).
 - Cada `*.js` restante es una batería independiente.
+- `puerta.js` — la única que no usa navegador. Vigila que no reaparezca la
+  puerta de servicio `APP_TOKEN`, retirada el 14/09/2026. Su caso 7 es un
+  control positivo: comprueba que la entrada legítima sigue funcionando, para
+  que «cerrar la puerta» no pueda confundirse con «romper la cerradura».
 
 ## Añadir una batería
 

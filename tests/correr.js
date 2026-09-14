@@ -22,6 +22,7 @@ const PUERTO    = 8902;
 const SUITES = [
   "mosaico", "categorias", "prueba2", "rehacer", "veredicto",
   "vered2", "sin_camara", "xss", "estres", "extras", "invitacion",
+  "puerta",
 ];
 
 (async () => {

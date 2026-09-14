@@ -28,24 +28,6 @@ function tokenDeCabecera(req) {
   return cabecera.startsWith("Bearer ") ? cabecera.slice(7).trim() : "";
 }
 
-// Devuelve true si la petición está autorizada. Si no lo está, ya ha
-// escrito la respuesta 401 y el caller debe simplemente "return".
-// (Modo de un solo usuario. Se queda mientras dure la migración a cuentas;
-//  desaparece cuando el frontend viejo ya no exista.)
-function compruebaToken(req, res) {
-  const token = tokenDeCabecera(req);
-  const esperado = process.env.APP_TOKEN || "";
-  if (!esperado) {
-    res.status(500).json({ code: "server_unavailable", message: "APP_TOKEN no está configurado en Vercel." });
-    return false;
-  }
-  if (token !== esperado) {
-    res.status(401).json({ code: "needs_reauth", message: "Token incorrecto o caducado." });
-    return false;
-  }
-  return true;
-}
-
 async function leerCuerpoJSON(req) {
   if (req.body && typeof req.body === "object") return req.body; // Vercel ya lo parsea si Content-Type: application/json
   let raw = "";
@@ -108,20 +90,24 @@ async function esMiembro(userId) {
 /* ── El portero ────────────────────────────────────────────────
    Devuelve:
      { tipo: "usuario", id, correo }  sesión válida y con invitación
-     { tipo: "legado" }               el token único de la app de siempre
      null                             ya ha respondido con el error
-   El modo legado se mantiene mientras el frontend antiguo siga vivo. En
-   cuanto todo el mundo entre con su cuenta, se borra APP_TOKEN de Vercel
-   y este camino se cierra solo. */
+
+   NO hay puerta de servicio, y no debe volver a haberla.
+
+   El modo "legado" (un APP_TOKEN único compartido) se retiró el 14/09/2026.
+   Hacía dos cosas malas a la vez: saltaba la comprobación de membresía y,
+   como `mcp-proxy` solo llama al contador cuando `tipo === "usuario"`,
+   dejaba las consultas de mercado SIN LÍMITE. Ese token además estaba
+   quemado: se había pegado en conversaciones y paneles.
+
+   Si algún día hace falta una vía de servicio, que tenga identidad propia
+   y pase por su propio contador. Nunca un token compartido. */
 async function identifica(req, res) {
   const token = tokenDeCabecera(req);
   if (!token) {
     res.status(401).json({ code: "needs_reauth", message: "Hay que iniciar sesión." });
     return null;
   }
-
-  const legado = process.env.APP_TOKEN || "";
-  if (legado && token === legado) return { tipo: "legado" };
 
   const usuario = await usuarioDelToken(token);
   if (!usuario) {
@@ -191,7 +177,6 @@ async function consumePeticion(userId, limite) {
 
 module.exports = {
   aplicarCORS,
-  compruebaToken,
   leerCuerpoJSON,
   tokenDeCabecera,
   sbConfigurado,
