@@ -8125,65 +8125,215 @@ function restaurarDatos(txt){
     }, "crit");
 }
 
-/* ── Modo demo · datos de ejemplo generados al azar ────────────
-   Una cuenta de mentira, coherente pero aleatoria, para enseñar la app
-   en la web de guía sin que nadie tenga que registrarse. No se guarda en
-   ninguna parte: vive solo en memoria mientras la pestaña esté abierta. */
+/* ── Modo demo · doce meses de ejemplo ─────────────────────────
+   Una cuenta de mentira, coherente y COMPLETA, para enseñar la app sin que
+   nadie tenga que registrarse. No se guarda en ninguna parte: vive solo en
+   memoria mientras la pestaña esté abierta (`guardarLocal` sale de vacío
+   con DEMO y sin sesión no hay nube).
+
+   Es DETERMINISTA a propósito (generador con semilla fija): todo el mundo
+   ve exactamente los mismos números, y el estado de la cuenta de
+   demostración de la base de datos se genera ejecutando esta misma función,
+   así que las dos vías enseñan lo mismo.
+
+   Las empresas son inventadas. Ninguna existe, y sus cuentas tampoco: son
+   cifras construidas para que las diez comprobaciones den un resultado
+   interesante, no datos reales de ninguna compañía. */
 function datosDemo(){
-  const az  = (min, max) => Math.round(min + Math.random() * (max - min));
-  const az2 = (min, max) => Math.round((min + Math.random() * (max - min)) * 100) / 100;
-  const elige = arr => arr[Math.floor(Math.random() * arr.length)];
+  /* Generador con semilla (mulberry32). Sustituye a Math.random para que
+     la demo no cambie en cada recarga. */
+  let _s = 0x9E3779B9;
+  const rnd = () => {
+    _s |= 0; _s = (_s + 0x6D2B79F5) | 0;
+    let t = Math.imul(_s ^ (_s >>> 15), 1 | _s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const az  = (min, max) => Math.round(min + rnd() * (max - min));
+  const az2 = (min, max) => Math.round((min + rnd() * (max - min)) * 100) / 100;
+
   const S0 = saneaEstado({});
   S0.configurado = true;
-  const mes = mesHoy();
 
-  const pon = (seccion, item, importe, anclar_) => {
-    (S0.etiquetas[seccion] = S0.etiquetas[seccion] || []);
+  /* Los doce meses, del más antiguo al actual. */
+  const hoy = mesHoy();
+  const [ay, am] = hoy.split("-").map(Number);
+  const MESES = [];
+  for (let i = 11; i >= 0; i--){
+    const d = new Date(ay, am - 1 - i, 1);
+    MESES.push(d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"));
+  }
+  const mesNum = m => +m.split("-")[1];   // 1..12, para la estacionalidad
+
+  const cat = (seccion, item) => {
+    S0.etiquetas[seccion] = S0.etiquetas[seccion] || [];
     if (!S0.etiquetas[seccion].includes(item)) S0.etiquetas[seccion].push(item);
-    S0.apuntes.push({ id: uid(), mes, seccion, item, fecha: mes + "-" + String(az(1, 27)).padStart(2, "0"), importe });
-    if (anclar_) S0.fijas.push({ seccion, item, importe });
+  };
+  const pon = (mes, seccion, item, importe, desc) => {
+    if (!isN(importe) || importe <= 0) return;
+    cat(seccion, item);
+    S0.apuntes.push({ id: uid(), mes, seccion, item, desc: desc || "",
+      fecha: mes + "-" + String(az(2, 27)).padStart(2, "0"), auto: false,
+      importe: Math.round(importe * 100) / 100 });
   };
 
-  pon("ingresos", "Nómina", az(1500, 2400), true);
-  if (Math.random() < 0.5) pon("ingresos", "Extra", az(150, 600), false);
+  /* ── La historia ────────────────────────────────────────────
+     Alguien con una nómina normal que va cogiendo el hábito: el ahorro
+     sube poco a poco, hay una subida de sueldo a mitad de año y un mes
+     malo con una avería que se come el colchón de ese mes. Sin altibajos
+     la pantalla de Evolución no enseña nada. */
+  const MES_SUBIDA = 6;    // índice a partir del cual cobra más
+  const MES_AVERIA = 8;    // el mes que se tuerce
 
-  pon("fijos", "Alquiler o hipoteca", az(600, 1050), true);
-  pon("fijos", "Luz", az2(40, 95), true);
-  pon("fijos", "Internet", 39, true);
-  if (Math.random() < 0.6) pon("fijos", "Gimnasio", az(20, 45), true);
+  MESES.forEach((mes, i) => {
+    const m = mesNum(mes);
+    const invierno = (m <= 3 || m >= 11);
 
-  ["Comida","Transporte","Ocio","Restaurantes","Ropa"].forEach(c => {
-    if (Math.random() < 0.8) pon("variables", c, az2(25, 260), false);
+    /* Ingresos */
+    pon(mes, "ingresos", "Nómina", i < MES_SUBIDA ? 1950 : 2150);
+    if (m === 6 || m === 12) pon(mes, "ingresos", "Paga extra", i < MES_SUBIDA ? 1180 : 1310);
+    if (i === 4) pon(mes, "ingresos", "Otros", 240, "Venta de la bici vieja");
+
+    /* Fijos */
+    pon(mes, "fijos", "Alquiler o hipoteca", 780);
+    pon(mes, "fijos", "Luz", invierno ? az2(74, 95) : az2(41, 58));
+    pon(mes, "fijos", "Agua y basuras", az2(27, 36));
+    pon(mes, "fijos", "Internet", 39);
+    pon(mes, "fijos", "Móvil", 13.9);
+    pon(mes, "fijos", "Seguro del hogar", 21.4);
+    if (i >= 3) pon(mes, "fijos", "Gimnasio", 32);
+
+    /* Variables — la compra va con sus tiques dentro, para enseñar la suma */
+    const compra = [["Mercadona", az2(52, 118)], ["Frutería", az2(11, 26)],
+                    ["Carnicería", az2(14, 33)], ["Panadería", az2(6, 14)]];
+    compra.forEach(([d, imp]) => pon(mes, "variables", "Comida", imp, d));
+    pon(mes, "variables", "Comida", az2(120, 210));          // el resto del mes
+    pon(mes, "variables", "Transporte", az2(48, 92));
+    pon(mes, "variables", "Restaurantes", az2(35, 125));
+    pon(mes, "variables", "Ocio", az2(18, 68));
+    if (rnd() < 0.55) pon(mes, "variables", "Ropa", az2(25, 95));
+    if (m === 12) pon(mes, "variables", "Regalos", az2(140, 230));
+    if (i === MES_AVERIA) pon(mes, "variables", "Otros", 620, "Avería del coche");
+
+    /* Colchón — el mes de la avería no se aparta nada */
+    pon(mes, "colchon", "Aporte al colchón",
+        i === MES_AVERIA ? 0 : (i < MES_SUBIDA ? 150 : 210));
   });
-  // un par de tiques dentro de Comida, para enseñar la suma
-  ["Mercadona","Frutería"].forEach(d => {
-    if (Math.random() < 0.7){
-      if (!S0.etiquetas.variables.includes("Comida")) S0.etiquetas.variables.push("Comida");
-      S0.apuntes.push({ id: uid(), mes, seccion: "variables", item: "Comida", desc: d, fecha: mes + "-" + String(az(1, 27)).padStart(2, "0"), importe: az2(8, 70) });
-    }
-  });
 
-  pon("colchon", "Aporte al colchón", az(50, 300), false);
+  /* Los fijos quedan anclados, que es lo que se recomienda hacer */
+  [["fijos", "Alquiler o hipoteca", 780], ["fijos", "Internet", 39],
+   ["fijos", "Móvil", 13.9], ["fijos", "Seguro del hogar", 21.4],
+   ["fijos", "Gimnasio", 32]]
+    .forEach(([seccion, item, importe]) => S0.fijas.push({ id: uid(), seccion, item, importe }));
 
-  // Un par de posiciones de cartera y una ficha en estudio.
-  const empresas = [
-    { nombre: "Compañía del Faro",  simbolo: "FARO" },
-    { nombre: "Industrias Aliso",   simbolo: "ALIS" },
-    { nombre: "Naviera del Cabo",   simbolo: "CABO" },
-    { nombre: "Molinos Reunidos",   simbolo: "MOLI" },
-  ];
-  const barajadas = empresas.slice().sort(() => Math.random() - 0.5);
-  barajadas.slice(0, 2).forEach(e => {
-    const a = activoVacio(e.nombre);
-    a.simbolo = e.simbolo; a.categoria = "Acciones"; a.estado = "cartera"; a.moneda = "€";
-    a.precio = az2(8, 60);
+  /* ── La cartera ─────────────────────────────────────────────
+     Una de cada clase, para que se vean las tres varas: un negocio que se
+     VALORA, una cesta que se COMPARA y dos pesos que se DIMENSIONAN. */
+
+  const nuevo = (nombre, simbolo, categoria, estado, precio, moneda) => {
+    const a = activoVacio(nombre);
+    a.simbolo = simbolo; a.categoria = categoria; a.estado = estado;
+    a.precio = precio; a.moneda = moneda || "€";
+    a.creado = MESES[0] + "-05T09:00:00.000Z";
     S0.activos.push(a);
-  });
-  const est = activoVacio(barajadas[2].nombre);
-  est.simbolo = barajadas[2].simbolo; est.categoria = "Acciones"; est.estado = "estudio"; est.moneda = "€";
-  S0.activos.push(est);
+    return a;
+  };
+  const aporta = (act, mes, importe, unidades) =>
+    S0.aportaciones.push({ id: uid(), mes, activoId: act.id,
+      importe: Math.round(importe * 100) / 100,
+      unidades: isN(unidades) ? Math.round(unidades * 10000) / 10000 : null });
 
-  S0.mes = mes;
+  /* 1 · El negocio, con sus cuentas cargadas. Esto es lo que enciende el
+        veredicto, las diez comprobaciones y «¿Merece la pena?» calculado
+        en vez de estimado. */
+  const faro = nuevo("Compañía del Faro", "FARO", "Acciones", "cartera", 31.40);
+  faro.mercado = "Bolsa de ejemplo";
+  faro.tesis = "Fabrica algo aburrido que nadie quiere fabricar y lo vende a clientes que no se cambian. "
+             + "Sube precios por encima de la inflación sin perder pedidos. Deuda pagada y caja creciendo.";
+  faro.plazoBeneficio = "15-20 años";
+  faro.plan = { compra: 29, ampliar: 25, objetivo: 48, stop: null };
+  faro.anios = [2021, 2022, 2023, 2024, 2025];
+  Object.assign(faro.d, {
+    ventas:        [1240, 1358, 1495, 1602, 1748],
+    ebit:          [186, 209, 239, 256, 287],
+    da:            [64, 68, 73, 77, 82],
+    bn:            [131, 148, 170, 182, 205],
+    acciones:      [82, 81.3, 80.4, 79.4, 78.5],
+    capexTotal:    [88, 94, 101, 108, 116],
+    capexMant:     [null, null, null, null, null],
+    impuestos:     [44, 50, 57, 61, 69],
+    intereses:     [12, 11, 10, 9, 8],
+    deuda:         [240, 225, 205, 185, 160],
+    caja:          [95, 112, 138, 166, 205],
+    patrimonio:    [520, 590, 680, 785, 910],
+    dividendos:    [40, 44, 49, 53, 58],
+    recompras:     [15, 18, 22, 25, 30],
+    adquisiciones: [0, 0, 12, 0, 18],
+    sbc:           [9, 10, 11, 12, 13],
+    inventarios:   [148, 156, 166, 172, 182]
+  });
+
+  /* 2 · La cesta. Los campos del KID son los que deciden 5 de sus 11
+        comprobaciones, así que van todos puestos. */
+  const idx = nuevo("Índice Mundial Amplio (ejemplo)", "IMA", "ETF", "cartera", 96.20);
+  idx.fondo = { vehiculo: "Fondo indexado", domicilio: "Irlanda",
+                reparto: "Acumulación", replica: "Física", divisa: "Sin cubrir" };
+  idx.kpi = { ter: 0.0012, patrimonio: 8400, antiguedad: 11, top10: 0.19, rotacion: 0.03 };
+  idx.tesis = "El suelo de la cartera. Ni se mira ni se toca: aportación automática todos los meses.";
+
+  /* 3 y 4 · Los pesos. No generan nada, así que aquí la única pregunta
+        buena es cuánto llevas. Ambos por debajo de su tope. */
+  const oro = nuevo("Oro físico (ejemplo)", "ORO", "Oro", "cartera", 2380, "€");
+  oro.tesis = "Seguro contra el dinero que pierde valor. No hace crecer el capital y no se le pide que lo haga.";
+  const btc = nuevo("Bitcoin (ejemplo)", "BTC", "Bitcoin", "cartera", 58400, "€");
+  btc.tesis = "Posición pequeña y asumida. Escenario conservador: que no suba.";
+
+  /* 5 · En estudio, con cuentas, para que Mercado y La ficha luzcan llenas.
+        Esta sale peor a propósito: enseña un veredicto que NO es verde. */
+  const aliso = nuevo("Industrias Aliso", "ALIS", "Acciones", "estudio", 18.75);
+  aliso.tesis = "Crece deprisa pero se lo gasta todo en crecer. Mirar el flujo de caja antes que el beneficio.";
+  aliso.anios = [2021, 2022, 2023, 2024, 2025];
+  Object.assign(aliso.d, {
+    ventas:        [410, 498, 612, 742, 883],
+    ebit:          [37, 42, 46, 48, 49],
+    da:            [22, 28, 35, 43, 52],
+    bn:            [21, 23, 24, 22, 20],
+    acciones:      [40, 42.5, 45.1, 48.0, 51.2],
+    capexTotal:    [58, 74, 96, 121, 148],
+    capexMant:     [null, null, null, null, null],
+    impuestos:     [8, 9, 10, 10, 10],
+    intereses:     [6, 9, 13, 18, 24],
+    deuda:         [120, 168, 232, 310, 402],
+    caja:          [40, 38, 35, 31, 28],
+    patrimonio:    [180, 205, 232, 256, 279],
+    dividendos:    [0, 0, 0, 0, 0],
+    recompras:     [0, 0, 0, 0, 0],
+    adquisiciones: [0, 14, 22, 31, 40],
+    sbc:           [6, 9, 13, 18, 24],
+    inventarios:   [62, 88, 124, 171, 229]
+  });
+
+  /* 6 · En observación: vista pero sin entrar todavía. */
+  const cabo = nuevo("Naviera del Cabo", "CABO", "Acciones", "observacion", 44.10);
+  cabo.tesis = "Buen negocio, precio de hoy exigente. Esperando a que el mercado se aburra de ella.";
+  cabo.plan = { compra: 34, ampliar: 28, objetivo: 70, stop: null };
+
+  /* ── Las aportaciones, mes a mes ────────────────────────────
+     El ETF todos los meses (el hábito), y las demás a tirones, que es
+     como se invierte de verdad. El mes de la avería no se aporta nada. */
+  MESES.forEach((mes, i) => {
+    if (i === MES_AVERIA) return;
+    const base = i < MES_SUBIDA ? 120 : 170;
+    aporta(idx, mes, base, base / (92 + i * 0.4));
+    if (i % 3 === 1) aporta(faro, mes, 300, 300 / (27.5 + i * 0.35));
+    if (i === 2)  aporta(oro, mes, 480, 480 / 2180);
+    if (i === 7)  aporta(oro, mes, 400, 400 / 2290);
+    if (i === 5)  aporta(btc, mes, 300, 300 / 51000);
+    if (i === 10) aporta(btc, mes, 250, 250 / 56200);
+  });
+
+  S0.mes = MESES[MESES.length - 1];
+  S0.ajustes.horizonteVal = 25;
   return S0;
 }
 
