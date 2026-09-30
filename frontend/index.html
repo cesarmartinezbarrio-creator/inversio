@@ -1020,6 +1020,18 @@ textarea.code{
   border-radius:0 3px 0 0;transition:width .25s;
 }
 .teja.porconfirmar{border-color:var(--accent);background:var(--accent-wash)}
+/* Partida con importe previsto al mes (Comida): tres líneas pequeñas bajo
+   la cifra —previsto, gastado y lo que queda—, sin cambiar el tamaño de
+   letra del azulejo. */
+.teja-pres{display:flex;flex-direction:column;gap:1px;width:100%;margin-top:3px;font-size:11px;color:var(--ink-3);line-height:1.35}
+.teja-pres span{display:flex;justify-content:space-between;gap:6px}
+.teja-pres b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink-2)}
+/* Diálogo: la lista de gastos sueltos de Comida */
+.an-res{font-size:13px;color:var(--ink-2);margin:4px 0 8px}
+.an-lista{display:flex;flex-direction:column;gap:4px;max-height:210px;overflow:auto}
+.an-fila{display:flex;align-items:center;gap:10px;padding:6px 8px;border:1px solid var(--rule);border-radius:10px;font-size:13px}
+.an-fila .f{flex:1;color:var(--ink-3)}
+.an-fila b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
 
 /* El azulejo de añadir. Es el único con borde discontinuo: se distingue de
    una categoría de verdad sin necesidad de leerlo. */
@@ -1056,6 +1068,7 @@ textarea.code{
 /* .btn es inline-flex y eso gana al atributo hidden: sin esto, el botón de
    borrar aparecería también al crear una categoría nueva. */
 .btn[hidden]{display:none!important}
+.chk-fija[hidden],#anPresCaja[hidden],#anListaCaja[hidden]{display:none!important}
 
 @media (max-width:520px){
   .mosaico{grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:8px;padding:10px 14px 16px}
@@ -1558,8 +1571,16 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
       <div class="sug-cat" id="anSug"></div>
     </div>
 
-    <div class="field"><label for="anImp">Importe</label>
+    <div class="field" id="anPresCaja" hidden><label for="anPres">Importe total al mes <small style="font-weight:400;color:var(--ink-3)">(opcional)</small></label>
+      <input class="cel num grande" id="anPres" inputmode="decimal" placeholder="Sin fijar"></div>
+
+    <div class="field"><label for="anImp" id="anImpLbl">Importe</label>
       <input class="cel num grande" id="anImp" inputmode="decimal" placeholder="0,00"></div>
+
+    <div id="anListaCaja" hidden>
+      <p class="an-res" id="anRes"></p>
+      <div class="an-lista" id="anLista"></div>
+    </div>
 
     <label class="chk-fija" id="anFijaCaja">
       <input type="checkbox" id="anFija">
@@ -1732,8 +1753,8 @@ const SUGERIDAS = {
   ingresos:  ["Nómina", "Autónomo", "Alquileres", "Pensión", "Ayudas", "Extra"],
   fijos:     ["Alquiler o hipoteca", "Comunidad", "Luz", "Agua", "Gas",
               "Internet", "Móvil", "Seguros", "Colegio", "Guardería",
-              "Préstamo", "Suscripciones", "Gimnasio"],
-  variables: ["Comida", "Transporte", "Gasolina", "Ocio", "Ropa", "Salud",
+              "Préstamo", "Suscripciones", "Gimnasio", "Comida"],
+  variables: ["Transporte", "Gasolina", "Ocio", "Ropa", "Salud",
               "Farmacia", "Restaurantes", "Regalos", "Casa", "Mascotas", "Viajes"]
 };
 /* En estas partidas se pide una descripción libre, porque «Otros» sin más no dice nada */
@@ -1970,7 +1991,9 @@ function saneaEstado(x){
     // listado, nunca dentro de un detalle.
     partidaAbierta: null,
     ajustes: { ...AJUSTES }, preciosTs: null, avisosVistos: {}, mcpFallos: [], rev: 0,
-    fijas: [], migr: {}
+    fijas: [], migr: {},
+    // Importe previsto al mes por partida ("seccion|item" → €). Hoy solo lo usa Comida.
+    presupuestos: {}
   };
   if (!x || typeof x !== "object") return o;
 
@@ -2041,6 +2064,31 @@ function saneaEstado(x){
     .map(f => ({ id: f.id || uid(), seccion: f.seccion, item: String(f.item),
                  importe: isN(f.importe) ? Math.abs(f.importe) : (Math.abs(num(f.importe)) || 0) }))
     .filter(f => f.importe > 0);
+  if (x.presupuestos && typeof x.presupuestos === "object")
+    Object.keys(x.presupuestos).forEach(k => {
+      const v = x.presupuestos[k];
+      if (isN(v) && v > 0) o.presupuestos[k] = Math.abs(v);
+    });
+  /* Comida deja de ser un gasto variable y pasa a fijos, con su importe
+     previsto al mes. Se hace UNA vez: sus apuntes de todos los meses cambian
+     de bloque (el importe no se toca) y, si estaba anclada con la chincheta,
+     ese importe pasa a ser el previsto — anclarla metería cada mes un gasto
+     que no ha ocurrido. Nada más se mueve. */
+  if (!o.migr.comidaFija){
+    const esCom = t => String(t || "").trim().toLowerCase() === "comida";
+    o.apuntes.forEach(a => { if (a.seccion === "variables" && esCom(a.item)){ a.seccion = "fijos"; a.item = "Comida"; } });
+    const vi = o.etiquetas.variables || [];
+    if (vi.some(esCom)){
+      o.etiquetas.variables = vi.filter(t => !esCom(t));
+      if (!o.etiquetas.fijos.some(esCom)) o.etiquetas.fijos.push("Comida");
+    }
+    o.fijas = o.fijas.filter(f => {
+      if (!esCom(f.item) || (f.seccion !== "variables" && f.seccion !== "fijos")) return true;
+      if (!o.presupuestos["fijos|Comida"]) o.presupuestos["fijos|Comida"] = f.importe;
+      return false;
+    });
+    o.migr.comidaFija = 1;
+  }
   if (x.ajustes) Object.keys(AJUSTES).forEach(k => {
     if (typeof AJUSTES[k] === "number" && isN(x.ajustes[k])) o.ajustes[k] = x.ajustes[k];
     if (typeof AJUSTES[k] === "string" && x.ajustes[k]) o.ajustes[k] = x.ajustes[k];
@@ -2393,6 +2441,18 @@ function totalPartida(mes, seccion, item){
 function partidaSencilla(mes, seccion, item){
   const aps = apuntesDe(mes, seccion, item);
   return aps.length === 0 || (aps.length === 1 && !aps[0].desc);
+}
+
+/* ── Comida: un fijo con importe previsto al mes ─────────────
+   Se le puede poner (o no) lo que se piensa gastar al mes, y se le van
+   sumando los gastos según ocurren: 71 € el día 1, 29 € el 20… El azulejo
+   enseña lo previsto, lo gastado y lo que queda. */
+function esComida(seccion, item){
+  return seccion === "fijos" && String(item || "").trim().toLowerCase() === "comida";
+}
+function presupuestoDe(seccion, item){
+  const v = S.presupuestos && S.presupuestos[seccion + "|" + item];
+  return isN(v) && v > 0 ? v : null;
 }
 
 /* Fecha del día para un apunte nuevo. Si el mes que se está editando es el
@@ -3781,18 +3841,95 @@ function abreAnadir(seccion, item){
   $("#anSug").innerHTML = item ? "" : lista.map(n =>
     `<button type="button" class="sug-cat-b" data-sugcat="${esc(n)}">${esc(n)}</button>`).join("");
 
+  // Comida: importe previsto al mes + gastos que se van sumando
+  const modoComida = !!item && esComida(seccion, item);
+  ANADIR.comida = modoComida;
+  $("#anPresCaja").hidden = !modoComida;
+  $("#anListaCaja").hidden = !modoComida;
+  $("#anFijaCaja").hidden = modoComida;
+  $("#anImpLbl").textContent = modoComida ? "Añadir un gasto" : "Importe";
+  if (modoComida){
+    const pr = presupuestoDe(seccion, item);
+    $("#anPres").value = pr != null ? String(pr).replace(".", ",") : "";
+    $("#anImp").value = "";
+    $("#anImp").placeholder = "0,00";
+    $("#btnAnBorrar").textContent = "Borrar el mes";
+    aviso.hidden = true;
+    pintaListaComida();
+  } else {
+    $("#anImp").placeholder = "0,00";
+    $("#btnAnBorrar").textContent = "Borrar";
+  }
+
   $("#dlgAnadir").showModal();
   setTimeout(() => (item ? $("#anImp") : $("#anCat")).focus(), 60);
 }
 
+/* La lista de gastos de Comida dentro del diálogo, con su resumen */
+function pintaListaComida(){
+  if (!ANADIR || !ANADIR.comida) return;
+  const { seccion: k, item } = ANADIR;
+  const ICO_X = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const aps = apuntesDe(S.mes, k, item).slice().sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
+  const gastado = suma(aps.map(a => Math.abs(a.importe)));
+  const pr = presupuestoDe(k, item);
+  const resta = pr != null ? pr - gastado : null;
+  $("#anRes").innerHTML = !aps.length && pr == null ? `Todavía no hay gastos de comida en ${mesTexto(S.mes)}.`
+    : `Llevas <strong>${dinero(gastado)}</strong> en ${mesTexto(S.mes)}` + (pr != null
+      ? ` de ${dinero(pr)} · quedan <strong style="color:${resta < 0 ? "var(--crit-ink)" : "var(--good-ink)"}">${resta < 0 ? "−" : ""}${dinero(Math.abs(resta))}</strong>` : "") + ".";
+  $("#anLista").innerHTML = aps.map(a => `
+    <div class="an-fila">
+      <span class="f">${fechaCorta(a.fecha)}${a.desc ? " · " + esc(a.desc) : ""}</span>
+      <b>${dinero(Math.abs(a.importe))}</b>
+      <button type="button" class="linea-x" data-borracomida="${a.id}" aria-label="Borrar este gasto" title="Borrar este gasto">${ICO_X}</button>
+    </div>`).join("");
+}
+
+function guardaComida(){
+  const { seccion: k, item } = ANADIR;
+  const presTxt = $("#anPres").value.trim();
+  const pr = presTxt ? num(presTxt) : null;
+  if (presTxt && (!isN(pr) || pr < 0)){ toast("El importe total al mes no es un número.", true); $("#anPres").focus(); return; }
+  const impTxt = $("#anImp").value.trim();
+  const imp = impTxt ? num(impTxt) : null;
+  if (impTxt && (!isN(imp) || imp === 0)){ toast("El gasto no es un número.", true); $("#anImp").focus(); return; }
+
+  S.presupuestos = S.presupuestos || {};
+  if (isN(pr) && pr > 0) S.presupuestos[k + "|" + item] = Math.abs(pr);
+  else delete S.presupuestos[k + "|" + item];
+  if (isN(imp) && imp !== 0)
+    S.apuntes.push({ id: uid(), mes: S.mes, seccion: k, item, desc: "",
+                     fecha: fechaParaMes(S.mes), auto: false, importe: Math.abs(imp) });
+
+  ANADIR = null;
+  $("#dlgAnadir").close();
+  render(); programarGuardado();
+  toast(isN(imp) && imp !== 0 ? `${item}: +${dinero(Math.abs(imp))}.` : `${item} guardada.`);
+}
+
 function guardaAnadir(){
   if (!ANADIR) return;
-  const k = ANADIR.seccion;
+  if (ANADIR.comida) return guardaComida();
+  let k = ANADIR.seccion;
   const item = (ANADIR.item || $("#anCat").value || "").trim();
   if (!item){ toast("Escribe primero el nombre de la categoría.", true); $("#anCat").focus(); return; }
 
   const imp = num($("#anImp").value);
   if (!isN(imp) || imp === 0){ toast("Escribe un importe.", true); $("#anImp").focus(); return; }
+
+  // Comida vive en fijos y cada importe que se escribe SE SUMA a lo que ya hay
+  if (k === "variables" && item.toLowerCase() === "comida") k = "fijos";
+  if (esComida(k, item)){
+    const lf = S.etiquetas.fijos || (S.etiquetas.fijos = []);
+    if (!lf.some(x => x.toLowerCase() === "comida")) lf.push("Comida");
+    S.apuntes.push({ id: uid(), mes: S.mes, seccion: "fijos", item: "Comida", desc: "",
+                     fecha: fechaParaMes(S.mes), auto: false, importe: Math.abs(imp) });
+    ANADIR = null;
+    $("#dlgAnadir").close();
+    render(); programarGuardado();
+    toast(`Comida: +${dinero(Math.abs(imp))}.`);
+    return;
+  }
 
   // Categoría nueva: se guarda en la lista para volver a sugerirla.
   const lista = S.etiquetas[k] || (S.etiquetas[k] = []);
@@ -4009,22 +4146,34 @@ function renderMes(){
     const tiques = aps.filter(a => a.desc).length;
     const peso  = base > 0 ? Math.min(100, total / base * 100) : 0;
     const c     = colorDe(item);
+    const pres  = esComida(k, item) ? presupuestoDe(k, item) : null;
+    const resta = pres != null ? pres - total : null;
+    const colResta = resta != null && resta < 0 ? "var(--crit-ink)" : "var(--good-ink)";
+    const presHTML = pres == null ? "" : `<span class="teja-pres">
+        <span>Total mes<b>${dinero(pres, pres % 1 ? 2 : 0)}</b></span>
+        <span>Gastado<b>${dinero(total, total % 1 ? 2 : 0)}</b></span>
+        <span>Restante<b style="color:${colResta}">${resta < 0 ? "−" : ""}${dinero(Math.abs(resta), resta % 1 ? 2 : 0)}</b></span>
+      </span>`;
+    const barW = pres != null ? Math.min(100, total / pres * 100) : peso;
+    const barC = pres != null && resta < 0 ? "var(--crit)" : (auto ? "var(--accent)" : c);
 
     // Debajo del importe, lo único que merece la pena decir de esa categoría.
-    const sub = auto     ? `del mes pasado · confírmalo`
+    const sub = pres != null ? ""
+              : auto     ? `del mes pasado · confírmalo`
               : tiques > 1 ? `${tiques} tiques · ver el desglose`
               : aps.length > 1 ? `${aps.length} apuntes · ver el desglose`
               : base > 0 && total > 0 ? `${peso.toFixed(0)}% de ${k === "ingresos" ? "lo que entra" : "este bloque"}`
               : "";
 
     return `<button class="teja${auto ? " porconfirmar" : ""}" data-teja="${esc(k + "|" + item)}"
-        aria-label="${esc(item)}, ${dinero(total)}${sub ? ". " + sub : ""}">
+        aria-label="${esc(item)}, ${dinero(total)}${sub ? ". " + sub : ""}${pres != null ? `. Total mes ${dinero(pres)}, restante ${resta < 0 ? "menos " : ""}${dinero(Math.abs(resta))}` : ""}">
       ${fija ? `<span class="teja-pin" title="Vuelve sola cada mes">${ICO_PIN}</span>` : ""}
       <span class="teja-ini" style="background:color-mix(in srgb, ${c} 16%, transparent);color:${c}">${esc(INICIAL(item))}</span>
       <b class="teja-n">${esc(item)}</b>
       <span class="teja-v"${k === "ingresos" ? ' style="color:var(--good-ink)"' : (auto ? ' style="color:var(--accent)"' : "")}>${dinero(total, total % 1 ? 2 : 0)}</span>
       ${sub ? `<span class="teja-s">${sub}</span>` : ""}
-      <i class="teja-peso" style="width:${peso.toFixed(1)}%;background:${auto ? "var(--accent)" : c}"></i>
+      ${presHTML}
+      <i class="teja-peso" style="width:${barW.toFixed(1)}%;background:${barC}"></i>
     </button>`;
   };
 
@@ -4039,7 +4188,8 @@ function renderMes(){
     const orden = S.etiquetas[k] || [];
     const conDinero = [...new Set(S.apuntes.filter(a => a.mes === S.mes && a.seccion === k).map(a => a.item))];
     const ancladas  = S.fijas.filter(f => f.seccion === k).map(f => f.item);
-    const vivas = [...new Set([...conDinero, ...ancladas])]
+    const conPres   = Object.keys(S.presupuestos || {}).filter(x => x.startsWith(k + "|")).map(x => x.slice(k.length + 1));
+    const vivas = [...new Set([...conDinero, ...ancladas, ...conPres])]
       .sort((a, b) => {
         const ia = orden.indexOf(a), ib = orden.indexOf(b);
         return (ia < 0 ? 1e6 : ia) - (ib < 0 ? 1e6 : ib) || a.localeCompare(b, "es");
@@ -7619,7 +7769,7 @@ function eventos(){
     const tej = ev.target.closest("[data-teja]");
     if (tej){
       const [k, item] = String(tej.dataset.teja).split("|");
-      if (partidaSencilla(S.mes, k, item)) abreAnadir(k, item);
+      if (esComida(k, item) || partidaSencilla(S.mes, k, item)) abreAnadir(k, item);
       else { S.partidaAbierta = k + "|" + item; render(); window.scrollTo(0, 0); }
       return;
     }
@@ -7971,6 +8121,13 @@ function eventos(){
   $("#btnTiqueOk").addEventListener("click", confirmarTique);
   $("#btnAnOk").addEventListener("click", guardaAnadir);
   $("#btnAnBorrar").addEventListener("click", borraAnadir);
+  $("#anLista").addEventListener("click", e => {
+    const b = e.target.closest("[data-borracomida]");
+    if (!b) return;
+    S.apuntes = S.apuntes.filter(a => a.id !== b.dataset.borracomida);
+    pintaListaComida(); render(); programarGuardado();
+  });
+  $("#anPres").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); $("#anImp").focus(); } });
   $("#anImp").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); guardaAnadir(); } });
   $("#anCat").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); $("#anImp").focus(); } });
   // Al cerrar, lo leído se olvida. La imagen ya se soltó al terminar.
@@ -8154,6 +8311,7 @@ function datosDemo(){
 
   const S0 = saneaEstado({});
   S0.configurado = true;
+  S0.presupuestos["fijos|Comida"] = 450;
 
   /* Los doce meses, del más antiguo al actual. */
   const hoy = mesHoy();
@@ -8206,8 +8364,8 @@ function datosDemo(){
     /* Variables — la compra va con sus tiques dentro, para enseñar la suma */
     const compra = [["Mercadona", az2(52, 118)], ["Frutería", az2(11, 26)],
                     ["Carnicería", az2(14, 33)], ["Panadería", az2(6, 14)]];
-    compra.forEach(([d, imp]) => pon(mes, "variables", "Comida", imp, d));
-    pon(mes, "variables", "Comida", az2(120, 210));          // el resto del mes
+    compra.forEach(([d, imp]) => pon(mes, "fijos", "Comida", imp, d));
+    pon(mes, "fijos", "Comida", az2(120, 210));              // el resto del mes
     pon(mes, "variables", "Transporte", az2(48, 92));
     pon(mes, "variables", "Restaurantes", az2(35, 125));
     pon(mes, "variables", "Ocio", az2(18, 68));
