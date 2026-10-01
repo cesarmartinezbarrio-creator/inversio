@@ -68,7 +68,10 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
       etiquetas: { ingresos:[payloads[0]], fijos:[], variables:[], colchon:[] },
       apuntes: [{ id: uid(), mes:S.mes, seccion:'ingresos', item:payloads[0], desc:payloads[0], importe:9 }]
     };
-    cargarJson(JSON.stringify(veneno));
+    // El camino real de una copia restaurada o de la nube: saneaEstado.
+    // (cargarJson solo carga los ejercicios de UNA ficha abierta: sin ficha
+    // abierta no hacía nada y esta prueba no probaba lo que decía.)
+    S = saneaEstado(veneno);
     S.modulo='mercado'; S.tab='estudio'; render();
   }, PAYLOADS);
   await p.waitForTimeout(400);
@@ -81,6 +84,19 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
     await p.waitForTimeout(150);
   }
   r['6. recorrer las pestañas con datos envenenados NO ejecuta'] = !ejecutado;
+
+  // ── 4b · la MONEDA de los ajustes, que se pinta en cada importe ──
+  // Auditoría 01/10/2026: saneaEstado la aceptaba tal cual y dinero()
+  // la mete en innerHTML. Una copia de seguridad manipulada bastaba.
+  const monedaTrasCargar = await p.evaluate(payloads => {
+    S = saneaEstado({ ajustes: { moneda: payloads[0] },
+      apuntes: [{ id: uid(), mes:S.mes, seccion:'ingresos', item:'Nómina', desc:'', importe:9 }] });
+    S.configurado = true;
+    for (const [m,t] of [['portada','portada'],['economia','mes'],['inversion','cartera']]){ S.modulo=m; S.tab=t; render(); }
+    return S.ajustes.moneda;
+  }, PAYLOADS);
+  await p.waitForTimeout(300);
+  r['6b. moneda envenenada en los ajustes NO ejecuta y vuelve a «€»'] = !ejecutado && monedaTrasCargar === '€';
 
   // ── 5 · el nombre en el prompt del portapapeles no rompe nada ─
   r['7. sin errores de JS por los payloads'] = errs.length === 0;

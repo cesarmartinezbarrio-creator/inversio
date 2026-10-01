@@ -2099,8 +2099,12 @@ function saneaEstado(x){
   }
   if (x.ajustes) Object.keys(AJUSTES).forEach(k => {
     if (typeof AJUSTES[k] === "number" && isN(x.ajustes[k])) o.ajustes[k] = x.ajustes[k];
-    if (typeof AJUSTES[k] === "string" && x.ajustes[k]) o.ajustes[k] = x.ajustes[k];
+    if (typeof AJUSTES[k] === "string" && typeof x.ajustes[k] === "string" && x.ajustes[k]) o.ajustes[k] = x.ajustes[k];
   });
+  /* La moneda se pinta como HTML en cada importe (dinero, dineroS…). Una
+     copia de seguridad manipulada podía colar ahí una etiqueta con código.
+     Solo se admiten las monedas que la app sabe tratar; lo demás, euro. */
+  if (!["€", "$"].includes(o.ajustes.moneda)) o.ajustes.moneda = "€";
   if (x.ajustes && isN(x.ajustes.horizonteVal))
     o.ajustes.horizonteVal = Math.max(1, Math.min(40, Math.round(x.ajustes.horizonteVal)));
   /* La fiscalidad admite las dos formas: la escala real o un tipo fijo */
