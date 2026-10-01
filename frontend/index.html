@@ -2089,6 +2089,14 @@ function saneaEstado(x){
     });
     o.migr.comidaFija = 1;
   }
+  if (!o.migr.personalPresup){
+    o.fijas = o.fijas.filter(f => {
+      if (f.seccion !== "variables" || !/^gastos? personal(es)?$/.test(String(f.item).trim().toLowerCase())) return true;
+      if (!o.presupuestos["variables|" + f.item]) o.presupuestos["variables|" + f.item] = f.importe;
+      return false;
+    });
+    o.migr.personalPresup = 1;
+  }
   if (x.ajustes) Object.keys(AJUSTES).forEach(k => {
     if (typeof AJUSTES[k] === "number" && isN(x.ajustes[k])) o.ajustes[k] = x.ajustes[k];
     if (typeof AJUSTES[k] === "string" && x.ajustes[k]) o.ajustes[k] = x.ajustes[k];
@@ -2443,12 +2451,15 @@ function partidaSencilla(mes, seccion, item){
   return aps.length === 0 || (aps.length === 1 && !aps[0].desc);
 }
 
-/* ── Comida: un fijo con importe previsto al mes ─────────────
-   Se le puede poner (o no) lo que se piensa gastar al mes, y se le van
-   sumando los gastos según ocurren: 71 € el día 1, 29 € el 20… El azulejo
-   enseña lo previsto, lo gastado y lo que queda. */
+/* ── Partidas con importe previsto al mes ─────────────────────
+   Comida (en fijos) y Gastos personales (en variables). Se les puede poner
+   (o no) lo que se piensa gastar al mes, y se les van sumando los gastos
+   según ocurren: 71 € el día 1, 29 € el 20… El azulejo enseña lo previsto,
+   lo gastado y lo que queda. */
+const esGastoPersonal = t => /^gastos? personal(es)?$/.test(String(t || "").trim().toLowerCase());
 function esComida(seccion, item){
-  return seccion === "fijos" && String(item || "").trim().toLowerCase() === "comida";
+  const t = String(item || "").trim().toLowerCase();
+  return (seccion === "fijos" && t === "comida") || (seccion === "variables" && esGastoPersonal(t));
 }
 function presupuestoDe(seccion, item){
   const v = S.presupuestos && S.presupuestos[seccion + "|" + item];
@@ -3874,7 +3885,7 @@ function pintaListaComida(){
   const gastado = suma(aps.map(a => Math.abs(a.importe)));
   const pr = presupuestoDe(k, item);
   const resta = pr != null ? pr - gastado : null;
-  $("#anRes").innerHTML = !aps.length && pr == null ? `Todavía no hay gastos de comida en ${mesTexto(S.mes)}.`
+  $("#anRes").innerHTML = !aps.length && pr == null ? `Todavía no hay gastos en ${esc(item)} en ${mesTexto(S.mes)}.`
     : `Llevas <strong>${dinero(gastado)}</strong> en ${mesTexto(S.mes)}` + (pr != null
       ? ` de ${dinero(pr)} · quedan <strong style="color:${resta < 0 ? "var(--crit-ink)" : "var(--good-ink)"}">${resta < 0 ? "−" : ""}${dinero(Math.abs(resta))}</strong>` : "") + ".";
   $("#anLista").innerHTML = aps.map(a => `
@@ -3919,7 +3930,7 @@ function guardaAnadir(){
 
   // Comida vive en fijos y cada importe que se escribe SE SUMA a lo que ya hay
   if (k === "variables" && item.toLowerCase() === "comida") k = "fijos";
-  if (esComida(k, item)){
+  if (k === "fijos" && esComida(k, item)){
     const lf = S.etiquetas.fijos || (S.etiquetas.fijos = []);
     if (!lf.some(x => x.toLowerCase() === "comida")) lf.push("Comida");
     S.apuntes.push({ id: uid(), mes: S.mes, seccion: "fijos", item: "Comida", desc: "",
@@ -3928,6 +3939,19 @@ function guardaAnadir(){
     $("#dlgAnadir").close();
     render(); programarGuardado();
     toast(`Comida: +${dinero(Math.abs(imp))}.`);
+    return;
+  }
+  // Lo mismo con Gastos personales: cada importe se suma a lo que ya hay
+  if (esComida(k, item)){
+    const lv = S.etiquetas[k] || (S.etiquetas[k] = []);
+    const nombre = lv.find(x => esGastoPersonal(x)) || item;
+    if (!lv.includes(nombre)) lv.push(nombre);
+    S.apuntes.push({ id: uid(), mes: S.mes, seccion: k, item: nombre, desc: "",
+                     fecha: fechaParaMes(S.mes), auto: false, importe: Math.abs(imp) });
+    ANADIR = null;
+    $("#dlgAnadir").close();
+    render(); programarGuardado();
+    toast(`${nombre}: +${dinero(Math.abs(imp))}.`);
     return;
   }
 
