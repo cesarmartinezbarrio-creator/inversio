@@ -18,6 +18,8 @@
 
 // Cambiar este nombre obliga a todos los navegadores a tirar la caché vieja.
 // v3 (01/10/2026): iconos y manifiesto nuevos del rediseño retro.
+// Los iconos llevan ?v=3 en su dirección: los navegadores guardan el
+// favicon aparte y casi nunca lo renuevan; con otra dirección, sí.
 const VERSION = "cyc-v3";
 const ARMAZON = [
   "/",
