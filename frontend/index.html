@@ -20,8 +20,8 @@
      y Android permite añadirla a la pantalla de inicio. El color de la
      barra cambia según el tema del sistema. -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#F9F4EC" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0B322D" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#D6DDD4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#262F2A" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="iconos/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,133 +29,329 @@
 <meta name="apple-mobile-web-app-title" content="Cartera">
 <meta name="mobile-web-app-capable" content="yes">
 
+<script>
+/* Aspecto (paleta) y modo (día/noche) antes de pintar nada, para que la
+   página no aparezca un instante con otros colores. Lo mismo hace luego
+   aplicarAspecto() / aplicarTema(); esto solo adelanta el primer pintado. */
+try {
+  const d = document.documentElement, a = localStorage.getItem("cyc.aspecto"), m = localStorage.getItem("cyc.tema");
+  d.setAttribute("data-aspecto", ["salvia","niebla","malva","grafito"].includes(a) ? a : "salvia");
+  if (m === "light" || m === "dark") d.setAttribute("data-theme", m);
+} catch(_){ document.documentElement.setAttribute("data-aspecto", "salvia"); }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 
-/* ── Tokens ───────────────────────────────────────────────── */
+/* ── Tokens ───────────────────────────────────────────────────
+   GENERADO (no editar a mano los colores sueltos): cuatro aspectos —
+   salvia, niebla, malva y grafito— en día y en noche. El aspecto va en
+   <html data-aspecto="…"> y el modo en data-theme ("light", "dark" o
+   nada = lo que diga el sistema). Todas las parejas texto/fondo pasan
+   el contraste AA (4,5:1) y las series de gráficos 3:1. Rediseño retro
+   pastel del 01/10/2026. */
 :root{
-  color-scheme: light;
-  --ground:#F1EAE0;
-  --surface:#F9F4EC;
-  --surface-2:#EAE1D4;
-  --surface-3:#DCD1C0;
-  --ink:#0B2E29;
-  --ink-2:#3D5C56;
-  --ink-3:#586D64;
-  --rule:#E2D8C9;
-  --rule-strong:#CBBFAC;
-  --accent:#B84400;
-  --accent-ink:#953700;
-  --accent-2:#0F5A50;
-  --accent-wash:rgba(184,68,0,.10);
-  --accent-on:#FFFFFF;
-  --grad:linear-gradient(126deg,#C24E14 0%,#B03E05 46%,#8E3204 100%);
-  --grad-ink:#FFFFFF;
-  --grad-ink-2:rgba(255,255,255,.84);
-  --grad-veil:rgba(255,255,255,.18);
-  --grad-veil-2:rgba(255,255,255,.30);
-  --grad-glow:rgba(255,255,255,.22);
-  --grad-rule:rgba(255,255,255,.26);
-  --grad-shadow:rgba(176,62,5,.55);
-  --good:#076B4A;
-  --warn:#8A5F00;
-  --serious:#B4562A;
-  --crit:#B4243C;
-  --good-ink:#076B4A;
-  --warn-ink:#8A5F00;
-  --crit-ink:#B4243C;
-  --s1:#d0561e; --s2:#12876f; --s3:#6a60d0; --s4:#a67d0d; --s5:#c04a86;
-  --rise:-5px -5px 12px rgba(255,255,255,.92), 6px 7px 18px rgba(120,102,80,.22);
-  --rise-sm:-2px -2px 6px rgba(255,255,255,.88), 3px 3px 8px rgba(120,102,80,.19);
-  --sink:inset 3px 3px 7px rgba(120,102,80,.20), inset -3px -3px 7px rgba(255,255,255,.9);
-  --sink-sm:inset 2px 2px 5px rgba(120,102,80,.17), inset -2px -2px 5px rgba(255,255,255,.88);
+  --r:6px; --r-sm:4px;
+  /* Relieve retro: borde fino + sombra dura desplazada, sin difuminar.
+     Se hace con box-shadow para no mover nada de sitio. */
+  --rise:0 0 0 1.5px var(--linea), 3px 3px 0 1.5px var(--sombra);
+  --rise-sm:0 0 0 1.5px var(--linea), 2px 2px 0 1.5px var(--sombra);
+  --sink:inset 0 0 0 1.5px var(--linea);
+  --sink-sm:inset 0 0 0 1.5px var(--linea);
   --shadow:var(--rise);
-  --r:20px;
-  --r-sm:12px;
+}
+
+/* salvia */
+:root, :root[data-aspecto="salvia"]{
+  color-scheme:light;
+  --ground:#C3CCC2; --surface:#D6DDD4; --surface-2:#CBD3C9;
+  --surface-3:color-mix(in srgb, #CBD3C9 70%, #46534C);
+  --barra:#B3C2B6;
+  --ink:#1E2924; --ink-2:#36433D; --ink-3:#45524C;
+  --rule:#B7C1B5; --rule-strong:color-mix(in srgb, #46534C 55%, #D6DDD4);
+  --linea:#46534C; --sombra:#46534C;
+  --accent:#5E4763; --accent-ink:#5E4763; --accent-2:#284F6C;
+  --accent-wash:#D3C6D4; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#5E4763, #5E4763); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#D3C6D4;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#B9D6C4;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#DFD0A6;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E4C3C8;
+  --serious:#7C4220;
+  --info:#284F6C; --info-wash:#BED0DE;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
 }
 @media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-  color-scheme: dark;
-  --ground:#05221F;
-  --surface:#0B322D;
-  --surface-2:#082A26;
-  --surface-3:#12433C;
-  --ink:#F2EDE3;
-  --ink-2:#A8BDB6;
-  --ink-3:#8CA69D;
-  --rule:#123E38;
-  --rule-strong:#1D554D;
-  --accent:#E4622A;
-  --accent-ink:#F58A54;
-  --accent-2:#3FB39E;
-  --accent-wash:rgba(228,98,42,.15);
-  --accent-on:#2A0E03;
-  --grad:linear-gradient(126deg,#F5814A 0%,#E4622A 46%,#C9481B 100%);
-  --grad-ink:#2A0E03;
-  --grad-ink-2:rgba(42,14,3,.74);
-  --grad-veil:rgba(0,0,0,.13);
-  --grad-veil-2:rgba(0,0,0,.22);
-  --grad-glow:rgba(255,255,255,.28);
-  --grad-rule:rgba(42,14,3,.24);
-  --grad-shadow:rgba(228,98,42,.35);
-  --good:#3FD8A0;
-  --warn:#FFC24D;
-  --serious:#FF9C6B;
-  --crit:#FF8080;
-  --good-ink:#3FD8A0;
-  --warn-ink:#FFC24D;
-  --crit-ink:#FF8080;
-  --s1:#d95c25; --s2:#1f9985; --s3:#7d72e2; --s4:#b98a10; --s5:#cf5f96;
-  --rise:-5px -5px 12px rgba(255,255,255,.045), 6px 7px 18px rgba(0,0,0,.55);
-  --rise-sm:-2px -2px 6px rgba(255,255,255,.038), 3px 3px 9px rgba(0,0,0,.5);
-  --sink:inset 3px 3px 7px rgba(0,0,0,.62), inset -3px -3px 7px rgba(255,255,255,.048);
-  --sink-sm:inset 2px 2px 5px rgba(0,0,0,.55), inset -2px -2px 5px rgba(255,255,255,.04);
-  --shadow:var(--rise);
-  --r:20px;
-  --r-sm:12px;
+  :root:not([data-theme="light"]):not([data-aspecto]), :root[data-aspecto="salvia"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#1D2420; --surface:#262F2A; --surface-2:#2E3832;
+  --surface-3:color-mix(in srgb, #2E3832 70%, #56635B);
+  --barra:#333F38;
+  --ink:#DDE3DC; --ink-2:#B2BCB3; --ink-3:#99A49B;
+  --rule:#38433D; --rule-strong:color-mix(in srgb, #56635B 55%, #262F2A);
+  --linea:#56635B; --sombra:#111613;
+  --accent:#CDB4D0; --accent-ink:#CDB4D0; --accent-2:#A6C4DC;
+  --accent-wash:#41364A; --accent-on:#231A26;
+  --grad:linear-gradient(#CDB4D0, #CDB4D0); --grad-ink:#231A26;
+  --grad-ink-2:color-mix(in srgb, #231A26 82%, transparent);
+  --grad-veil:color-mix(in srgb, #231A26 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #231A26 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #231A26 30%, transparent); --grad-shadow:transparent;
+  --hero:#41364A;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
   }
 }
-:root[data-theme="dark"]{
-  color-scheme: dark;
-  --ground:#05221F;
-  --surface:#0B322D;
-  --surface-2:#082A26;
-  --surface-3:#12433C;
-  --ink:#F2EDE3;
-  --ink-2:#A8BDB6;
-  --ink-3:#8CA69D;
-  --rule:#123E38;
-  --rule-strong:#1D554D;
-  --accent:#E4622A;
-  --accent-ink:#F58A54;
-  --accent-2:#3FB39E;
-  --accent-wash:rgba(228,98,42,.15);
-  --accent-on:#2A0E03;
-  --grad:linear-gradient(126deg,#F5814A 0%,#E4622A 46%,#C9481B 100%);
-  --grad-ink:#2A0E03;
-  --grad-ink-2:rgba(42,14,3,.74);
-  --grad-veil:rgba(0,0,0,.13);
-  --grad-veil-2:rgba(0,0,0,.22);
-  --grad-glow:rgba(255,255,255,.28);
-  --grad-rule:rgba(42,14,3,.24);
-  --grad-shadow:rgba(228,98,42,.35);
-  --good:#3FD8A0;
-  --warn:#FFC24D;
-  --serious:#FF9C6B;
-  --crit:#FF8080;
-  --good-ink:#3FD8A0;
-  --warn-ink:#FFC24D;
-  --crit-ink:#FF8080;
-  --s1:#d95c25; --s2:#1f9985; --s3:#7d72e2; --s4:#b98a10; --s5:#cf5f96;
-  --rise:-5px -5px 12px rgba(255,255,255,.045), 6px 7px 18px rgba(0,0,0,.55);
-  --rise-sm:-2px -2px 6px rgba(255,255,255,.038), 3px 3px 9px rgba(0,0,0,.5);
-  --sink:inset 3px 3px 7px rgba(0,0,0,.62), inset -3px -3px 7px rgba(255,255,255,.048);
-  --sink-sm:inset 2px 2px 5px rgba(0,0,0,.55), inset -2px -2px 5px rgba(255,255,255,.04);
-  --shadow:var(--rise);
-  --r:20px;
-  --r-sm:12px;
+:root[data-theme="dark"]:not([data-aspecto]), :root[data-aspecto="salvia"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#1D2420; --surface:#262F2A; --surface-2:#2E3832;
+  --surface-3:color-mix(in srgb, #2E3832 70%, #56635B);
+  --barra:#333F38;
+  --ink:#DDE3DC; --ink-2:#B2BCB3; --ink-3:#99A49B;
+  --rule:#38433D; --rule-strong:color-mix(in srgb, #56635B 55%, #262F2A);
+  --linea:#56635B; --sombra:#111613;
+  --accent:#CDB4D0; --accent-ink:#CDB4D0; --accent-2:#A6C4DC;
+  --accent-wash:#41364A; --accent-on:#231A26;
+  --grad:linear-gradient(#CDB4D0, #CDB4D0); --grad-ink:#231A26;
+  --grad-ink-2:color-mix(in srgb, #231A26 82%, transparent);
+  --grad-veil:color-mix(in srgb, #231A26 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #231A26 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #231A26 30%, transparent); --grad-shadow:transparent;
+  --hero:#41364A;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+}
+
+/* niebla */
+:root[data-aspecto="niebla"]{
+  color-scheme:light;
+  --ground:#BFC8D3; --surface:#D2D9E2; --surface-2:#C7CFDA;
+  --surface-3:color-mix(in srgb, #C7CFDA 70%, #435064);
+  --barra:#B0BED0;
+  --ink:#1C2431; --ink-2:#344052; --ink-3:#435064;
+  --rule:#B3BDCA; --rule-strong:color-mix(in srgb, #435064 55%, #D2D9E2);
+  --linea:#435064; --sombra:#435064;
+  --accent:#7D3F2C; --accent-ink:#7D3F2C; --accent-2:#2A4A78;
+  --accent-wash:#E2C7BC; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#7D3F2C, #7D3F2C); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#E2C7BC;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#B8D5C5;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#DCCFA8;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E2C3CA;
+  --serious:#7C4220;
+  --info:#2A4A78; --info-wash:#BACAE0;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-aspecto="niebla"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#1B212C; --surface:#242B38; --surface-2:#2C3443;
+  --surface-3:color-mix(in srgb, #2C3443 70%, #535E73);
+  --barra:#313B4E;
+  --ink:#DFE4EC; --ink-2:#B3BCCA; --ink-3:#9AA4B4;
+  --rule:#363F50; --rule-strong:color-mix(in srgb, #535E73 55%, #242B38);
+  --linea:#535E73; --sombra:#0F1218;
+  --accent:#EDB59F; --accent-ink:#EDB59F; --accent-2:#A9C2E6;
+  --accent-wash:#4A3530; --accent-on:#2A1610;
+  --grad:linear-gradient(#EDB59F, #EDB59F); --grad-ink:#2A1610;
+  --grad-ink-2:color-mix(in srgb, #2A1610 82%, transparent);
+  --grad-veil:color-mix(in srgb, #2A1610 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #2A1610 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #2A1610 30%, transparent); --grad-shadow:transparent;
+  --hero:#4A3530;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A9C2E6; --info-wash:#2B3A52;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+  }
+}
+:root[data-aspecto="niebla"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#1B212C; --surface:#242B38; --surface-2:#2C3443;
+  --surface-3:color-mix(in srgb, #2C3443 70%, #535E73);
+  --barra:#313B4E;
+  --ink:#DFE4EC; --ink-2:#B3BCCA; --ink-3:#9AA4B4;
+  --rule:#363F50; --rule-strong:color-mix(in srgb, #535E73 55%, #242B38);
+  --linea:#535E73; --sombra:#0F1218;
+  --accent:#EDB59F; --accent-ink:#EDB59F; --accent-2:#A9C2E6;
+  --accent-wash:#4A3530; --accent-on:#2A1610;
+  --grad:linear-gradient(#EDB59F, #EDB59F); --grad-ink:#2A1610;
+  --grad-ink-2:color-mix(in srgb, #2A1610 82%, transparent);
+  --grad-veil:color-mix(in srgb, #2A1610 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #2A1610 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #2A1610 30%, transparent); --grad-shadow:transparent;
+  --hero:#4A3530;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A9C2E6; --info-wash:#2B3A52;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+}
+
+/* malva */
+:root[data-aspecto="malva"]{
+  color-scheme:light;
+  --ground:#CAC5D3; --surface:#DBD7E2; --surface-2:#D0CBD9;
+  --surface-3:color-mix(in srgb, #D0CBD9 70%, #4A4659);
+  --barra:#BDB3D2;
+  --ink:#221F2C; --ink-2:#3B3749; --ink-3:#4A4659;
+  --rule:#BEB8C8; --rule-strong:color-mix(in srgb, #4A4659 55%, #DBD7E2);
+  --linea:#4A4659; --sombra:#4A4659;
+  --accent:#4F3E86; --accent-ink:#4F3E86; --accent-2:#284F6C;
+  --accent-wash:#CCC2E6; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#4F3E86, #4F3E86); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#CCC2E6;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#BCD7C6;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#E0D1A8;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E5C4CA;
+  --serious:#7C4220;
+  --info:#284F6C; --info-wash:#C0D0DE;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-aspecto="malva"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#201E29; --surface:#2A2734; --surface-2:#322F3E;
+  --surface-3:color-mix(in srgb, #322F3E 70%, #5A5470);
+  --barra:#3A3452;
+  --ink:#E4E1EC; --ink-2:#B9B5C7; --ink-3:#A09BB0;
+  --rule:#3B3749; --rule-strong:color-mix(in srgb, #5A5470 55%, #2A2734);
+  --linea:#5A5470; --sombra:#110F16;
+  --accent:#C5B6EC; --accent-ink:#C5B6EC; --accent-2:#A6C4DC;
+  --accent-wash:#3D3558; --accent-on:#1E1830;
+  --grad:linear-gradient(#C5B6EC, #C5B6EC); --grad-ink:#1E1830;
+  --grad-ink-2:color-mix(in srgb, #1E1830 82%, transparent);
+  --grad-veil:color-mix(in srgb, #1E1830 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #1E1830 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #1E1830 30%, transparent); --grad-shadow:transparent;
+  --hero:#3D3558;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+  }
+}
+:root[data-aspecto="malva"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#201E29; --surface:#2A2734; --surface-2:#322F3E;
+  --surface-3:color-mix(in srgb, #322F3E 70%, #5A5470);
+  --barra:#3A3452;
+  --ink:#E4E1EC; --ink-2:#B9B5C7; --ink-3:#A09BB0;
+  --rule:#3B3749; --rule-strong:color-mix(in srgb, #5A5470 55%, #2A2734);
+  --linea:#5A5470; --sombra:#110F16;
+  --accent:#C5B6EC; --accent-ink:#C5B6EC; --accent-2:#A6C4DC;
+  --accent-wash:#3D3558; --accent-on:#1E1830;
+  --grad:linear-gradient(#C5B6EC, #C5B6EC); --grad-ink:#1E1830;
+  --grad-ink-2:color-mix(in srgb, #1E1830 82%, transparent);
+  --grad-veil:color-mix(in srgb, #1E1830 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #1E1830 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #1E1830 30%, transparent); --grad-shadow:transparent;
+  --hero:#3D3558;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+}
+
+/* grafito */
+:root[data-aspecto="grafito"]{
+  color-scheme:light;
+  --ground:#C6C9CC; --surface:#D8DADD; --surface-2:#CDD0D3;
+  --surface-3:color-mix(in srgb, #CDD0D3 70%, #474C52);
+  --barra:#B5C6C5;
+  --ink:#1F2326; --ink-2:#383D42; --ink-3:#474C52;
+  --rule:#B9BDC1; --rule-strong:color-mix(in srgb, #474C52 55%, #D8DADD);
+  --linea:#474C52; --sombra:#474C52;
+  --accent:#245E62; --accent-ink:#245E62; --accent-2:#284F6C;
+  --accent-wash:#B6D3D2; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#245E62, #245E62); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#B6D3D2;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#BAD6C5;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#DED0A7;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E3C3C9;
+  --serious:#7C4220;
+  --info:#284F6C; --info-wash:#BECFDD;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-aspecto="grafito"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#1E2023; --surface:#272A2E; --surface-2:#2F3337;
+  --surface-3:color-mix(in srgb, #2F3337 70%, #575D63);
+  --barra:#2F3D3E;
+  --ink:#E1E3E5; --ink-2:#B6BABE; --ink-3:#9CA1A6;
+  --rule:#383C41; --rule-strong:color-mix(in srgb, #575D63 55%, #272A2E);
+  --linea:#575D63; --sombra:#101113;
+  --accent:#95D0CB; --accent-ink:#95D0CB; --accent-2:#A6C4DC;
+  --accent-wash:#26403F; --accent-on:#0F2322;
+  --grad:linear-gradient(#95D0CB, #95D0CB); --grad-ink:#0F2322;
+  --grad-ink-2:color-mix(in srgb, #0F2322 82%, transparent);
+  --grad-veil:color-mix(in srgb, #0F2322 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #0F2322 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #0F2322 30%, transparent); --grad-shadow:transparent;
+  --hero:#26403F;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+  }
+}
+:root[data-aspecto="grafito"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#1E2023; --surface:#272A2E; --surface-2:#2F3337;
+  --surface-3:color-mix(in srgb, #2F3337 70%, #575D63);
+  --barra:#2F3D3E;
+  --ink:#E1E3E5; --ink-2:#B6BABE; --ink-3:#9CA1A6;
+  --rule:#383C41; --rule-strong:color-mix(in srgb, #575D63 55%, #272A2E);
+  --linea:#575D63; --sombra:#101113;
+  --accent:#95D0CB; --accent-ink:#95D0CB; --accent-2:#A6C4DC;
+  --accent-wash:#26403F; --accent-on:#0F2322;
+  --grad:linear-gradient(#95D0CB, #95D0CB); --grad-ink:#0F2322;
+  --grad-ink-2:color-mix(in srgb, #0F2322 82%, transparent);
+  --grad-veil:color-mix(in srgb, #0F2322 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #0F2322 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #0F2322 30%, transparent); --grad-shadow:transparent;
+  --hero:#26403F;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
 }
 
 /* ── Base ─────────────────────────────────────────────────── */
@@ -169,7 +365,7 @@ body{
   line-height:1.5;
   -webkit-font-smoothing:antialiased;
 }
-h1,h2,h3,h4{margin:0;font-family:"Outfit","Helvetica Neue",Arial,sans-serif;font-weight:600;text-wrap:balance;letter-spacing:-.014em}
+h1,h2,h3,h4{margin:0;font-family:"Space Grotesk","Helvetica Neue",Arial,sans-serif;font-weight:600;text-wrap:balance;letter-spacing:-.014em}
 p{margin:0}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
@@ -178,7 +374,7 @@ button{font:inherit;color:inherit}
   font-size:10.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
   color:var(--ink-3);
 }
-.serif{font-family:"Outfit","Helvetica Neue",Arial,sans-serif}
+.serif{font-family:"Space Grotesk","Helvetica Neue",Arial,sans-serif}
 .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
 @media (max-width:640px){ .wrap{padding:0 14px} }
 
@@ -191,20 +387,20 @@ button{font:inherit;color:inherit}
 .top-in{display:flex;align-items:center;gap:14px;height:68px}
 .brand{display:flex;align-items:center;gap:9px;flex-shrink:0}
 .brand-mark{width:22px;height:22px;flex-shrink:0;color:var(--accent)}
-.brand-name{font-family:"Outfit",sans-serif;font-weight:700;font-size:15.5px;letter-spacing:-.025em;white-space:nowrap}
+.brand-name{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:15.5px;letter-spacing:-.025em;white-space:nowrap}
 .top-spacer{flex:1}
 .co-select{
   appearance:none;
   background:var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 4.5 6 8l3-3.5' fill='none' stroke='%237B888B' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 9px center;
-  border:none;border-radius:100px;box-shadow:var(--sink-sm);
+  border:none;border-radius:4px;box-shadow:var(--sink-sm);
   padding:9px 32px 9px 15px;max-width:230px;
   font-family:inherit;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;
 }
 .btn{
   display:inline-flex;align-items:center;gap:6px;
   border:none;background:var(--surface);color:var(--ink);
-  border-radius:100px;padding:9px 16px;font-size:13px;font-weight:600;
-  font-family:"Outfit","Helvetica Neue",Arial,sans-serif;letter-spacing:-.005em;
+  border-radius:4px;padding:9px 16px;font-size:13px;font-weight:600;
+  font-family:"Space Grotesk","Helvetica Neue",Arial,sans-serif;letter-spacing:-.005em;
   cursor:pointer;white-space:nowrap;box-shadow:var(--rise-sm);
   transition:box-shadow .16s, color .16s, transform .16s;
 }
@@ -214,7 +410,7 @@ button{font:inherit;color:inherit}
 .btn-primary:hover{color:var(--grad-ink);filter:brightness(1.06)}
 .btn-quiet{background:transparent;box-shadow:none;color:var(--ink-2)}
 .btn-quiet:hover{background:var(--surface);box-shadow:var(--rise-sm);color:var(--ink)}
-.btn-icon{padding:9px;width:38px;height:38px;justify-content:center;border-radius:50%}
+.btn-icon{padding:9px;width:38px;height:38px;justify-content:center;border-radius:4px}
 .btn-sm{padding:7px 13px;font-size:12px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn-danger:hover{color:var(--crit-ink)}
@@ -224,8 +420,8 @@ button{font:inherit;color:inherit}
 .tabs-in{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .tabs-in::-webkit-scrollbar{display:none}
 .tab{
-  border:none;background:none;padding:9px 16px;cursor:pointer;border-radius:100px;
-  font-family:"Outfit",sans-serif;font-size:13px;font-weight:600;
+  border:none;background:none;padding:9px 16px;cursor:pointer;border-radius:4px;
+  font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:600;
   color:var(--ink-3);white-space:nowrap;transition:color .16s, box-shadow .16s;
 }
 .tabs-in{padding:10px 0 14px}
@@ -295,14 +491,14 @@ td.n{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tab
   padding:5px 7px;border-radius:5px;text-align:right;color:var(--ink);
   font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:12.5px;
 }
-.grid-in input:hover{background:var(--surface-2);border-radius:9px}
+.grid-in input:hover{background:var(--surface-2);border-radius:5px}
 .grid-in input:focus{outline:none;border-color:var(--accent);background:var(--surface-2);box-shadow:var(--sink-sm), 0 0 0 3px var(--accent-wash)}
 .grid-in td{padding:2px 4px}
 .grid-in td:first-child{padding:7px 11px}
 .lbl-sub{display:block;font-size:10.5px;color:var(--ink-3);font-weight:400;letter-spacing:0}
 
 input.cel{
-  width:96px;text-align:right;border:1px solid transparent;border-radius:9px;
+  width:96px;text-align:right;border:1px solid transparent;border-radius:5px;
   padding:6px 9px;background:var(--surface-2);box-shadow:var(--sink-sm);
   color:var(--ink);font-size:12.5px;
   font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
@@ -328,7 +524,7 @@ input.cel:focus{outline:none;border-color:var(--accent);box-shadow:var(--sink-sm
 
 /* ── Chips / semáforo ─────────────────────────────────────── */
 .chip{
-  display:inline-flex;align-items:center;gap:6px;border-radius:100px;
+  display:inline-flex;align-items:center;gap:6px;border-radius:4px;
   padding:4px 12px 4px 9px;font-size:11.5px;font-weight:600;
   border:none;background:var(--surface);box-shadow:var(--rise-sm);color:var(--ink-2);
 }
@@ -342,7 +538,7 @@ input.cel:focus{outline:none;border-color:var(--accent);box-shadow:var(--sink-sm
 
 /* ── Desplegable de estado (cartera) ──────────────────────── */
 .sel-estado{
-  appearance:none;-webkit-appearance:none;border-radius:100px;border:1px solid transparent;
+  appearance:none;-webkit-appearance:none;border-radius:4px;border:1px solid transparent;
   padding:4px 26px 4px 12px;font-size:11.5px;font-weight:600;font-family:inherit;
   background-color:var(--surface);box-shadow:var(--rise-sm);cursor:pointer;
   background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23888" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>');
@@ -400,10 +596,10 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 .g-flag-2{fill:var(--ink-3);font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9.5px}
 
 /* ── Selector de módulo ───────────────────────────────────── */
-.mods{display:inline-flex;gap:3px;background:var(--surface-2);border:none;border-radius:100px;padding:5px;box-shadow:var(--sink-sm)}
+.mods{display:inline-flex;gap:3px;background:var(--surface-2);border:none;border-radius:4px;padding:5px;box-shadow:var(--sink-sm)}
 .mod{
-  border:none;background:none;border-radius:100px;padding:8px 17px;cursor:pointer;
-  font-family:"Outfit",sans-serif;font-size:13px;font-weight:600;letter-spacing:-.005em;
+  border:none;background:none;border-radius:4px;padding:8px 17px;cursor:pointer;
+  font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:600;letter-spacing:-.005em;
   color:var(--ink-3);white-space:nowrap;transition:color .16s;
 }
 .mod:hover{color:var(--ink)}
@@ -412,7 +608,7 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 /* ── Chips seleccionables (horizonte) ─────────────────────── */
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .chip-btn{
-  border:none;background:var(--surface);border-radius:100px;box-shadow:var(--rise-sm);
+  border:none;background:var(--surface);border-radius:4px;box-shadow:var(--rise-sm);
   padding:9px 17px;cursor:pointer;font-size:13px;font-weight:600;
   font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
   color:var(--ink-2);transition:background .12s,border-color .12s,color .12s;
@@ -421,7 +617,7 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 .chip-btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-on);font-weight:600}
 
 /* ── Fuentes de datos ─────────────────────────────────────── */
-.src{display:flex;flex-direction:column;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:9px;overflow:hidden}
+.src{display:flex;flex-direction:column;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:5px;overflow:hidden}
 .src-row{display:grid;grid-template-columns:1fr auto;gap:6px 16px;background:var(--surface);padding:12px 15px;align-items:baseline}
 .src-row h4{font-size:13px}
 .src-row a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid var(--accent-wash)}
@@ -442,7 +638,7 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 .bell{position:relative}
 .bell-badge{
   position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;padding:0 4px;
-  border-radius:9px;background:var(--grad);color:var(--grad-ink);font-size:10.5px;font-weight:700;
+  border-radius:5px;background:var(--grad);color:var(--grad-ink);font-size:10.5px;font-weight:700;
   display:grid;place-items:center;line-height:1;border:2px solid var(--ground);
   font-family:"IBM Plex Mono",ui-monospace,monospace;
 }
@@ -455,7 +651,7 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
   padding:13px 18px;border-bottom:1px solid var(--rule);
 }
 .alerta:last-child{border-bottom:none}
-.alerta-ico{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;margin-top:1px}
+.alerta-ico{width:24px;height:24px;border-radius:4px;display:grid;place-items:center;flex-shrink:0;margin-top:1px}
 .alerta-ico svg{width:14px;height:14px}
 .a-crit .alerta-ico{background:color-mix(in srgb,var(--crit) 16%,transparent);color:var(--crit)}
 .a-aviso .alerta-ico{background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn-ink)}
@@ -511,7 +707,7 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 .modcard:hover{transform:translateY(-3px);box-shadow:var(--rise), 0 14px 30px -20px rgba(224,50,124,.8)}
 .modcard:active{transform:translateY(0);box-shadow:var(--sink)}
 .modcard-n{
-  width:30px;height:30px;border-radius:50%;background:var(--accent-wash);color:var(--accent-ink);
+  width:30px;height:30px;border-radius:4px;background:var(--accent-wash);color:var(--accent-ink);
   display:grid;place-items:center;font-family:"IBM Plex Mono",ui-monospace,monospace;
   font-size:12px;font-weight:600;
 }
@@ -529,8 +725,8 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 .alloc-row{display:grid;grid-template-columns:130px 1fr 150px;gap:14px;align-items:center}
 @media (max-width:640px){ .alloc-row{grid-template-columns:1fr;gap:6px} }
 .alloc-name{font-size:13px;font-weight:500}
-.alloc-track{height:22px;background:var(--surface-2);border-radius:100px;box-shadow:var(--sink-sm);position:relative;overflow:hidden}
-.alloc-fill{height:100%;background:var(--s1);border-radius:100px}
+.alloc-track{height:22px;background:var(--surface-2);border-radius:4px;box-shadow:var(--sink-sm);position:relative;overflow:hidden}
+.alloc-fill{height:100%;background:var(--s1);border-radius:4px}
 .alloc-obj{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);border-radius:1px}
 .alloc-nums{
   display:flex;gap:10px;justify-content:flex-end;align-items:baseline;
@@ -540,7 +736,7 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 
 /* ── Popup de alertas ─────────────────────────────────────── */
 .pop-hd{padding:22px 24px 0;text-align:center}
-.pop-ico{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px}
+.pop-ico{width:46px;height:46px;border-radius:4px;display:grid;place-items:center;margin:0 auto 12px}
 .pop-ico svg{width:24px;height:24px}
 .pop-hd h3{font-size:20px;letter-spacing:-.025em}
 .pop-hd p{font-size:13.5px;color:var(--ink-2);margin-top:6px;max-width:44ch;margin-inline:auto;line-height:1.5}
@@ -563,18 +759,18 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 }
 .empty h3{color:var(--ink);margin-bottom:7px;font-size:16px}
 .empty p{max-width:44ch;margin:0 auto 16px;font-size:13.5px;line-height:1.55}
-.bar-row{display:flex;height:11px;border-radius:100px;overflow:hidden;gap:2px;background:var(--surface-2);box-shadow:var(--sink-sm)}
+.bar-row{display:flex;height:11px;border-radius:4px;overflow:hidden;gap:2px;background:var(--surface-2);box-shadow:var(--sink-sm)}
 .bar-row i{display:block;height:100%}
 .toast{
   position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);
-  background:var(--ink);color:var(--ground);padding:12px 20px;border-radius:100px;
+  background:var(--ink);color:var(--ground);padding:12px 20px;border-radius:4px;
   font-size:13px;font-weight:500;z-index:300;opacity:0;pointer-events:none;
   transition:opacity .18s,transform .18s;box-shadow:var(--shadow);max-width:min(92vw,460px);
 }
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.bad{background:var(--crit);color:#fff}
 dialog{
-  border:none;border-radius:24px;background:var(--surface);color:var(--ink);
+  border:none;border-radius:8px;background:var(--surface);color:var(--ink);
   padding:0;max-width:min(94vw,660px);width:100%;box-shadow:0 30px 70px -20px rgba(0,0,0,.6);
 }
 dialog::backdrop{background:rgba(16,12,36,.62);backdrop-filter:blur(3px)}
@@ -608,13 +804,13 @@ textarea.code{
 }
 #capaSoltar.on{display:grid}
 #capaSoltar .caja{
-  border:2px dashed var(--accent);border-radius:16px;background:var(--surface);
+  border:2px dashed var(--accent);border-radius:5px;background:var(--surface);
   padding:44px 60px;text-align:center;box-shadow:var(--shadow)
 }
 #capaSoltar h3{font-size:17px;margin-bottom:6px}
 #capaSoltar p{font-size:13px;color:var(--ink-3)}
-.progreso{height:8px;border-radius:100px;background:var(--surface-2);box-shadow:var(--sink-sm);overflow:hidden}
-.progreso i{display:block;height:100%;background:var(--grad);border-radius:100px;width:0;transition:width .25s}
+.progreso{height:8px;border-radius:4px;background:var(--surface-2);box-shadow:var(--sink-sm);overflow:hidden}
+.progreso i{display:block;height:100%;background:var(--grad);border-radius:4px;width:0;transition:width .25s}
 .rev-tabla{width:100%;border-collapse:collapse;font-size:12.5px}
 .rev-tabla th{
   text-align:right;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
@@ -626,7 +822,7 @@ textarea.code{
 .rev-tabla input{
   width:82px;text-align:right;padding:6px 9px;font-size:12px;
   font-family:"IBM Plex Mono",ui-monospace,monospace;
-  background:var(--surface-2);border:1px solid transparent;border-radius:9px;
+  background:var(--surface-2);border:1px solid transparent;border-radius:5px;
   box-shadow:var(--sink-sm);color:var(--ink)
 }
 .rev-tabla input:focus{border-color:var(--accent);outline:none}
@@ -657,7 +853,7 @@ textarea.code{
 .rung{display:flex;align-items:center;gap:12px;background:var(--surface);padding:10px 14px}
 .rung-n{
   font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;font-weight:600;
-  width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+  width:20px;height:20px;border-radius:4px;display:grid;place-items:center;flex-shrink:0;
   background:var(--surface-2);color:var(--ink-3);
 }
 .rung-t{flex:1;font-size:13px;font-weight:500}
@@ -685,9 +881,9 @@ textarea.code{
 
 /* Signo de información: solo salta sobre el propio icono y con retardo */
 .info{
-  display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;
+  display:inline-grid;place-items:center;width:15px;height:15px;border-radius:4px;
   background:var(--surface-3);color:var(--ink-2);font-size:10px;font-weight:700;
-  font-family:"Outfit",sans-serif;cursor:help;vertical-align:middle;margin-left:5px;
+  font-family:"Space Grotesk",sans-serif;cursor:help;vertical-align:middle;margin-left:5px;
   border:none;padding:0;line-height:1;flex-shrink:0;user-select:none;
 }
 .info:hover,.info[aria-expanded="true"]{background:var(--accent);color:var(--accent-on)}
@@ -714,7 +910,7 @@ textarea.code{
 }
 .linea-x{
   border:none;background:transparent;color:var(--ink-3);cursor:pointer;padding:5px;
-  border-radius:50%;width:26px;height:26px;display:grid;place-items:center;line-height:1;
+  border-radius:4px;width:26px;height:26px;display:grid;place-items:center;line-height:1;
 }
 .linea-x:hover{background:var(--surface-2);color:var(--crit-ink)}
 
@@ -734,8 +930,8 @@ textarea.code{
   font-size:23px;font-weight:500;letter-spacing:-.03em;
 }
 .secc-n{font-size:11.5px;color:var(--ink-3)}
-.secc-b{height:6px;border-radius:100px;background:var(--surface-2);box-shadow:var(--sink-sm);overflow:hidden;margin-top:2px}
-.secc-b i{display:block;height:100%;border-radius:100px}
+.secc-b{height:6px;border-radius:4px;background:var(--surface-2);box-shadow:var(--sink-sm);overflow:hidden;margin-top:2px}
+.secc-b i{display:block;height:100%;border-radius:4px}
 
 /* Barra de resultado del mes */
 .balanza{display:flex;flex-direction:column;gap:10px}
@@ -749,19 +945,19 @@ textarea.code{
 /* Selector de mes */
 .mesbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .mes-nom{
-  font-family:"Outfit",sans-serif;font-size:17px;font-weight:600;letter-spacing:-.02em;
+  font-family:"Space Grotesk",sans-serif;font-size:17px;font-weight:600;letter-spacing:-.02em;
   min-width:170px;text-align:center;
 }
 
 /* Selector de periodo */
-.periodos{display:inline-flex;gap:3px;background:var(--surface-2);border-radius:100px;padding:5px;box-shadow:var(--sink-sm);max-width:100%}
+.periodos{display:inline-flex;gap:3px;background:var(--surface-2);border-radius:4px;padding:5px;box-shadow:var(--sink-sm);max-width:100%}
 /* Con cinco apartados no caben en un móvil: la fila se desliza */
 .periodos.scroll{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .periodos.scroll::-webkit-scrollbar{display:none}
 .periodos.scroll .periodo{flex:0 0 auto}
 .periodo{
-  border:none;background:none;border-radius:100px;padding:7px 15px;cursor:pointer;
-  font-family:"Outfit",sans-serif;font-size:12.5px;font-weight:600;color:var(--ink-3);white-space:nowrap;
+  border:none;background:none;border-radius:4px;padding:7px 15px;cursor:pointer;
+  font-family:"Space Grotesk",sans-serif;font-size:12.5px;font-weight:600;color:var(--ink-3);white-space:nowrap;
 }
 .periodo:hover{color:var(--ink)}
 .periodo[aria-selected="true"]{background:var(--surface);color:var(--accent-ink);box-shadow:var(--rise-sm)}
@@ -788,7 +984,7 @@ textarea.code{
   display:flex;gap:14px;align-items:flex-start;padding:15px 18px;border-radius:var(--r-sm);
   background:var(--surface-2);box-shadow:var(--sink-sm);
 }
-.veredicto-l{width:9px;border-radius:100px;align-self:stretch;min-height:44px;flex-shrink:0}
+.veredicto-l{width:9px;border-radius:4px;align-self:stretch;min-height:44px;flex-shrink:0}
 .veredicto h4{font-size:13.5px;margin-bottom:4px}
 .veredicto p{font-size:12.5px;color:var(--ink-2);line-height:1.55}
 
@@ -799,7 +995,7 @@ textarea.code{
   padding:15px 18px;border-radius:var(--r-sm);background:var(--surface-2);box-shadow:var(--sink-sm);
 }
 .paso-n{
-  width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  width:30px;height:30px;border-radius:4px;display:grid;place-items:center;
   background:var(--grad);color:var(--grad-ink);font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
 }
 .paso h4{font-size:13.5px;margin-bottom:4px}
@@ -811,7 +1007,7 @@ textarea.code{
 @media (max-width:760px){ .apunte{grid-template-columns:1fr 1fr} .apunte .btn{grid-column:1/-1} }
 
 .tag{
-  display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;
+  display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;
   background:var(--surface-2);color:var(--ink-2);box-shadow:var(--sink-sm);
 }
 .mini{font-size:11.5px;color:var(--ink-3)}
@@ -881,13 +1077,13 @@ textarea.code{
 .rescard.destacada .gan-pill.gan-nd{background:var(--grad-veil-2);color:var(--grad-ink-2)}
 
 /* Escala de color, como leyenda */
-.escala{display:flex;gap:2px;border-radius:100px;overflow:hidden;height:9px;margin:10px 0 6px}
+.escala{display:flex;gap:2px;border-radius:4px;overflow:hidden;height:9px;margin:10px 0 6px}
 .escala i{flex:1}
 .escala-t{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-3)}
 
 /* ── Franja de alertas: se ve, pero ocupa una línea ───────── */
 .franja{
-  display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:100px;
+  display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:4px;
   background:var(--surface);box-shadow:var(--rise-sm);cursor:pointer;width:100%;
   text-align:left;border:none;color:inherit;
 }
@@ -918,7 +1114,7 @@ textarea.code{
 .kpi-s{font-size:11px;color:var(--ink-3)}
 
 /* Barra de rango del año */
-.rango{height:8px;border-radius:100px;background:var(--surface-2);box-shadow:var(--sink-sm);position:relative;margin-top:6px}
+.rango{height:8px;border-radius:4px;background:var(--surface-2);box-shadow:var(--sink-sm);position:relative;margin-top:6px}
 .rango i{position:absolute;top:-2px;width:4px;height:12px;border-radius:3px;background:var(--accent)}
 
 /* Estado del guardado */
@@ -929,7 +1125,7 @@ textarea.code{
 @media (max-width:980px){ .sync b{display:none} }
 
 .gan-pill{
-  display:inline-block;padding:3px 11px;border-radius:100px;
+  display:inline-block;padding:3px 11px;border-radius:4px;
   font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
   font-size:15px;font-weight:600;letter-spacing:-.01em;
 }
@@ -974,7 +1170,7 @@ textarea.code{
 .partida-suma{
   font:inherit;font-size:13.5px;font-weight:600;text-align:right;
   font-family:"IBM Plex Mono",ui-monospace,monospace;
-  background:var(--surface-2);border:1px solid var(--rule);border-radius:10px;
+  background:var(--surface-2);border:1px solid var(--rule);border-radius:5px;
   padding:8px 10px;width:100%;cursor:pointer;color:var(--ink);
 }
 .partida-suma:hover{border-color:var(--accent);color:var(--accent)}
@@ -993,7 +1189,7 @@ textarea.code{
 .teja{
   position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;
   font:inherit;text-align:left;cursor:pointer;color:var(--ink);
-  border:1px solid var(--rule);border-radius:14px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:5px;background:var(--surface);
   padding:12px 13px 15px;overflow:hidden;min-height:104px;
   transition:border-color .12s, transform .12s, box-shadow .12s;
 }
@@ -1029,7 +1225,7 @@ textarea.code{
 /* Diálogo: la lista de gastos sueltos de Comida */
 .an-res{font-size:13px;color:var(--ink-2);margin:4px 0 8px}
 .an-lista{display:flex;flex-direction:column;gap:4px;max-height:210px;overflow:auto}
-.an-fila{display:flex;align-items:center;gap:10px;padding:6px 8px;border:1px solid var(--rule);border-radius:10px;font-size:13px}
+.an-fila{display:flex;align-items:center;gap:10px;padding:6px 8px;border:1px solid var(--rule);border-radius:5px;font-size:13px}
 .an-fila .f{flex:1;color:var(--ink-3)}
 .an-fila b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
 
@@ -1046,7 +1242,7 @@ textarea.code{
 /* ── Diálogo de añadir ─────────────────────────────────────── */
 .sug-cat{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
 .sug-cat-b{
-  font:inherit;font-size:12.5px;cursor:pointer;border-radius:999px;padding:5px 11px;
+  font:inherit;font-size:12.5px;cursor:pointer;border-radius:4px;padding:5px 11px;
   border:1px solid var(--rule);background:var(--surface-2);color:var(--ink-2);
 }
 .sug-cat-b:hover{border-color:var(--accent);color:var(--accent)}
@@ -1089,11 +1285,11 @@ textarea.code{
 
 .btn-scan{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  font:inherit;font-size:12.5px;cursor:pointer;border-radius:999px;padding:6px 12px;
+  font:inherit;font-size:12.5px;cursor:pointer;border-radius:4px;padding:6px 12px;
   border:1px solid var(--accent);background:transparent;color:var(--accent);flex:none;
 }
 .btn-scan:hover{background:var(--accent-wash)}
-.btn-scan.solo{padding:7px;border-radius:50%;line-height:0}
+.btn-scan.solo{padding:7px;border-radius:4px;line-height:0}
 
 /* ── La cámara, dentro del diálogo ─────────────────────────── */
 /* ── La tarjeta del veredicto ──────────────────────────────────
@@ -1128,7 +1324,7 @@ textarea.code{
 .veredicto.bad .ver-t{color:var(--crit)}
 .ver-s{display:block;font-size:14px;color:var(--ink-2);margin-top:2px;max-width:62ch;line-height:1.45}
 .ver-aviso{display:inline-block;margin-top:10px;font-size:12px;color:var(--warn-ink);
-           background:var(--accent-wash);border-radius:999px;padding:4px 11px;
+           background:var(--accent-wash);border-radius:4px;padding:4px 11px;
            max-width:100%;line-height:1.4}
 .ver-mas{display:block;margin-top:14px;font-size:13px;color:var(--accent);font-weight:600}
 
@@ -1153,7 +1349,7 @@ textarea.code{
 .pq-h{margin:0 0 2px;font-size:13px;text-transform:uppercase;letter-spacing:.07em;
       display:flex;align-items:center;gap:8px}
 .pq-h span{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;
-           background:var(--surface-2);border-radius:999px;padding:1px 8px;color:var(--ink-2)}
+           background:var(--surface-2);border-radius:4px;padding:1px 8px;color:var(--ink-2)}
 .pq-h.ok{color:var(--good-ink)} .pq-h.mid{color:var(--accent)}
 .pq-h.bad{color:var(--crit)}    .pq-h.na{color:var(--ink-3)}
 .pq-fila{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:10px;align-items:center;
@@ -1171,7 +1367,7 @@ textarea.code{
 .arr-bloque h4{margin:0 0 2px;font-size:14px;letter-spacing:-.01em}
 .arr-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
 .arr-chip{
-  font:inherit;font-size:13px;padding:7px 13px;border-radius:999px;cursor:pointer;
+  font:inherit;font-size:13px;padding:7px 13px;border-radius:4px;cursor:pointer;
   border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);
 }
 .arr-chip:hover{border-color:var(--accent);color:var(--accent)}
@@ -1208,7 +1404,7 @@ textarea.code{
 .partida .btn{white-space:nowrap}
 
 .pin{
-  width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  width:30px;height:30px;border-radius:4px;display:grid;place-items:center;
   border:none;background:transparent;color:var(--ink-3);cursor:pointer;
   transition:background .15s,color .15s;
 }
@@ -1253,8 +1449,8 @@ svg.anillo{width:100%;max-width:210px;height:auto;margin:0 auto;display:block}
 .barrasH{display:flex;flex-direction:column;gap:11px}
 .barraH{display:grid;grid-template-columns:minmax(96px,1.1fr) minmax(0,2.4fr) auto;gap:12px;align-items:center}
 .barraH-n{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.barraH-t{height:9px;border-radius:100px;background:var(--surface-2);box-shadow:var(--sink-sm);overflow:hidden}
-.barraH-t i{display:block;height:100%;border-radius:100px;transition:width .3s}
+.barraH-t{height:9px;border-radius:4px;background:var(--surface-2);box-shadow:var(--sink-sm);overflow:hidden}
+.barraH-t i{display:block;height:100%;border-radius:4px;transition:width .3s}
 .barraH-v{font-size:12.5px;font-weight:600;text-align:right;white-space:nowrap;min-width:64px}
 
 /* Tarjetas de evolución: cifra + minigráfica juntas */
@@ -1282,7 +1478,7 @@ svg.anillo{width:100%;max-width:210px;height:auto;margin:0 auto;display:block}
 
 /* ── Termómetro de precio contra valor ─────────────────────── */
 .termo{position:relative;height:76px;margin:30px 0 8px}
-.tv-riel{position:absolute;left:0;right:0;top:34px;height:10px;border-radius:100px;
+.tv-riel{position:absolute;left:0;right:0;top:34px;height:10px;border-radius:4px;
   background:var(--surface-2);box-shadow:var(--sink-sm);overflow:hidden}
 .tv-z{position:absolute;top:0;height:100%;opacity:.45}
 .tv-m{position:absolute;top:26px;transform:translateX(-50%);display:flex;flex-direction:column;
@@ -1306,7 +1502,7 @@ svg.anillo{width:100%;max-width:210px;height:auto;margin:0 auto;display:block}
 .fhero-ver p{font-size:12.5px;color:var(--ink-2);line-height:1.5}
 
 /* Barra de resultado de las comprobaciones */
-.semb{display:flex;height:11px;border-radius:100px;overflow:hidden;gap:2px;margin:12px 0 8px}
+.semb{display:flex;height:11px;border-radius:4px;overflow:hidden;gap:2px;margin:12px 0 8px}
 .semb i{display:block;height:100%}
 .semb-l{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2)}
 .semb-l span{display:inline-flex;align-items:center;gap:6px}
@@ -1357,6 +1553,136 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
 .paso.ojo:hover{opacity:1}
 .paso.ojo h4{color:var(--ink-2)}
 
+
+/* ═══════════════════════════════════════════════════════════
+   CAPA RETRO — rediseño del 01/10/2026
+   ═══════════════════════════════════════════════════════════
+   Va al final a propósito: corrige lo de arriba sin tocarlo. Bordes
+   finos, sombras duras desplazadas, esquinas pequeñas y ventanas con
+   barra de título. Si algún día hay que volver atrás, este bloque y
+   los tokens de arriba son todo lo que cambió del estilo. */
+
+h1,h2,h3,h4{font-family:"Space Grotesk","Helvetica Neue",Arial,sans-serif;letter-spacing:-.01em}
+
+/* Barra superior: opaca, con su raya debajo */
+.top{background:var(--surface);backdrop-filter:none;border-bottom:1.5px solid var(--linea)}
+.tabs{background:var(--ground)}
+
+/* Ventanas: la cabecera de cada tarjeta es una barra de título con sus
+   dos cuadritos. El dibujo es una máscara, así toma el color del tema. */
+.card{border:none}
+.card-hd{background:var(--barra);border-bottom:1.5px solid var(--linea);align-items:center}
+.card-hd::before{
+  content:"";flex:0 0 22px;height:9px;background:var(--linea);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 9'%3E%3Cg fill='none' stroke='black' stroke-width='1.5'%3E%3Crect x='.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='13.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 9'%3E%3Cg fill='none' stroke='black' stroke-width='1.5'%3E%3Crect x='.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='13.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain;
+}
+
+/* Botones: rectángulos con sombra dura; al pulsar, se hunden */
+.btn{transition:box-shadow .1s, transform .1s, background .12s, color .12s}
+.btn:hover{transform:none;background:var(--surface-2);color:var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:0 0 0 1.5px var(--linea)}
+.btn-primary{background:var(--accent);color:var(--accent-on)}
+.btn-primary:hover{background:var(--accent);color:var(--accent-on);filter:brightness(1.07)}
+.btn-quiet{box-shadow:none}
+.btn-quiet:hover{background:var(--surface-2);box-shadow:var(--rise-sm)}
+.btn-quiet:active{box-shadow:0 0 0 1.5px var(--linea)}
+.mod[aria-selected="true"],.tab[aria-selected="true"]{color:var(--ink)}
+
+/* Portada y tarjeta destacada: pastel con texto oscuro, sin brillos */
+.hero,.rescard.destacada{
+  --grad:var(--hero); --grad-ink:var(--ink); --grad-ink-2:var(--ink-2);
+  --grad-veil:var(--surface); --grad-veil-2:var(--surface-2); --grad-rule:var(--linea);
+  background:var(--hero);box-shadow:var(--rise);
+}
+.hero::after,.rescard.destacada::after{display:none}
+.hero .chip,.hero .btn{backdrop-filter:none;box-shadow:var(--rise-sm)}
+
+.toast{box-shadow:var(--rise-sm)}
+.toast.bad{color:var(--surface)}
+dialog{box-shadow:0 0 0 1.5px var(--linea), 5px 5px 0 1.5px var(--sombra)}
+dialog::backdrop{background:color-mix(in srgb, var(--sombra) 55%, transparent);backdrop-filter:none}
+.empty{border:2px dashed var(--linea)}
+
+/* ── Perfil ───────────────────────────────────────────────────
+   Quién ha entrado, sin estorbar: la inicial y el nombre, arriba a la
+   derecha. Al pulsarlo se despliegan los datos de la cuenta, el aspecto
+   y las acciones que antes eran botones sueltos. */
+.perfil{position:relative;flex-shrink:0}
+.perfil-btn{
+  display:flex;align-items:center;gap:8px;max-width:220px;cursor:pointer;
+  padding:4px 8px 4px 4px;border:none;border-radius:5px;background:none;color:var(--ink-2);
+  font:500 12.5px "Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;
+}
+.perfil-btn:hover,.perfil-btn[aria-expanded="true"]{background:var(--surface-2);box-shadow:var(--rise-sm);color:var(--ink)}
+.perfil-ini{
+  width:28px;height:28px;flex-shrink:0;display:grid;place-items:center;
+  background:var(--accent-wash);color:var(--accent);border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--linea);
+  font:700 13px "Space Grotesk",sans-serif;
+}
+.perfil-ini.grande{width:42px;height:42px;font-size:18px}
+.perfil-nom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.perfil-btn svg{flex-shrink:0;opacity:.7}
+.perfil-menu{
+  position:absolute;right:0;top:calc(100% + 10px);z-index:90;width:320px;max-width:calc(100vw - 24px);
+  background:var(--surface);color:var(--ink);border-radius:6px;box-shadow:var(--rise);overflow:hidden;
+}
+.perfil-menu[hidden]{display:none}
+.perfil-cab{display:flex;gap:12px;align-items:center;padding:14px 16px;background:var(--barra);border-bottom:1.5px solid var(--linea)}
+.perfil-cab strong{display:block;font:600 15px "Space Grotesk",sans-serif;overflow-wrap:anywhere}
+.perfil-cab span:not(.perfil-ini){display:block;font-size:12px;color:var(--ink-2);overflow-wrap:anywhere}
+.perfil-sec{padding:13px 16px;border-bottom:1px solid var(--rule)}
+.perfil-sec h4{font-size:12.5px;margin-bottom:9px;color:var(--ink-2)}
+.perfil-sec label{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:5px}
+.perfil-sec input{
+  width:100%;border:none;border-radius:4px;box-shadow:var(--sink-sm);background:var(--surface-2);
+  color:var(--ink);padding:8px 10px;font:inherit;font-size:13px;
+}
+.perfil-datos{margin:0;display:grid;gap:7px}
+.perfil-datos div{display:flex;justify-content:space-between;gap:12px;font-size:12.5px}
+.perfil-datos dt{color:var(--ink-3)}
+.perfil-datos dd{margin:0;text-align:right;font-weight:600}
+.aspectos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.aspecto{
+  display:flex;flex-direction:column;gap:5px;align-items:stretch;cursor:pointer;
+  border:none;border-radius:5px;background:var(--surface);color:var(--ink-2);padding:5px;
+  box-shadow:0 0 0 1.5px var(--rule);font:600 11.5px "Plus Jakarta Sans",sans-serif;
+}
+.aspecto:hover{box-shadow:0 0 0 1.5px var(--linea)}
+.aspecto[aria-pressed="true"]{box-shadow:var(--rise-sm);color:var(--ink)}
+.aspecto-m{display:flex;height:22px;border-radius:3px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--linea)}
+.aspecto-m i{flex:1}
+.modos{display:flex;margin-top:10px;border-radius:5px;box-shadow:0 0 0 1.5px var(--linea);overflow:hidden}
+.modo{
+  flex:1;border:none;background:var(--surface-2);color:var(--ink-2);cursor:pointer;padding:7px 4px;
+  font:600 12px "Plus Jakarta Sans",sans-serif;
+}
+.modo + .modo{border-left:1.5px solid var(--linea)}
+.modo[aria-pressed="true"]{background:var(--accent);color:var(--accent-on)}
+.perfil-acc{display:flex;flex-direction:column;padding:6px}
+.perfil-item{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
+  border:none;border-radius:4px;background:none;color:var(--ink);padding:9px 10px;
+  font:500 13px "Plus Jakarta Sans",sans-serif;text-decoration:none;
+}
+.perfil-item:hover{background:var(--surface-2)}
+.perfil-item svg{color:var(--ink-3);flex-shrink:0}
+.perfil-item.salir{color:var(--crit)}
+.perfil-item.salir svg{color:var(--crit)}
+/* Por debajo de 1100 px la barra se parte en dos filas y una regla de
+   arriba le quitaba el margen lateral (padding:8px 0): el logo quedaba
+   pegado al borde. Se le devuelve el mismo margen que al resto. */
+@media (max-width:1100px){ .top-in{padding-left:24px;padding-right:24px} }
+@media (max-width:640px){
+  .top-in{padding-left:14px;padding-right:14px}
+  .perfil{margin-left:auto}
+  .perfil-nom,.perfil-btn > svg{display:none}
+  .perfil-btn{padding:3px}
+  /* En el móvil el menú ocupa el ancho; su altura la pone abrePerfil()
+     justo debajo del botón, porque la barra cambia de alto. */
+  .perfil-menu{position:fixed;left:12px;right:12px;width:auto;max-width:none;max-height:calc(100vh - 80px);overflow:auto}
+}
+
 </style>
 </head>
 <body>
@@ -1385,15 +1711,56 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
       <span class="bell-badge" id="bellBadge" hidden>0</span>
     </button>
     <button class="btn btn-sm btn-primary" id="btnSave">Guardar ya</button>
-    <button class="btn btn-icon btn-quiet" id="btnDatos" aria-label="Tus datos y copia de seguridad" title="Tus datos y copia de seguridad">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="1.7"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" stroke="currentColor" stroke-width="1.7"/></svg>
-    </button>
-    <button class="btn btn-icon btn-quiet" id="btnTheme" aria-label="Cambiar tema" title="Cambiar tema">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v2m0 14v2m9-9h-2M5 12H3m14.7-6.7-1.4 1.4M7.7 16.3l-1.4 1.4m11 0-1.4-1.4M7.7 7.7 6.3 6.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/></svg>
-    </button>
-    <button class="btn btn-icon btn-quiet" id="btnSalir" aria-label="Cerrar sesión" title="Cerrar sesión">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 17v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10 12h10m0 0-3-3m3 3-3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
+    <!-- Perfil: quién ha entrado. Al pulsarlo, sus datos, el aspecto y las
+         acciones de la cuenta. Los botones de dentro conservan sus id
+         (btnDatos, btnSalir), así que sus eventos siguen igual. -->
+    <div class="perfil" id="perfil">
+      <button class="perfil-btn" id="btnPerfil" aria-haspopup="true" aria-expanded="false" aria-controls="perfilMenu" title="Tu perfil">
+        <span class="perfil-ini" id="perfilIni" aria-hidden="true">·</span>
+        <span class="perfil-nom" id="perfilNom">Tu cuenta</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5 6 8l3-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="perfil-menu" id="perfilMenu" role="dialog" aria-label="Tu perfil" hidden>
+        <div class="perfil-cab">
+          <span class="perfil-ini grande" id="perfilIni2" aria-hidden="true">·</span>
+          <div><strong id="perfilNombre">Tu cuenta</strong><span id="perfilCorreo"></span></div>
+        </div>
+        <div class="perfil-sec">
+          <label for="perfilAlias">Cómo quieres que te llamemos</label>
+          <input id="perfilAlias" maxlength="30" autocomplete="nickname" placeholder="Tu nombre">
+        </div>
+        <div class="perfil-sec">
+          <dl class="perfil-datos">
+            <div><dt>Guardado</dt><dd id="perfilSync">—</dd></div>
+            <div><dt>Consultas de mercado hoy</dt><dd id="perfilUso" class="num">—</dd></div>
+            <div><dt>Versión de la app</dt><dd id="perfilVer" class="num">—</dd></div>
+          </dl>
+        </div>
+        <div class="perfil-sec">
+          <h4>Aspecto</h4>
+          <div class="aspectos" id="aspectos" role="group" aria-label="Paleta de color"></div>
+          <div class="modos" role="group" aria-label="Día o noche">
+            <button class="modo" data-modo="light" aria-pressed="false">Día</button>
+            <button class="modo" data-modo="dark" aria-pressed="false">Noche</button>
+            <button class="modo" data-modo="auto" aria-pressed="false">Automático</button>
+          </div>
+        </div>
+        <div class="perfil-acc">
+          <button class="perfil-item" id="btnDatos">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="1.7"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" stroke="currentColor" stroke-width="1.7"/></svg>
+            Tus datos y copia de seguridad
+          </button>
+          <a class="perfil-item" href="guia/" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2V5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 7h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            Guía de uso
+          </a>
+          <button class="perfil-item salir" id="btnSalir">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 17v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10 12h10m0 0-3-3m3 3-3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1906,7 +2273,7 @@ const LS_KEY = "cyc.estado.v1";
    para saber de un vistazo qué build corre (aparece en «Tus datos»). No
    es el nombre de la caché del service worker —eso vive en sw.js—, es el
    número que ve la persona. */
-const VERSION_APP = "2026.09.07";
+const VERSION_APP = "2026.10.01";
 
 /* Modo demo: con ?demo en la URL, la app arranca sin sesión, con datos
    de ejemplo, y NO guarda nada en la nube. Es lo que embebe la web de
@@ -1924,7 +2291,8 @@ const AJUSTES = {
   objetivoAhorro: 0.20,
   mesesColchon: 4,
   autoFijas: 1,          /* 1 = los anclados entran solos al abrir un mes */
-  horizonteVal: 25        /* años de la valoración de empresas */
+  horizonteVal: 25,       /* años de la valoración de empresas */
+  alias: ""               /* cómo quiere que le llamemos (menú de perfil) */
 };
 
 let S = {
@@ -2105,6 +2473,7 @@ function saneaEstado(x){
      copia de seguridad manipulada podía colar ahí una etiqueta con código.
      Solo se admiten las monedas que la app sabe tratar; lo demás, euro. */
   if (!["€", "$"].includes(o.ajustes.moneda)) o.ajustes.moneda = "€";
+  o.ajustes.alias = String(o.ajustes.alias || "").slice(0, 30);
   if (x.ajustes && isN(x.ajustes.horizonteVal))
     o.ajustes.horizonteVal = Math.max(1, Math.min(40, Math.round(x.ajustes.horizonteVal)));
   /* La fiscalidad admite las dos formas: la escala real o un tipo fijo */
@@ -2181,34 +2550,39 @@ function esOscuro(){
 const mezcla = (a, b, t) => a + (b - a) * Math.max(0, Math.min(1, t));
 
 function hslGan(p){
+  /* Rediseño 01/10/2026: tonos menos saturados (más descanso para la
+     vista) y más oscuros de día / más claros de noche, porque los fondos
+     nuevos son de tono medio. Comprobado con un script: en los 4 aspectos
+     y de -30% a +50%, ningún color baja de 4,5:1 sobre su fondo. Antes,
+     el naranja del 7% llegaba a 1,3:1. Mismo recorrido: rojo, naranja, verde. */
   const osc = esOscuro();
   let h, s, l;
   if (p < 0){
-    /* Pérdida: el rojo más intenso, y se oscurece un poco con la caída */
+    /* Pérdida: el rojo más intenso */
     const t = Math.min(1, -p / 0.20);
-    h = 0;
-    s = osc ? mezcla(82, 88, t) : mezcla(78, 84, t);
-    l = osc ? mezcla(60, 54, t) : mezcla(40, 32, t);
+    h = -8;
+    s = osc ? mezcla(62, 70, t) : mezcla(50, 56, t);
+    l = osc ? mezcla(74, 72, t) : mezcla(32, 27, t);
   } else if (p < 0.03){
-    /* 0% a 3%: rojo fuerte que se va suavizando */
+    /* 0% a 3%: rojo que se va suavizando */
     const t = p / 0.03;
-    h = mezcla(0, 14, t);
-    s = osc ? mezcla(82, 70, t) : mezcla(78, 64, t);
-    l = osc ? mezcla(60, 67, t) : mezcla(40, 51, t);
+    h = mezcla(-8, 8, t);
+    s = osc ? mezcla(62, 55, t) : mezcla(50, 45, t);
+    l = osc ? mezcla(72, 76, t) : mezcla(32, 33, t);
   } else if (p < 0.08){
-    /* 3% a 8%: naranja, empezando muy cerca del rojo */
+    /* 3% a 8%: naranja tostado */
     const t = (p - 0.03) / 0.05;
-    h = mezcla(22, 42, t);
-    s = osc ? mezcla(88, 84, t) : mezcla(86, 80, t);
-    l = osc ? mezcla(57, 64, t) : mezcla(44, 52, t);
+    h = mezcla(22, 40, t);
+    s = osc ? mezcla(60, 55, t) : mezcla(62, 58, t);
+    l = osc ? mezcla(72, 74, t) : mezcla(30, 26, t);
   } else {
     /* 8% en adelante: verde que gana intensidad hasta el 30% */
     const t = Math.min(1, (p - 0.08) / 0.22);
-    h = mezcla(142, 155, t);
-    s = osc ? mezcla(48, 82, t) : mezcla(42, 74, t);
-    l = osc ? mezcla(52, 60, t) : mezcla(42, 29, t);
+    h = mezcla(150, 158, t);
+    s = osc ? mezcla(35, 48, t) : mezcla(38, 48, t);
+    l = osc ? mezcla(72, 70, t) : mezcla(26, 22, t);
   }
-  return { h, s, l };
+  return { h: (h + 360) % 360, s, l };
 }
 function colorGan(p){
   if (!isN(p)) return "var(--ink-3)";
@@ -4630,7 +5004,7 @@ function renderSalud(){
 
     card("Qué dicen tus números", `<div class="pasos">${notas.map((n, i) => `
       <div class="paso">
-        <span class="paso-n" style="background:${n.estado === "ok" ? "var(--good)" : n.estado === "mid" ? "var(--warn)" : "var(--crit)"};color:${n.estado === "mid" ? "#2a1c00" : "#fff"}">${i + 1}</span>
+        <span class="paso-n" style="background:${n.estado === "ok" ? "var(--good)" : n.estado === "mid" ? "var(--warn)" : "var(--crit)"};color:${n.estado === "mid" ? "var(--surface)" : "var(--surface)"}">${i + 1}</span>
         <div><h4>${esc(n.t)}</h4><p>${n.p}</p></div>
       </div>`).join("")}</div>`) +
 
@@ -4923,7 +5297,7 @@ function renderSenales(){
       return card(g.t, `<p class="help" style="margin-bottom:14px">${g.d}</p>
         <div class="pasos">${lista.map(({ p, s }) => `
           <div class="paso">
-            <span class="paso-n" style="background:${g.c};color:${g.k === "mid" ? "#2a1c00" : "#fff"}">${esc(p.act.nombre.slice(0, 1).toUpperCase())}</span>
+            <span class="paso-n" style="background:${g.c};color:${g.k === "mid" ? "var(--surface)" : "var(--surface)"}">${esc(p.act.nombre.slice(0, 1).toUpperCase())}</span>
             <div>
               <h4>${esc(p.act.nombre)} <span class="tag">${esc(nombreCat(p.act))}</span></h4>
               <p>${esc(s.explica)}</p>
@@ -5063,7 +5437,7 @@ function renderEstudio(){
     card("Las tres salidas de una ficha", `<div class="pasos">
       <div class="paso"><span class="paso-n" style="background:var(--crit)">✕</span><div><h4>Descartar</h4>
         <p>No cumple y no quieres volver a verla. Se borra.</p></div></div>
-      <div class="paso"><span class="paso-n" style="background:var(--warn);color:#2a1c00">◷</span><div><h4>Observación</h4>
+      <div class="paso"><span class="paso-n" style="background:var(--warn);color:var(--surface)">◷</span><div><h4>Observación</h4>
         <p>Te interesa pero todavía no: está cara, o la empresa necesita madurar. Se queda vigilada, con sus niveles de precio, y te aviso si entra en tu zona de compra.</p></div></div>
       <div class="paso"><span class="paso-n" style="background:var(--good)">✓</span><div><h4>Inversión</h4>
         <p>Vas a comprarla. Pasa a tu cartera del módulo 2 y desaparece de aquí. Desde ahí ya apuntas tus compras.</p></div></div>
@@ -5368,7 +5742,7 @@ function panelSolape(){
     <div class="pasos" style="margin-top:16px">${sol.map(x => {
       const c = isN(x.frac) && x.frac >= 0.5 ? "var(--crit)" : isN(x.frac) && x.frac >= 0.25 ? "var(--warn)" : "var(--good)";
       return `<div class="paso">
-        <span class="paso-n" style="background:${c};color:${isN(x.frac) && x.frac >= 0.25 && x.frac < 0.5 ? "#2a1c00" : "#fff"}">${isN(x.frac) ? Math.round(x.frac * 100) : "?"}</span>
+        <span class="paso-n" style="background:${c};color:${isN(x.frac) && x.frac >= 0.25 && x.frac < 0.5 ? "var(--surface)" : "var(--surface)"}">${isN(x.frac) ? Math.round(x.frac * 100) : "?"}</span>
         <div><h4>${esc(x.a.nombre)} y ${esc(x.b.nombre)}${infoTxt("Solapamiento", AYUDA.solape[1])}</h4>
           <p>Comparten <strong>${x.n} ${x.n === 1 ? "empresa" : "empresas"}</strong> entre sus mayores posiciones${x.comunes.length ? ` (${x.comunes.map(esc).join(", ")}${x.n > x.comunes.length ? "…" : ""})` : ""}. ${
             isN(x.frac) && x.frac >= 0.5
@@ -7539,6 +7913,7 @@ function render(){
   b.hidden = !nuevos; b.textContent = nuevos;
   guardarLocal();
   if (typeof pintaSync === "function") pintaSync();
+  pintaPerfil();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -8160,11 +8535,9 @@ function eventos(){
   $("#anCat").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); $("#anImp").focus(); } });
   // Al cerrar, lo leído se olvida. La imagen ya se soltó al terminar.
   $("#dlgTique").addEventListener("close", () => { TIQUE = null; });
-  $("#btnTheme").addEventListener("click", () => {
-    const a = document.documentElement.getAttribute("data-theme");
-    aplicarTema(a === "dark" ? "light" : a === "light" ? "auto" : "dark"); render();
-  });
+  montaPerfil();
   $("#btnDatos").addEventListener("click", () => {
+    cierraPerfil(false);
     const v = $("#verApp"); if (v) v.textContent = VERSION_APP;
     $("#datosText").value = "";
     $("#dlgDatos").showModal();
@@ -8574,9 +8947,110 @@ async function guardarYa(silencioso){
 }
 
 function aplicarTema(t){
+  if (t !== "light" && t !== "dark") t = "auto";
   if (t === "auto") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme", t);
   try { localStorage.setItem("cyc.tema", t); } catch(_){}
+  document.querySelectorAll(".modo").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.modo === t)));
+  pintaColorBarra();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Aspecto — cuatro paletas, cada una con su día y su noche
+   ═══════════════════════════════════════════════════════════
+   Los colores de verdad están en el CSS (bloque Tokens). Aquí solo se
+   elige cuál se usa, y se recuerda en este navegador, igual que el modo.
+   Las muestras del menú: fondo, tarjeta y acento del día y de la noche. */
+const ASPECTOS = {
+  salvia:  { nombre: "Salvia",  muestra: ["#C3CCC2", "#5E4763", "#262F2A", "#CDB4D0"] },
+  niebla:  { nombre: "Niebla",  muestra: ["#BFC8D3", "#7D3F2C", "#242B38", "#EDB59F"] },
+  malva:   { nombre: "Malva",   muestra: ["#CAC5D3", "#4F3E86", "#2A2734", "#C5B6EC"] },
+  grafito: { nombre: "Grafito", muestra: ["#C6C9CC", "#245E62", "#272A2E", "#95D0CB"] },
+};
+function aplicarAspecto(n){
+  if (!ASPECTOS[n]) n = "salvia";
+  document.documentElement.setAttribute("data-aspecto", n);
+  try { localStorage.setItem("cyc.aspecto", n); } catch(_){}
+  document.querySelectorAll(".aspecto").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.aspecto === n)));
+  pintaColorBarra();
+}
+// La barra del navegador del móvil, del mismo color que la de la app
+function pintaColorBarra(){
+  const c = getComputedStyle(document.documentElement).getPropertyValue("--surface").trim();
+  if (c) document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", c));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Perfil — quién ha entrado, sus datos y el aspecto
+   ═══════════════════════════════════════════════════════════
+   El correo sale de la sesión que ya guarda acceso.html; el nombre es
+   opcional y viaja con tus datos (S.ajustes.alias), así que se ve igual
+   en el móvil y en el ordenador. Todo se pinta con textContent: nada de
+   lo que escribas aquí se interpreta como HTML. */
+var usoMercado = null;   // { usadas, limite } de la última respuesta del backend
+
+function nombrePerfil(){
+  const alias = (S.ajustes.alias || "").trim();
+  if (alias) return alias;
+  if (DEMO) return "Modo demo";
+  const correo = (leeSesion()?.correo || "").trim();
+  return correo ? correo.split("@")[0] : "Tu cuenta";
+}
+function pintaPerfil(){
+  const nombre = nombrePerfil();
+  const ini = (nombre.match(/[\p{L}\p{N}]/u) || ["·"])[0].toUpperCase();
+  $("#perfilIni").textContent = ini;
+  $("#perfilIni2").textContent = ini;
+  $("#perfilNom").textContent = nombre;
+  $("#perfilNombre").textContent = nombre;
+  $("#btnPerfil").title = DEMO ? "Modo demo" : `Has entrado como ${leeSesion()?.correo || nombre}`;
+  $("#perfilCorreo").textContent = DEMO ? "Sin cuenta: nada de lo que hagas se guarda" : (leeSesion()?.correo || "");
+  const alias = $("#perfilAlias");
+  if (document.activeElement !== alias) alias.value = S.ajustes.alias || "";
+  $("#perfilSync").textContent = DEMO ? "No se guarda (demo)" : ($("#syncTxt")?.textContent || "—");
+  $("#perfilUso").textContent = usoMercado ? `${usoMercado.usadas} de ${usoMercado.limite}` : "—";
+  $("#perfilVer").textContent = VERSION_APP;
+}
+function abrePerfil(){
+  pintaPerfil();
+  const menu = $("#perfilMenu");
+  // En el móvil (menú fijo a lo ancho) se coloca justo bajo el botón
+  menu.style.top = matchMedia("(max-width:640px)").matches
+    ? Math.round($("#btnPerfil").getBoundingClientRect().bottom + 8) + "px" : "";
+  menu.hidden = false;
+  $("#btnPerfil").setAttribute("aria-expanded", "true");
+}
+function cierraPerfil(devolverFoco){
+  if ($("#perfilMenu").hidden) return;
+  $("#perfilMenu").hidden = true;
+  $("#btnPerfil").setAttribute("aria-expanded", "false");
+  if (devolverFoco) $("#btnPerfil").focus();
+}
+function montaPerfil(){
+  $("#aspectos").innerHTML = Object.entries(ASPECTOS).map(([k, a]) => `
+    <button class="aspecto" data-aspecto="${k}" aria-pressed="false" title="Aspecto ${a.nombre}">
+      <span class="aspecto-m" aria-hidden="true">${a.muestra.map(c => `<i style="background:${c}"></i>`).join("")}</span>${a.nombre}
+    </button>`).join("");
+  $("#btnPerfil").addEventListener("click", () => $("#perfilMenu").hidden ? abrePerfil() : cierraPerfil(false));
+  $("#perfilMenu").addEventListener("click", e => {
+    const a = e.target.closest("[data-aspecto]");
+    if (a){ aplicarAspecto(a.dataset.aspecto); render(); return; }
+    const m = e.target.closest("[data-modo]");
+    if (m){ aplicarTema(m.dataset.modo); render(); }
+  });
+  $("#perfilAlias").addEventListener("input", e => {
+    S.ajustes.alias = e.target.value.slice(0, 30);
+    pintaPerfil(); programarGuardado();
+  });
+  // Se cierra al pulsar fuera o con Escape
+  document.addEventListener("click", e => { if (!e.target.closest("#perfil")) cierraPerfil(false); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") cierraPerfil(true); });
+  let tema = "auto";
+  try { tema = localStorage.getItem("cyc.tema") || "auto"; } catch(_){}
+  let asp = "salvia";
+  try { asp = localStorage.getItem("cyc.aspecto") || "salvia"; } catch(_){}
+  aplicarAspecto(asp); aplicarTema(tema);
+  pintaPerfil();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -8658,6 +9132,9 @@ async function llamaAPI(ruta, opciones){
     alAcceso();
     const e = new Error("sesión caducada"); e.code = "needs_reauth"; throw e;
   }
+  // El backend cuenta las consultas de mercado de hoy; el perfil las enseña
+  const usadas = parseInt(r.headers.get("X-Uso-Hoy"), 10), limite = parseInt(r.headers.get("X-Limite-Dia"), 10);
+  if (Number.isFinite(usadas) && Number.isFinite(limite)) usoMercado = { usadas, limite };
   return r;
 }
 

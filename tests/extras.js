@@ -25,7 +25,7 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   await p.waitForTimeout(200);
 
   r['1. hay botón de datos en la barra'] = await p.evaluate(() => !!document.getElementById('btnDatos'));
-  await p.click('#btnDatos');
+  await p.click('#btnPerfil'); await p.click('#btnDatos');
   await p.waitForTimeout(250);
   r['2. abre el diálogo de datos'] = await p.evaluate(() => document.getElementById('dlgDatos').open);
   r['3. enseña el sello de versión'] = await p.evaluate(() =>
@@ -46,7 +46,7 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   // restaurar: cambiamos algo, restauramos la copia y debe volver
   await p.evaluate(() => document.getElementById('dlgDatos').close());
   await p.evaluate(() => { S.apuntes = []; render(); });
-  await p.click('#btnDatos'); await p.waitForTimeout(150);
+  await p.click('#btnPerfil'); await p.click('#btnDatos'); await p.waitForTimeout(150);
   await p.evaluate(txt => { document.getElementById('datosText').value = txt; }, JSON.stringify(copia));
   await p.click('[data-act="restaurar-datos"]');
   await p.waitForTimeout(200);
@@ -103,7 +103,7 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   await p2.evaluate(() => { S.modulo='economia'; S.tab='mes'; render(); });
   await p2.waitForTimeout(300);
   await p2.screenshot({ path:OUT+'/demo.png', fullPage:false });
-  await p.click('#btnDatos'); await p.waitForTimeout(200);
+  await p.click('#btnPerfil'); await p.click('#btnDatos'); await p.waitForTimeout(200);
   await p.screenshot({ path:OUT+'/datos.png' });
 
   console.log('\n══ EXTRAS (versión · copia · demo · paginación) ══');

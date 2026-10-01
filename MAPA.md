@@ -212,6 +212,34 @@ error que la lista existe para evitar. Antes de cruzarlas, una empresa que
 suspendía 8 de 10 salía como «Observar» solo porque ninguna crítica estaba en
 rojo, y un 17% en naranja no lo entiende nadie.
 
+### 3e · Aspecto retro pastel y perfil (01/10/2026)
+
+**Cuatro aspectos** — Salvia (por defecto), Niebla, Malva y Grafito —, cada
+uno con día y noche. Van en `<html data-aspecto="…">` y el modo en
+`data-theme` (`light`, `dark` o nada = el del sistema). Se recuerdan en este
+navegador: `cyc.aspecto` y `cyc.tema`.
+
+- **Los colores están en un solo sitio**: el bloque `Tokens` del CSS. Está
+  GENERADO por un script que comprueba el contraste (texto 4,5:1, gráficos
+  3:1) en las 8 combinaciones. Si cambias un color a mano, comprueba el
+  contraste.
+- **La forma retro** (bordes finos, sombra dura, esquinas pequeñas, barra de
+  título con dos cuadritos) es la **capa retro**, el último bloque del CSS.
+  Corrige lo de arriba sin tocarlo: para volver atrás basta con quitarla.
+- **La escala de ganancias** (`hslGan`) se rehízo con menos saturación y
+  contraste comprobado sobre los fondos nuevos: antes el naranja del 7%
+  llegaba a 1,3:1.
+- Un `<script>` en el `<head>` pone aspecto y modo **antes de pintar**, para
+  que no parpadee.
+
+**El perfil** (`#perfil`, arriba a la derecha): inicial + nombre. Al pulsarlo
+enseña correo, estado del guardado, consultas de mercado de hoy (cabeceras
+`X-Uso-Hoy` / `X-Limite-Dia` que ya mandaba el backend), versión, el selector
+de aspecto y día/noche, y las acciones que antes eran botones sueltos
+(**datos y copia**, guía, **cerrar sesión**). `btnDatos` y `btnSalir`
+conservan su id. El nombre es opcional, vive en `S.ajustes.alias` (máx. 30)
+y se pinta siempre con `textContent`.
+
 ### 3d · El mosaico del mes (maqueta B)
 
 `Mi economía → El mes` ya no es una lista de filas con casillas. Cada

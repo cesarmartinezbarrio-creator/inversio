@@ -98,6 +98,18 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   await p.waitForTimeout(300);
   r['6b. moneda envenenada en los ajustes NO ejecuta y vuelve a «€»'] = !ejecutado && monedaTrasCargar === '€';
 
+  // ── 4c · el nombre del perfil (S.ajustes.alias), nuevo el 01/10/2026 ──
+  const alias = await p.evaluate(payloads => {
+    S = saneaEstado({ ajustes: { alias: payloads[0] + payloads[1] },
+      apuntes: [{ id: uid(), mes:S.mes, seccion:'ingresos', item:'Nómina', desc:'', importe:9 }] });
+    S.configurado = true; render();
+    document.getElementById('btnPerfil').click();
+    return { largo: S.ajustes.alias.length, visto: document.getElementById('perfilNombre').textContent };
+  }, PAYLOADS);
+  await p.waitForTimeout(300);
+  r['6c. el nombre del perfil con HTML NO ejecuta, se ve como texto y se recorta a 30'] =
+    !ejecutado && alias.largo <= 30 && alias.visto.includes('<img');
+
   // ── 5 · el nombre en el prompt del portapapeles no rompe nada ─
   r['7. sin errores de JS por los payloads'] = errs.length === 0;
   r['8. bandera global de ejecución sigue baja'] = !ejecutado;
