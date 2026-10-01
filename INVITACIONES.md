@@ -13,21 +13,32 @@ Así que invitar a alguien es exactamente esto: **crear un código y dárselo**.
 
 Supabase → **SQL Editor** → `Ctrl+A`, `Supr` → pegar → **Run**.
 
+> **Códigos al azar, siempre.** Un código como `MARIA-2026` se adivina: el
+> freno de 5 intentos por hora es por cuenta, y crear cuentas es gratis.
+> Por eso el código lo inventa PostgreSQL (`INV-` + 8 caracteres al azar,
+> unos 4.000 millones de combinaciones) y la nota es lo que te recuerda
+> para quién era. Auditoría del 01/10/2026.
+
 ### Para una persona
 
 ```sql
-insert into invitaciones (codigo, nota)
-values ('MARIA-2026', 'mi hermana');
+insert into invitaciones (codigo, nota, caduca)
+values ('INV-' || upper(substr(md5(gen_random_uuid()::text), 1, 8)),
+        'mi hermana', now() + interval '30 days')
+returning codigo;
 ```
 
-Un solo uso. Cuando María lo canjee, el código queda gastado y ya no sirve
-para nadie más.
+Un solo uso. **Copia el código que sale abajo** y dáselo. Cuando lo canjee,
+queda gastado y ya no sirve para nadie más. Si a los 30 días no lo ha
+usado, caduca solo.
 
-### Para un grupo, y con fecha de caducidad
+### Para un grupo
 
 ```sql
 insert into invitaciones (codigo, nota, usos_max, caduca)
-values ('AMIGOS-OCT', 'los del grupo de senderismo', 5, now() + interval '30 days');
+values ('INV-' || upper(substr(md5(gen_random_uuid()::text), 1, 8)),
+        'los del grupo de senderismo', 5, now() + interval '30 days')
+returning codigo;
 ```
 
 Cinco altas como mucho, y deja de valer al mes aunque sobren usos. Poner
@@ -37,15 +48,15 @@ años acaba en manos de cualquiera.
 ### Varios de golpe
 
 ```sql
-insert into invitaciones (codigo, nota) values
-  ('PADRE-2026',  'mi padre'),
-  ('MADRE-2026',  'mi madre'),
-  ('CUNADO-2026', 'el cuñado, que pregunta mucho');
+insert into invitaciones (codigo, nota, caduca)
+select 'INV-' || upper(substr(md5(gen_random_uuid()::text), 1, 8)), n, now() + interval '30 days'
+from unnest(array['mi padre', 'mi madre', 'el cuñado']) as n
+returning codigo, nota;
 ```
 
 **Los códigos no distinguen mayúsculas ni espacios sobrantes**: quien
-escriba `maria-2026` o ` MARIA-2026 ` entra igual. Elige códigos fáciles de
-dictar por teléfono y sin caracteres raros.
+escriba `inv-3f9a12bc` entra igual. Solo llevan números y las letras de la
+A a la F, así que se dictan bien por teléfono.
 
 ---
 
@@ -95,7 +106,7 @@ alguien se acuerde.
 ## Anular un código que se ha escapado
 
 ```sql
-update invitaciones set caduca = now() where codigo = 'AMIGOS-OCT';
+update invitaciones set caduca = now() where codigo = 'INV-3F9A12BC';   -- el código que quieras anular
 ```
 
 Los que ya lo canjearon siguen dentro; el código deja de servir a partir
