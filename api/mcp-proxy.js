@@ -50,6 +50,12 @@ const LIMITE_DIARIO = () => parseInt(process.env.LIMITE_DIARIO || "300", 10);
 const TD_KEY = () => process.env.TWELVE_DATA_KEY;
 const AV_KEY = () => process.env.ALPHA_VANTAGE_KEY;
 
+function limpiaMensaje(msg, max) {
+  let t = String(msg || "");
+  for (const k of [TD_KEY(), AV_KEY()]) if (k) t = t.split(k).join("***");
+  return t.length > max ? t.slice(0, max) + "…" : t;
+}
+
 async function jsonOrThrow(r, servidor) {
   if (r.status === 429) { const e = new Error("rate_limited"); e.code = "rate_limited"; throw e; }
   if (!r.ok) { const e = new Error(`${servidor} respondió ${r.status}`); e.code = "tool_error"; throw e; }
@@ -66,7 +72,11 @@ async function twelveGetPrice(entrada) {
 }
 
 async function twelveSearchSymbol(entrada) {
-  const url = `https://api.twelvedata.com/symbol_search?symbol=${encodeURIComponent(entrada.symbol)}&outputsize=${entrada.outputsize || 20}&apikey=${TD_KEY()}`;
+  // outputsize llegaba tal cual a la URL: se podía colar «20&otra=cosa».
+  // Ahora es un número entre 1 y 30, y si no, 20.
+  const n = parseInt(entrada.outputsize, 10);
+  const tam = Number.isFinite(n) ? Math.max(1, Math.min(30, n)) : 20;
+  const url = `https://api.twelvedata.com/symbol_search?symbol=${encodeURIComponent(entrada.symbol)}&outputsize=${tam}&apikey=${TD_KEY()}`;
   const r = await fetch(url);
   const j = await jsonOrThrow(r, "Twelve Data");
   const datos = Array.isArray(j.data) ? j.data : [];
@@ -100,13 +110,25 @@ const FUNCION_ALPHA = {
   COMPANY_OVERVIEW: "OVERVIEW",
 };
 
+/* Qué parámetros admite cada herramienta. Antes se copiaba TODO lo que
+   mandaba el navegador, incluido `function` y `apikey`: un miembro podía
+   pedir cualquier función de Alpha Vantage con nuestra clave, saltándose
+   la lista de arriba (auditoría del 01/10/2026). Ahora solo pasan estos. */
+const PARAMS_ALPHA = {
+  GLOBAL_QUOTE: ["symbol"],
+  CURRENCY_EXCHANGE_RATE: ["from_currency", "to_currency"],
+  SYMBOL_SEARCH: ["keywords"],
+  ETF_PROFILE: ["symbol"],
+  COMPANY_OVERVIEW: ["symbol"],
+};
+
 async function llamarAlpha(herramienta, entrada) {
   const fn = FUNCION_ALPHA[herramienta];
   if (!fn) { const e = new Error("herramienta desconocida"); e.code = "not_in_manifest"; throw e; }
   const params = new URLSearchParams({ function: fn, apikey: AV_KEY() });
-  for (const [k, v] of Object.entries(entrada || {})) {
-    if (k === "datatype") continue; // siempre json
-    params.set(k, v);
+  const e0 = entrada && typeof entrada === "object" ? entrada : {};
+  for (const k of PARAMS_ALPHA[herramienta]) {
+    if (e0[k] != null) params.set(k, String(e0[k]).slice(0, 64));
   }
   const url = `https://www.alphavantage.co/query?${params.toString()}`;
   const r = await fetch(url);
@@ -149,6 +171,12 @@ module.exports = async (req, res) => {
     const uso = await consumePeticion(quien.id, LIMITE_DIARIO());
     res.setHeader("X-Uso-Hoy", String(uso.usadas ?? 0));
     res.setHeader("X-Limite-Dia", String(uso.limite_dia ?? LIMITE_DIARIO()));
+    if (uso.contadorCaido) {
+      // No se sabe cuánto lleva gastado: no se sale a internet.
+      res.status(503).json({ code: "server_unavailable",
+        message: "El contador de consultas no responde. Inténtalo en un minuto.", retryable: true });
+      return;
+    }
     if (!uso.permitido) {
       res.status(429).json({
         code: "rate_limited",
@@ -186,6 +214,10 @@ module.exports = async (req, res) => {
   } catch (err) {
     const code = err.code || "tool_error";
     const status = code === "rate_limited" ? 429 : code === "server_not_connected" ? 424 : 502;
-    res.status(status).json({ code, message: err.message, retryable: code === "server_unavailable" });
+    // El texto viene a veces del proveedor. Se le quitan nuestras claves por
+    // si alguna vez las repitiera, y se recorta. El detalle completo queda
+    // solo en el registro de Vercel, que no ve el navegador.
+    console.error(`[mcp-proxy] ${servidor}:${herramienta} → ${code}:`, limpiaMensaje(err.message, 500));
+    res.status(status).json({ code, message: limpiaMensaje(err.message, 200), retryable: code === "server_unavailable" });
   }
 };

@@ -6,16 +6,21 @@
 // Se devuelve el que coincida con el Origin de la petición; si no coincide
 // ninguno, se devuelve el primero de la lista (y el navegador lo bloqueará,
 // que es justo lo que queremos con un origen desconocido).
+//
+// Si la variable falta o está vacía, NO se abre a todo el mundo: no se manda
+// la cabecera y el navegador bloquea cualquier origen. Antes el valor por
+// defecto era "*" (auditoría del 01/10/2026). Un "*" escrito a propósito en
+// la variable sí se respeta.
 function aplicarCORS(req, res) {
-  const lista = (process.env.ALLOWED_ORIGIN || "*")
+  const lista = (process.env.ALLOWED_ORIGIN || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
   const origen = req.headers.origin || "";
   const permitido = lista.includes("*") ? "*"
     : lista.includes(origen) ? origen
-    : (lista[0] || "*");
-  res.setHeader("Access-Control-Allow-Origin", permitido);
+    : lista[0];
+  if (permitido) res.setHeader("Access-Control-Allow-Origin", permitido);
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -166,13 +171,16 @@ async function consumePeticion(userId, limite) {
     body: JSON.stringify({ quien: userId, limite }),
   });
   if (!r.ok) {
-    // Si el contador falla, NO se bloquea a la gente: se deja pasar y se
-    // anota. Un contador roto no debe dejar la aplicación inservible.
-    return { permitido: true, usadas: 0, limite_dia: limite, aviso: `contador no disponible (${r.status})` };
+    // Si el contador falla, se CIERRA: sin contador no hay límite, y sin
+    // límite cualquiera podría agotar la cuota gratuita de las APIs para
+    // todos. Lo que ya está en la caché se sigue sirviendo (se mira antes
+    // de llegar aquí), así que la app no se queda en blanco.
+    // Antes fallaba abierto; se cambió en la auditoría del 01/10/2026.
+    return { permitido: false, usadas: 0, limite_dia: limite, contadorCaido: true };
   }
   const j = await r.json().catch(() => null);
   const fila = Array.isArray(j) ? j[0] : j;
-  return fila || { permitido: true, usadas: 0, limite_dia: limite };
+  return fila || { permitido: false, usadas: 0, limite_dia: limite, contadorCaido: true };
 }
 
 module.exports = {

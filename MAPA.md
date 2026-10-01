@@ -311,7 +311,7 @@ Dos ficheros. Un solo endpoint público: `/api/mcp-proxy`.
 | `esMiembro` | ¿Está en la tabla `miembros`? |
 | `identifica` | Devuelve `{tipo:"usuario"}` |
 | `cacheLee` / `cacheGuarda` | Caché de precios compartida entre todos |
-| `consumePeticion` | Cupo diario por usuario. **Falla abierto**: si el contador no responde, deja pasar |
+| `consumePeticion` | Cupo diario por usuario. **Falla cerrado** (desde el 01/10/2026): si el contador no responde, solo se sirve lo que ya está en caché |
 
 **`mcp-proxy.js`** — el proxy a Twelve Data / Alpha Vantage / Crypto.com.
 
