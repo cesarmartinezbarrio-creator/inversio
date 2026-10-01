@@ -1,0 +1,14 @@
+# Qué sube a Vercel: SOLO el backend.
+#
+# Sin este fichero Vercel publicaba el repositorio entero como web
+# estática: cualquiera podía abrir inversio-lemon.vercel.app/SEGURIDAD.md,
+# los .sql de supabase/ o una copia de la aplicación en /frontend/ SIN las
+# cabeceras de seguridad del .htaccess (sin CSP y sin protección contra
+# iframes). Auditoría del 01/10/2026.
+#
+# El frontend vive en Hostinger, no aquí. Se ignora todo y se dejan pasar
+# solo las piezas que necesita la API.
+/*
+!api
+!vercel.json
+!package.json
