@@ -5,37 +5,349 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Guía · Cuentas y Cartera</title>
 <meta name="description" content="Manual de uso de Cuentas y Cartera: economía del mes, cartera, mercado, con ejemplos interactivos.">
+<script>
+/* Mismo aspecto y modo que la app (se guardan en este navegador), antes
+   de pintar nada para que no parpadee. */
+try {
+  const d = document.documentElement, a = localStorage.getItem("cyc.aspecto"), m = localStorage.getItem("cyc.tema");
+  d.setAttribute("data-aspecto", ["salvia","niebla","malva","grafito"].includes(a) ? a : "salvia");
+  if (m === "light" || m === "dark") d.setAttribute("data-theme", m);
+} catch(_){ document.documentElement.setAttribute("data-aspecto", "salvia"); }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#F3ECE0; --surface:#FBF7F0; --surface-2:#EAE1D4; --ink:#2A2118; --ink-2:#5C5142;
-    --ink-3:#8A7D6A; --rule:#E0D6C6; --accent:#B84400; --accent-wash:rgba(184,68,0,.10);
-    --good-ink:#076B4A; --shadow:0 10px 30px rgba(120,102,80,.16); --radio:18px;
+/* ── Los MISMOS tokens que la app (copiados del bloque generado de
+   index.html). La guía usa algunos nombres propios; se traducen abajo. ── */
+/* ── Tokens ───────────────────────────────────────────────────
+   GENERADO (no editar a mano los colores sueltos): cuatro aspectos —
+   salvia, niebla, malva y grafito— en día y en noche. El aspecto va en
+   <html data-aspecto="…"> y el modo en data-theme ("light", "dark" o
+   nada = lo que diga el sistema). Todas las parejas texto/fondo pasan
+   el contraste AA (4,5:1) y las series de gráficos 3:1. Rediseño retro
+   pastel del 01/10/2026. */
+:root{
+  --r:6px; --r-sm:4px;
+  /* Relieve retro: borde fino + sombra dura desplazada, sin difuminar.
+     Se hace con box-shadow para no mover nada de sitio. */
+  --rise:0 0 0 1.5px var(--linea), 3px 3px 0 1.5px var(--sombra);
+  --rise-sm:0 0 0 1.5px var(--linea), 2px 2px 0 1.5px var(--sombra);
+  --sink:inset 0 0 0 1.5px var(--linea);
+  --sink-sm:inset 0 0 0 1.5px var(--linea);
+  --shadow:var(--rise);
+}
+
+/* salvia */
+:root, :root[data-aspecto="salvia"]{
+  color-scheme:light;
+  --ground:#C3CCC2; --surface:#D6DDD4; --surface-2:#CBD3C9;
+  --surface-3:color-mix(in srgb, #CBD3C9 70%, #46534C);
+  --barra:#B3C2B6;
+  --ink:#1E2924; --ink-2:#36433D; --ink-3:#45524C;
+  --rule:#B7C1B5; --rule-strong:color-mix(in srgb, #46534C 55%, #D6DDD4);
+  --linea:#46534C; --sombra:#46534C;
+  --accent:#5E4763; --accent-ink:#5E4763; --accent-2:#284F6C;
+  --accent-wash:#D3C6D4; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#5E4763, #5E4763); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#D3C6D4;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#B9D6C4;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#DFD0A6;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E4C3C8;
+  --serious:#7C4220;
+  --info:#284F6C; --info-wash:#BED0DE;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]):not([data-aspecto]), :root[data-aspecto="salvia"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#1D2420; --surface:#262F2A; --surface-2:#2E3832;
+  --surface-3:color-mix(in srgb, #2E3832 70%, #56635B);
+  --barra:#333F38;
+  --ink:#DDE3DC; --ink-2:#B2BCB3; --ink-3:#99A49B;
+  --rule:#38433D; --rule-strong:color-mix(in srgb, #56635B 55%, #262F2A);
+  --linea:#56635B; --sombra:#111613;
+  --accent:#CDB4D0; --accent-ink:#CDB4D0; --accent-2:#A6C4DC;
+  --accent-wash:#41364A; --accent-on:#231A26;
+  --grad:linear-gradient(#CDB4D0, #CDB4D0); --grad-ink:#231A26;
+  --grad-ink-2:color-mix(in srgb, #231A26 82%, transparent);
+  --grad-veil:color-mix(in srgb, #231A26 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #231A26 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #231A26 30%, transparent); --grad-shadow:transparent;
+  --hero:#41364A;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
   }
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-    --bg:#0C2E29; --surface:#0F3A34; --surface-2:#082A26; --ink:#EAF3EF; --ink-2:#AFC6BE;
-    --ink-3:#7F9A92; --rule:#1C4A43; --accent:#E4622A; --accent-wash:rgba(228,98,42,.15);
-    --good-ink:#3FD8A0; --shadow:0 14px 40px rgba(0,0,0,.45);
-  }}
+}
+:root[data-theme="dark"]:not([data-aspecto]), :root[data-aspecto="salvia"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#1D2420; --surface:#262F2A; --surface-2:#2E3832;
+  --surface-3:color-mix(in srgb, #2E3832 70%, #56635B);
+  --barra:#333F38;
+  --ink:#DDE3DC; --ink-2:#B2BCB3; --ink-3:#99A49B;
+  --rule:#38433D; --rule-strong:color-mix(in srgb, #56635B 55%, #262F2A);
+  --linea:#56635B; --sombra:#111613;
+  --accent:#CDB4D0; --accent-ink:#CDB4D0; --accent-2:#A6C4DC;
+  --accent-wash:#41364A; --accent-on:#231A26;
+  --grad:linear-gradient(#CDB4D0, #CDB4D0); --grad-ink:#231A26;
+  --grad-ink-2:color-mix(in srgb, #231A26 82%, transparent);
+  --grad-veil:color-mix(in srgb, #231A26 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #231A26 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #231A26 30%, transparent); --grad-shadow:transparent;
+  --hero:#41364A;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+}
+
+/* niebla */
+:root[data-aspecto="niebla"]{
+  color-scheme:light;
+  --ground:#BFC8D3; --surface:#D2D9E2; --surface-2:#C7CFDA;
+  --surface-3:color-mix(in srgb, #C7CFDA 70%, #435064);
+  --barra:#B0BED0;
+  --ink:#1C2431; --ink-2:#344052; --ink-3:#435064;
+  --rule:#B3BDCA; --rule-strong:color-mix(in srgb, #435064 55%, #D2D9E2);
+  --linea:#435064; --sombra:#435064;
+  --accent:#7D3F2C; --accent-ink:#7D3F2C; --accent-2:#2A4A78;
+  --accent-wash:#E2C7BC; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#7D3F2C, #7D3F2C); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#E2C7BC;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#B8D5C5;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#DCCFA8;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E2C3CA;
+  --serious:#7C4220;
+  --info:#2A4A78; --info-wash:#BACAE0;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-aspecto="niebla"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#1B212C; --surface:#242B38; --surface-2:#2C3443;
+  --surface-3:color-mix(in srgb, #2C3443 70%, #535E73);
+  --barra:#313B4E;
+  --ink:#DFE4EC; --ink-2:#B3BCCA; --ink-3:#9AA4B4;
+  --rule:#363F50; --rule-strong:color-mix(in srgb, #535E73 55%, #242B38);
+  --linea:#535E73; --sombra:#0F1218;
+  --accent:#EDB59F; --accent-ink:#EDB59F; --accent-2:#A9C2E6;
+  --accent-wash:#4A3530; --accent-on:#2A1610;
+  --grad:linear-gradient(#EDB59F, #EDB59F); --grad-ink:#2A1610;
+  --grad-ink-2:color-mix(in srgb, #2A1610 82%, transparent);
+  --grad-veil:color-mix(in srgb, #2A1610 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #2A1610 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #2A1610 30%, transparent); --grad-shadow:transparent;
+  --hero:#4A3530;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A9C2E6; --info-wash:#2B3A52;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+  }
+}
+:root[data-aspecto="niebla"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#1B212C; --surface:#242B38; --surface-2:#2C3443;
+  --surface-3:color-mix(in srgb, #2C3443 70%, #535E73);
+  --barra:#313B4E;
+  --ink:#DFE4EC; --ink-2:#B3BCCA; --ink-3:#9AA4B4;
+  --rule:#363F50; --rule-strong:color-mix(in srgb, #535E73 55%, #242B38);
+  --linea:#535E73; --sombra:#0F1218;
+  --accent:#EDB59F; --accent-ink:#EDB59F; --accent-2:#A9C2E6;
+  --accent-wash:#4A3530; --accent-on:#2A1610;
+  --grad:linear-gradient(#EDB59F, #EDB59F); --grad-ink:#2A1610;
+  --grad-ink-2:color-mix(in srgb, #2A1610 82%, transparent);
+  --grad-veil:color-mix(in srgb, #2A1610 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #2A1610 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #2A1610 30%, transparent); --grad-shadow:transparent;
+  --hero:#4A3530;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A9C2E6; --info-wash:#2B3A52;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+}
+
+/* malva */
+:root[data-aspecto="malva"]{
+  color-scheme:light;
+  --ground:#CAC5D3; --surface:#DBD7E2; --surface-2:#D0CBD9;
+  --surface-3:color-mix(in srgb, #D0CBD9 70%, #4A4659);
+  --barra:#BDB3D2;
+  --ink:#221F2C; --ink-2:#3B3749; --ink-3:#4A4659;
+  --rule:#BEB8C8; --rule-strong:color-mix(in srgb, #4A4659 55%, #DBD7E2);
+  --linea:#4A4659; --sombra:#4A4659;
+  --accent:#4F3E86; --accent-ink:#4F3E86; --accent-2:#284F6C;
+  --accent-wash:#CCC2E6; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#4F3E86, #4F3E86); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#CCC2E6;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#BCD7C6;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#E0D1A8;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E5C4CA;
+  --serious:#7C4220;
+  --info:#284F6C; --info-wash:#C0D0DE;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-aspecto="malva"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#201E29; --surface:#2A2734; --surface-2:#322F3E;
+  --surface-3:color-mix(in srgb, #322F3E 70%, #5A5470);
+  --barra:#3A3452;
+  --ink:#E4E1EC; --ink-2:#B9B5C7; --ink-3:#A09BB0;
+  --rule:#3B3749; --rule-strong:color-mix(in srgb, #5A5470 55%, #2A2734);
+  --linea:#5A5470; --sombra:#110F16;
+  --accent:#C5B6EC; --accent-ink:#C5B6EC; --accent-2:#A6C4DC;
+  --accent-wash:#3D3558; --accent-on:#1E1830;
+  --grad:linear-gradient(#C5B6EC, #C5B6EC); --grad-ink:#1E1830;
+  --grad-ink-2:color-mix(in srgb, #1E1830 82%, transparent);
+  --grad-veil:color-mix(in srgb, #1E1830 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #1E1830 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #1E1830 30%, transparent); --grad-shadow:transparent;
+  --hero:#3D3558;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+  }
+}
+:root[data-aspecto="malva"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#201E29; --surface:#2A2734; --surface-2:#322F3E;
+  --surface-3:color-mix(in srgb, #322F3E 70%, #5A5470);
+  --barra:#3A3452;
+  --ink:#E4E1EC; --ink-2:#B9B5C7; --ink-3:#A09BB0;
+  --rule:#3B3749; --rule-strong:color-mix(in srgb, #5A5470 55%, #2A2734);
+  --linea:#5A5470; --sombra:#110F16;
+  --accent:#C5B6EC; --accent-ink:#C5B6EC; --accent-2:#A6C4DC;
+  --accent-wash:#3D3558; --accent-on:#1E1830;
+  --grad:linear-gradient(#C5B6EC, #C5B6EC); --grad-ink:#1E1830;
+  --grad-ink-2:color-mix(in srgb, #1E1830 82%, transparent);
+  --grad-veil:color-mix(in srgb, #1E1830 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #1E1830 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #1E1830 30%, transparent); --grad-shadow:transparent;
+  --hero:#3D3558;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+}
+
+/* grafito */
+:root[data-aspecto="grafito"]{
+  color-scheme:light;
+  --ground:#C6C9CC; --surface:#D8DADD; --surface-2:#CDD0D3;
+  --surface-3:color-mix(in srgb, #CDD0D3 70%, #474C52);
+  --barra:#B5C6C5;
+  --ink:#1F2326; --ink-2:#383D42; --ink-3:#474C52;
+  --rule:#B9BDC1; --rule-strong:color-mix(in srgb, #474C52 55%, #D8DADD);
+  --linea:#474C52; --sombra:#474C52;
+  --accent:#245E62; --accent-ink:#245E62; --accent-2:#284F6C;
+  --accent-wash:#B6D3D2; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#245E62, #245E62); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#B6D3D2;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#BAD6C5;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#DED0A7;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E3C3C9;
+  --serious:#7C4220;
+  --info:#284F6C; --info-wash:#BECFDD;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-aspecto="grafito"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#1E2023; --surface:#272A2E; --surface-2:#2F3337;
+  --surface-3:color-mix(in srgb, #2F3337 70%, #575D63);
+  --barra:#2F3D3E;
+  --ink:#E1E3E5; --ink-2:#B6BABE; --ink-3:#9CA1A6;
+  --rule:#383C41; --rule-strong:color-mix(in srgb, #575D63 55%, #272A2E);
+  --linea:#575D63; --sombra:#101113;
+  --accent:#95D0CB; --accent-ink:#95D0CB; --accent-2:#A6C4DC;
+  --accent-wash:#26403F; --accent-on:#0F2322;
+  --grad:linear-gradient(#95D0CB, #95D0CB); --grad-ink:#0F2322;
+  --grad-ink-2:color-mix(in srgb, #0F2322 82%, transparent);
+  --grad-veil:color-mix(in srgb, #0F2322 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #0F2322 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #0F2322 30%, transparent); --grad-shadow:transparent;
+  --hero:#26403F;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+  }
+}
+:root[data-aspecto="grafito"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#1E2023; --surface:#272A2E; --surface-2:#2F3337;
+  --surface-3:color-mix(in srgb, #2F3337 70%, #575D63);
+  --barra:#2F3D3E;
+  --ink:#E1E3E5; --ink-2:#B6BABE; --ink-3:#9CA1A6;
+  --rule:#383C41; --rule-strong:color-mix(in srgb, #575D63 55%, #272A2E);
+  --linea:#575D63; --sombra:#101113;
+  --accent:#95D0CB; --accent-ink:#95D0CB; --accent-2:#A6C4DC;
+  --accent-wash:#26403F; --accent-on:#0F2322;
+  --grad:linear-gradient(#95D0CB, #95D0CB); --grad-ink:#0F2322;
+  --grad-ink-2:color-mix(in srgb, #0F2322 82%, transparent);
+  --grad-veil:color-mix(in srgb, #0F2322 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #0F2322 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #0F2322 30%, transparent); --grad-shadow:transparent;
+  --hero:#26403F;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+}
+:root{ --bg:var(--ground); --radio:var(--r); --shadow:var(--rise); }
+
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{margin:0;background:var(--bg);color:var(--ink);
     font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;line-height:1.6;
     font-size:16px;-webkit-font-smoothing:antialiased}
-  h1,h2,h3{font-family:"Outfit","Helvetica Neue",Arial,sans-serif;line-height:1.2;letter-spacing:-.01em}
+  h1,h2,h3{font-family:"Space Grotesk","Helvetica Neue",Arial,sans-serif;line-height:1.2;letter-spacing:-.01em}
   a{color:var(--accent)}
   .wrap{max-width:920px;margin:0 auto;padding:0 20px}
 
   header.hero{padding:64px 0 40px;text-align:center}
-  .logo{display:inline-flex;align-items:center;gap:10px;font-family:"Outfit";font-weight:800;font-size:20px}
+  .logo{display:inline-flex;align-items:center;gap:10px;font-family:"Space Grotesk";font-weight:800;font-size:20px}
   .logo svg{color:var(--accent)}
   header.hero h1{font-size:clamp(30px,5vw,46px);font-weight:800;margin:22px 0 10px}
   header.hero p{font-size:19px;color:var(--ink-2);max-width:56ch;margin:0 auto}
   .cta{display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:26px}
-  .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:100px;
-    padding:12px 22px;font:inherit;font-family:"Outfit";font-weight:700;font-size:15px;cursor:pointer;
+  .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:4px;
+    padding:12px 22px;font:inherit;font-family:"Space Grotesk";font-weight:700;font-size:15px;cursor:pointer;
     text-decoration:none;transition:transform .14s, box-shadow .14s}
   .btn-primary{background:var(--accent);color:#fff;box-shadow:var(--shadow)}
   .btn-primary:hover{transform:translateY(-2px)}
@@ -46,24 +358,24 @@
     backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
   nav.indice .wrap{display:flex;gap:6px;overflow-x:auto;padding:12px 20px}
   nav.indice a{white-space:nowrap;text-decoration:none;color:var(--ink-2);font-size:13.5px;font-weight:600;
-    padding:6px 12px;border-radius:100px}
+    padding:6px 12px;border-radius:4px}
   nav.indice a:hover{background:var(--surface);color:var(--accent)}
 
   section{padding:46px 0;border-bottom:1px solid var(--rule)}
   section h2{font-size:27px;font-weight:700;margin:0 0 6px;display:flex;align-items:center;gap:12px}
   section h2 .n{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;
-    border-radius:11px;background:var(--accent-wash);color:var(--accent);font-size:16px;flex:none}
+    border-radius:5px;background:var(--accent-wash);color:var(--accent);font-size:16px;flex:none}
   section > .wrap > p{color:var(--ink-2);max-width:64ch}
   h3{font-size:18px;margin:26px 0 6px}
   .paso{display:grid;grid-template-columns:26px 1fr;gap:12px;margin:12px 0;align-items:start}
-  .paso .b{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;
-    background:var(--accent);color:#fff;font-size:13px;font-weight:700;font-family:"Outfit";flex:none;margin-top:2px}
+  .paso .b{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:4px;
+    background:var(--accent);color:#fff;font-size:13px;font-weight:700;font-family:"Space Grotesk";flex:none;margin-top:2px}
   .paso div p{margin:0;color:var(--ink-2)}
   .tarjetas{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:18px 0}
   .card{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radio);padding:18px}
-  .card h4{margin:0 0 6px;font-family:"Outfit";font-size:16px}
+  .card h4{margin:0 0 6px;font-family:"Space Grotesk";font-size:16px}
   .card p{margin:0;font-size:14px;color:var(--ink-2)}
-  .nota{background:var(--surface);border-left:3px solid var(--accent);border-radius:10px;
+  .nota{background:var(--surface);border-left:3px solid var(--accent);border-radius:5px;
     padding:12px 16px;margin:16px 0;font-size:14.5px;color:var(--ink-2)}
   .nota strong{color:var(--ink)}
 
@@ -76,12 +388,32 @@
   .demo .cargar{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:280px;text-align:center;padding:20px}
   .demo .cargar p{color:var(--ink-3);font-size:14px;max-width:44ch;margin:0}
 
-  details{background:var(--surface);border:1px solid var(--rule);border-radius:12px;margin:10px 0;padding:2px 16px}
-  details summary{cursor:pointer;font-weight:600;padding:12px 0;font-family:"Outfit"}
+  details{background:var(--surface);border:1px solid var(--rule);border-radius:5px;margin:10px 0;padding:2px 16px}
+  details summary{cursor:pointer;font-weight:600;padding:12px 0;font-family:"Space Grotesk"}
   details p{margin:0 0 14px;color:var(--ink-2);font-size:14.5px}
 
   footer{padding:40px 0 70px;text-align:center;color:var(--ink-3);font-size:14px}
   @media (max-width:640px){ .demo iframe{height:480px} }
+
+/* ═══ Capa retro (01/10/2026) — la misma forma que la app ═══ */
+  .btn{border-radius:5px;transition:transform .1s, box-shadow .1s}
+  .btn-primary{color:var(--accent-on);box-shadow:var(--rise-sm)}
+  .btn-primary:hover{transform:none;filter:brightness(1.07)}
+  .btn-ghost{border:none;box-shadow:var(--rise-sm)}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink)}
+  .btn:active{transform:translate(2px,2px);box-shadow:0 0 0 1.5px var(--linea)}
+  .paso .b{color:var(--accent-on)}
+  nav.indice{background:var(--surface);backdrop-filter:none;border-bottom:1.5px solid var(--linea)}
+  nav.indice a:hover{background:var(--surface-2);color:var(--ink)}
+  section{border-bottom:1.5px solid var(--rule)}
+  .card,details{border:none;box-shadow:var(--rise)}
+  details{margin:14px 0}
+  .nota{border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--linea);border-left:4px solid var(--accent)}
+  /* Las demos son ventanas, con su barra de título */
+  .demo{border:none;box-shadow:var(--rise)}
+  .demo-hd{background:var(--barra);border-bottom:1.5px solid var(--linea);color:var(--ink-2)}
+  .demo-hd .dot{width:22px;height:9px;border-radius:0;background:var(--linea);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 9'%3E%3Cg fill='none' stroke='black' stroke-width='1.5'%3E%3Crect x='.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='13.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 9'%3E%3Cg fill='none' stroke='black' stroke-width='1.5'%3E%3Crect x='.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='13.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain}
+  .demo-hd a{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -169,7 +501,7 @@
 <section id="mercado">
   <div class="wrap">
     <h2><span class="n">5</span> Mercado: ¿invertir o no?</h2>
-    <p>Al abrir la ficha de un producto, lo primero que ves es una tarjeta con un <strong>porcentaje de acierto</strong> y una palabra de color: <span style="color:var(--good-ink);font-weight:700">Invertir</span>, <span style="color:#B8860B;font-weight:700">Observar</span> o <span style="color:#B00;font-weight:700">No invertir</span>. Pulsa la tarjeta y te explica, en cristiano, por qué.</p>
+    <p>Al abrir la ficha de un producto, lo primero que ves es una tarjeta con un <strong>porcentaje de acierto</strong> y una palabra de color: <span style="color:var(--good-ink);font-weight:700">Invertir</span>, <span style="color:var(--warn);font-weight:700">Observar</span> o <span style="color:var(--crit);font-weight:700">No invertir</span>. Pulsa la tarjeta y te explica, en cristiano, por qué.</p>
     <div class="nota"><strong>Qué es ese porcentaje.</strong> Es cuántas de las comprobaciones salen bien, no una promesa de ganar dinero. La propia aplicación lo deja claro: te ayuda a decidir con criterio, no adivina el futuro.</div>
     <p>Míralo en el ejemplo (entra en <strong>Mercado</strong> dentro del demo):</p>
     <div class="demo" data-demo>

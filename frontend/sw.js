@@ -16,7 +16,9 @@
  * perfil de uno se le quede pegado al navegador del siguiente.
  */
 
-const VERSION = "cyc-v2";
+// Cambiar este nombre obliga a todos los navegadores a tirar la caché vieja.
+// v3 (01/10/2026): iconos y manifiesto nuevos del rediseño retro.
+const VERSION = "cyc-v3";
 const ARMAZON = [
   "/",
   "/index.html",
@@ -89,11 +91,17 @@ self.addEventListener("fetch", ev => {
     ev.respondWith((async () => {
       try {
         const red = await fetch(req);
-        const cache = await caches.open(VERSION);
-        cache.put("/index.html", red.clone());
+        // Solo la APP se guarda como copia sin conexión, y solo si ha
+        // llegado bien. Antes se guardaba cualquier página (acceso, guía,
+        // incluso un error 500) encima de /index.html, y sin conexión
+        // podía abrirse otra cosa en lugar de la app.
+        if (red.ok && (url.pathname === "/" || url.pathname === "/index.html")) {
+          const cache = await caches.open(VERSION);
+          cache.put("/index.html", red.clone());
+        }
         return red;
       } catch (_) {
-        const guardado = await caches.match("/index.html");
+        const guardado = await caches.match(req, { ignoreSearch: true }) || await caches.match("/index.html");
         return guardado || Response.error();
       }
     })());
@@ -107,8 +115,10 @@ self.addEventListener("fetch", ev => {
     if (guardado) return guardado;
     try {
       const red = await fetch(req);
-      const cache = await caches.open(VERSION);
-      cache.put(req, red.clone());
+      if (red.ok) {            // un error no se guarda para siempre
+        const cache = await caches.open(VERSION);
+        cache.put(req, red.clone());
+      }
       return red;
     } catch (_) {
       return Response.error();

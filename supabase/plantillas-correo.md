@@ -43,37 +43,37 @@ Confirma tu cuenta · Cuentas y Cartera
 **Message body:**
 
 ```html
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F1EAE0;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#C3CCC2;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#F9F4EC;border-radius:16px;overflow:hidden;border:1px solid #E2D8C9">
-  <tr><td style="background:#0B322D;padding:22px 28px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#D6DDD4;border-radius:6px;overflow:hidden;border:1.5px solid #46534C">
+  <tr><td style="background:#B3C2B6;padding:22px 28px">
     <table role="presentation" cellpadding="0" cellspacing="0"><tr>
       <td style="padding-right:10px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="width:4px;height:10px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:16px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:22px;background:#E4622A;font-size:0">&nbsp;</td>
+        <td style="width:4px;height:10px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:16px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:22px;background:#5E4763;font-size:0">&nbsp;</td>
       </tr></table></td>
-      <td><div style="color:#F2EDE3;font-size:18px;font-weight:700">Cuentas y Cartera</div>
-          <div style="color:#8CA69D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
+      <td><div style="color:#1E2924;font-size:18px;font-weight:700">Cuentas y Cartera</div>
+          <div style="color:#36433D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
     </tr></table>
   </td></tr>
   <tr><td style="padding:32px 28px 8px">
-    <div style="font-size:21px;font-weight:700;color:#0B2E29;margin-bottom:14px">Ya casi está</div>
-    <div style="font-size:15px;line-height:1.6;color:#3D5C56">Has creado una cuenta en <strong>Cuentas y Cartera</strong>. Solo falta confirmar que este correo es tuyo:</div>
+    <div style="font-size:21px;font-weight:700;color:#1E2924;margin-bottom:14px">Ya casi está</div>
+    <div style="font-size:15px;line-height:1.6;color:#36433D">Has creado una cuenta en <strong>Cuentas y Cartera</strong>. Solo falta confirmar que este correo es tuyo:</div>
   </td></tr>
   <tr><td align="center" style="padding:26px 28px 22px">
-    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#B84400;color:#ffffff;text-decoration:none;padding:14px 34px;border-radius:100px;font-size:15px;font-weight:700">Confirmar mi correo</a>
+    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#5E4763;color:#ffffff;text-decoration:none;padding:14px 34px;border-radius:5px;font-size:15px;font-weight:700">Confirmar mi correo</a>
   </td></tr>
   <tr><td style="padding:0 28px 24px">
-    <div style="background:#EAE1D4;border-radius:12px;padding:14px 16px;font-size:13.5px;line-height:1.55;color:#3D5C56">Después entra con tu correo y tu contraseña. <strong>Ten a mano el código de invitación</strong>: te lo pediremos una vez más al entrar.</div>
+    <div style="background:#CBD3C9;border-radius:4px;padding:14px 16px;font-size:13.5px;line-height:1.55;color:#36433D">Después entra con tu correo y tu contraseña. <strong>Ten a mano el código de invitación</strong>: te lo pediremos una vez más al entrar.</div>
   </td></tr>
-  <tr><td style="padding:0 28px 26px;font-size:12.5px;line-height:1.55;color:#586D64">
+  <tr><td style="padding:0 28px 26px;font-size:12.5px;line-height:1.55;color:#45524C">
     Si el botón no funciona, copia esta dirección en tu navegador:<br>
-    <span style="word-break:break-all;color:#B84400">{{ .ConfirmationURL }}</span>
+    <span style="word-break:break-all;color:#5E4763">{{ .ConfirmationURL }}</span>
   </td></tr>
-  <tr><td style="border-top:1px solid #E2D8C9;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#586D64">
+  <tr><td style="border-top:1px solid #46534C;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#45524C">
     Si no has sido tú, no hagas nada: sin confirmar este correo la cuenta se queda vacía y sin acceso.<br><br>
-    <span style="color:#8CA69D">ahorrainvierte.es · Correo automático, no hace falta responder</span>
+    <span style="color:#45524C">ahorrainvierte.es · Correo automático, no hace falta responder</span>
   </td></tr>
 </table>
 </td></tr></table>
@@ -95,37 +95,37 @@ Recupera tu contraseña · Cuentas y Cartera
 **Message body:**
 
 ```html
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F1EAE0;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#C3CCC2;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#F9F4EC;border-radius:16px;overflow:hidden;border:1px solid #E2D8C9">
-  <tr><td style="background:#0B322D;padding:22px 28px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#D6DDD4;border-radius:6px;overflow:hidden;border:1.5px solid #46534C">
+  <tr><td style="background:#B3C2B6;padding:22px 28px">
     <table role="presentation" cellpadding="0" cellspacing="0"><tr>
       <td style="padding-right:10px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="width:4px;height:10px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:16px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:22px;background:#E4622A;font-size:0">&nbsp;</td>
+        <td style="width:4px;height:10px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:16px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:22px;background:#5E4763;font-size:0">&nbsp;</td>
       </tr></table></td>
-      <td><div style="color:#F2EDE3;font-size:18px;font-weight:700">Cuentas y Cartera</div>
-          <div style="color:#8CA69D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
+      <td><div style="color:#1E2924;font-size:18px;font-weight:700">Cuentas y Cartera</div>
+          <div style="color:#36433D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
     </tr></table>
   </td></tr>
   <tr><td style="padding:32px 28px 8px">
-    <div style="font-size:21px;font-weight:700;color:#0B2E29;margin-bottom:14px">Cambiar la contraseña</div>
-    <div style="font-size:15px;line-height:1.6;color:#3D5C56">Has pedido cambiar la contraseña de tu cuenta. Pulsa el botón y elige una nueva:</div>
+    <div style="font-size:21px;font-weight:700;color:#1E2924;margin-bottom:14px">Cambiar la contraseña</div>
+    <div style="font-size:15px;line-height:1.6;color:#36433D">Has pedido cambiar la contraseña de tu cuenta. Pulsa el botón y elige una nueva:</div>
   </td></tr>
   <tr><td align="center" style="padding:26px 28px 22px">
-    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#B84400;color:#ffffff;text-decoration:none;padding:14px 34px;border-radius:100px;font-size:15px;font-weight:700">Elegir contraseña nueva</a>
+    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#5E4763;color:#ffffff;text-decoration:none;padding:14px 34px;border-radius:5px;font-size:15px;font-weight:700">Elegir contraseña nueva</a>
   </td></tr>
   <tr><td style="padding:0 28px 24px">
-    <div style="background:#EAE1D4;border-radius:12px;padding:14px 16px;font-size:13.5px;line-height:1.55;color:#3D5C56">El enlace caduca en una hora y solo se puede usar una vez. Elige una contraseña larga y que no uses en ningún otro sitio.</div>
+    <div style="background:#CBD3C9;border-radius:4px;padding:14px 16px;font-size:13.5px;line-height:1.55;color:#36433D">El enlace caduca en una hora y solo se puede usar una vez. Elige una contraseña larga y que no uses en ningún otro sitio.</div>
   </td></tr>
-  <tr><td style="padding:0 28px 26px;font-size:12.5px;line-height:1.55;color:#586D64">
+  <tr><td style="padding:0 28px 26px;font-size:12.5px;line-height:1.55;color:#45524C">
     Si el botón no funciona, copia esta dirección en tu navegador:<br>
-    <span style="word-break:break-all;color:#B84400">{{ .ConfirmationURL }}</span>
+    <span style="word-break:break-all;color:#5E4763">{{ .ConfirmationURL }}</span>
   </td></tr>
-  <tr><td style="border-top:1px solid #E2D8C9;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#586D64">
+  <tr><td style="border-top:1px solid #46534C;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#45524C">
     <strong>Si no has sido tú</strong>, ignora este mensaje: tu contraseña actual sigue funcionando y nadie ha entrado en tu cuenta. Nadie puede cambiarla sin abrir este correo.<br><br>
-    <span style="color:#8CA69D">ahorrainvierte.es · Correo automático, no hace falta responder</span>
+    <span style="color:#45524C">ahorrainvierte.es · Correo automático, no hace falta responder</span>
   </td></tr>
 </table>
 </td></tr></table>
@@ -147,30 +147,30 @@ Confirma tu nuevo correo · Cuentas y Cartera
 **Message body:**
 
 ```html
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F1EAE0;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#C3CCC2;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#F9F4EC;border-radius:16px;overflow:hidden;border:1px solid #E2D8C9">
-  <tr><td style="background:#0B322D;padding:22px 28px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#D6DDD4;border-radius:6px;overflow:hidden;border:1.5px solid #46534C">
+  <tr><td style="background:#B3C2B6;padding:22px 28px">
     <table role="presentation" cellpadding="0" cellspacing="0"><tr>
       <td style="padding-right:10px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="width:4px;height:10px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:16px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:22px;background:#E4622A;font-size:0">&nbsp;</td>
+        <td style="width:4px;height:10px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:16px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:22px;background:#5E4763;font-size:0">&nbsp;</td>
       </tr></table></td>
-      <td><div style="color:#F2EDE3;font-size:18px;font-weight:700">Cuentas y Cartera</div>
-          <div style="color:#8CA69D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
+      <td><div style="color:#1E2924;font-size:18px;font-weight:700">Cuentas y Cartera</div>
+          <div style="color:#36433D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
     </tr></table>
   </td></tr>
   <tr><td style="padding:32px 28px 8px">
-    <div style="font-size:21px;font-weight:700;color:#0B2E29;margin-bottom:14px">Confirma tu nuevo correo</div>
-    <div style="font-size:15px;line-height:1.6;color:#3D5C56">Has pedido cambiar la dirección de tu cuenta a <strong>{{ .NewEmail }}</strong>. Confirma que es tuya:</div>
+    <div style="font-size:21px;font-weight:700;color:#1E2924;margin-bottom:14px">Confirma tu nuevo correo</div>
+    <div style="font-size:15px;line-height:1.6;color:#36433D">Has pedido cambiar la dirección de tu cuenta a <strong>{{ .NewEmail }}</strong>. Confirma que es tuya:</div>
   </td></tr>
   <tr><td align="center" style="padding:26px 28px 22px">
-    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#B84400;color:#ffffff;text-decoration:none;padding:14px 34px;border-radius:100px;font-size:15px;font-weight:700">Confirmar este correo</a>
+    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#5E4763;color:#ffffff;text-decoration:none;padding:14px 34px;border-radius:5px;font-size:15px;font-weight:700">Confirmar este correo</a>
   </td></tr>
-  <tr><td style="border-top:1px solid #E2D8C9;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#586D64">
+  <tr><td style="border-top:1px solid #46534C;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#45524C">
     Hasta que no lo confirmes se sigue usando la dirección anterior, así que no pierdes el acceso. Si no has pedido este cambio, ignora el mensaje y avisa a quien te invitó.<br><br>
-    <span style="color:#8CA69D">ahorrainvierte.es · Correo automático, no hace falta responder</span>
+    <span style="color:#45524C">ahorrainvierte.es · Correo automático, no hace falta responder</span>
   </td></tr>
 </table>
 </td></tr></table>
@@ -193,36 +193,36 @@ Te han invitado a Cuentas y Cartera
 **Message body:**
 
 ```html
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F1EAE0;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#C3CCC2;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#F9F4EC;border-radius:16px;overflow:hidden;border:1px solid #E2D8C9">
-  <tr><td style="background:#0B322D;padding:22px 28px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#D6DDD4;border-radius:6px;overflow:hidden;border:1.5px solid #46534C">
+  <tr><td style="background:#B3C2B6;padding:22px 28px">
     <table role="presentation" cellpadding="0" cellspacing="0"><tr>
       <td style="padding-right:10px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="width:4px;height:10px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:16px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:22px;background:#E4622A;font-size:0">&nbsp;</td>
+        <td style="width:4px;height:10px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:16px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:22px;background:#5E4763;font-size:0">&nbsp;</td>
       </tr></table></td>
-      <td><div style="color:#F2EDE3;font-size:18px;font-weight:700">Cuentas y Cartera</div>
-          <div style="color:#8CA69D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
+      <td><div style="color:#1E2924;font-size:18px;font-weight:700">Cuentas y Cartera</div>
+          <div style="color:#36433D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
     </tr></table>
   </td></tr>
   <tr><td style="padding:32px 28px 8px">
-    <div style="font-size:21px;font-weight:700;color:#0B2E29;margin-bottom:14px">Tienes una invitación</div>
-    <div style="font-size:15px;line-height:1.6;color:#3D5C56">
+    <div style="font-size:21px;font-weight:700;color:#1E2924;margin-bottom:14px">Tienes una invitación</div>
+    <div style="font-size:15px;line-height:1.6;color:#36433D">
       Alguien te ha invitado a <strong>Cuentas y Cartera</strong>: una aplicación para llevar tu economía del mes y tu cartera de inversión, con un método escrito para decidir qué comprar, qué mantener y qué vender.
       <br><br>Pulsa para aceptar la invitación y elegir tu contraseña:
     </div>
   </td></tr>
   <tr><td align="center" style="padding:26px 28px 22px">
-    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#B84400;color:#ffffff;text-decoration:none;padding:14px 34px;border-radius:100px;font-size:15px;font-weight:700">Aceptar la invitación</a>
+    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#5E4763;color:#ffffff;text-decoration:none;padding:14px 34px;border-radius:5px;font-size:15px;font-weight:700">Aceptar la invitación</a>
   </td></tr>
   <tr><td style="padding:0 28px 24px">
-    <div style="background:#EAE1D4;border-radius:12px;padding:14px 16px;font-size:13.5px;line-height:1.55;color:#3D5C56">Tus datos son solo tuyos: nadie más, ni siquiera quien te invitó, puede verlos.</div>
+    <div style="background:#CBD3C9;border-radius:4px;padding:14px 16px;font-size:13.5px;line-height:1.55;color:#36433D">Tus datos son solo tuyos: nadie más, ni siquiera quien te invitó, puede verlos.</div>
   </td></tr>
-  <tr><td style="border-top:1px solid #E2D8C9;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#586D64">
+  <tr><td style="border-top:1px solid #46534C;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#45524C">
     Si no esperabas esta invitación, ignórala y no pasa nada.<br><br>
-    <span style="color:#8CA69D">ahorrainvierte.es · Correo automático, no hace falta responder</span>
+    <span style="color:#45524C">ahorrainvierte.es · Correo automático, no hace falta responder</span>
   </td></tr>
 </table>
 </td></tr></table>
@@ -244,36 +244,36 @@ Tu enlace de entrada · Cuentas y Cartera
 **Message body:**
 
 ```html
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F1EAE0;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#C3CCC2;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#F9F4EC;border-radius:16px;overflow:hidden;border:1px solid #E2D8C9">
-  <tr><td style="background:#0B322D;padding:22px 28px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#D6DDD4;border-radius:6px;overflow:hidden;border:1.5px solid #46534C">
+  <tr><td style="background:#B3C2B6;padding:22px 28px">
     <table role="presentation" cellpadding="0" cellspacing="0"><tr>
       <td style="padding-right:10px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="width:4px;height:10px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:16px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:22px;background:#E4622A;font-size:0">&nbsp;</td>
+        <td style="width:4px;height:10px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:16px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:22px;background:#5E4763;font-size:0">&nbsp;</td>
       </tr></table></td>
-      <td><div style="color:#F2EDE3;font-size:18px;font-weight:700">Cuentas y Cartera</div>
-          <div style="color:#8CA69D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
+      <td><div style="color:#1E2924;font-size:18px;font-weight:700">Cuentas y Cartera</div>
+          <div style="color:#36433D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
     </tr></table>
   </td></tr>
   <tr><td style="padding:32px 28px 8px">
-    <div style="font-size:21px;font-weight:700;color:#0B2E29;margin-bottom:14px">Entra con este enlace</div>
-    <div style="font-size:15px;line-height:1.6;color:#3D5C56">Has pedido entrar sin escribir la contraseña. Pulsa aquí y estarás dentro:</div>
+    <div style="font-size:21px;font-weight:700;color:#1E2924;margin-bottom:14px">Entra con este enlace</div>
+    <div style="font-size:15px;line-height:1.6;color:#36433D">Has pedido entrar sin escribir la contraseña. Pulsa aquí y estarás dentro:</div>
   </td></tr>
   <tr><td align="center" style="padding:26px 28px 22px">
-    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#B84400;color:#ffffff;text-decoration:none;padding:14px 34px;border-radius:100px;font-size:15px;font-weight:700">Entrar en mi cuenta</a>
+    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#5E4763;color:#ffffff;text-decoration:none;padding:14px 34px;border-radius:5px;font-size:15px;font-weight:700">Entrar en mi cuenta</a>
   </td></tr>
   <tr><td style="padding:0 28px 24px">
-    <div style="background:#EAE1D4;border-radius:12px;padding:14px 16px;font-size:13.5px;line-height:1.55;color:#3D5C56">
+    <div style="background:#CBD3C9;border-radius:4px;padding:14px 16px;font-size:13.5px;line-height:1.55;color:#36433D">
       También puedes escribir este código en la pantalla de acceso:<br>
-      <span style="display:inline-block;margin-top:8px;font-size:24px;font-weight:700;letter-spacing:4px;color:#0B2E29">{{ .Token }}</span>
+      <span style="display:inline-block;margin-top:8px;font-size:24px;font-weight:700;letter-spacing:4px;color:#1E2924">{{ .Token }}</span>
     </div>
   </td></tr>
-  <tr><td style="border-top:1px solid #E2D8C9;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#586D64">
+  <tr><td style="border-top:1px solid #46534C;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#45524C">
     Caduca en una hora y solo sirve una vez. <strong>Si no lo has pedido tú</strong>, ignóralo: mientras no se pulse, nadie entra.<br><br>
-    <span style="color:#8CA69D">ahorrainvierte.es · Correo automático, no hace falta responder</span>
+    <span style="color:#45524C">ahorrainvierte.es · Correo automático, no hace falta responder</span>
   </td></tr>
 </table>
 </td></tr></table>
@@ -296,30 +296,30 @@ Tu código de confirmación · Cuentas y Cartera
 **Message body:**
 
 ```html
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F1EAE0;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#C3CCC2;padding:24px 12px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#F9F4EC;border-radius:16px;overflow:hidden;border:1px solid #E2D8C9">
-  <tr><td style="background:#0B322D;padding:22px 28px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#D6DDD4;border-radius:6px;overflow:hidden;border:1.5px solid #46534C">
+  <tr><td style="background:#B3C2B6;padding:22px 28px">
     <table role="presentation" cellpadding="0" cellspacing="0"><tr>
       <td style="padding-right:10px"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="width:4px;height:10px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:16px;background:#E4622A;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
-        <td style="width:4px;height:22px;background:#E4622A;font-size:0">&nbsp;</td>
+        <td style="width:4px;height:10px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:16px;background:#5E4763;font-size:0">&nbsp;</td><td style="width:3px">&nbsp;</td>
+        <td style="width:4px;height:22px;background:#5E4763;font-size:0">&nbsp;</td>
       </tr></table></td>
-      <td><div style="color:#F2EDE3;font-size:18px;font-weight:700">Cuentas y Cartera</div>
-          <div style="color:#8CA69D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
+      <td><div style="color:#1E2924;font-size:18px;font-weight:700">Cuentas y Cartera</div>
+          <div style="color:#36433D;font-size:12px;margin-top:2px">Tu economía y tu cartera, en un sitio que es tuyo</div></td>
     </tr></table>
   </td></tr>
   <tr><td style="padding:32px 28px 8px">
-    <div style="font-size:21px;font-weight:700;color:#0B2E29;margin-bottom:14px">Confirma que eres tú</div>
-    <div style="font-size:15px;line-height:1.6;color:#3D5C56">Para seguir adelante con una operación delicada en tu cuenta, escribe este código en la aplicación:</div>
+    <div style="font-size:21px;font-weight:700;color:#1E2924;margin-bottom:14px">Confirma que eres tú</div>
+    <div style="font-size:15px;line-height:1.6;color:#36433D">Para seguir adelante con una operación delicada en tu cuenta, escribe este código en la aplicación:</div>
   </td></tr>
   <tr><td align="center" style="padding:24px 28px 22px">
-    <div style="display:inline-block;background:#EAE1D4;border-radius:12px;padding:16px 30px;font-size:30px;font-weight:700;letter-spacing:6px;color:#0B2E29">{{ .Token }}</div>
+    <div style="display:inline-block;background:#CBD3C9;border-radius:4px;padding:16px 30px;font-size:30px;font-weight:700;letter-spacing:6px;color:#1E2924">{{ .Token }}</div>
   </td></tr>
-  <tr><td style="border-top:1px solid #E2D8C9;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#586D64">
+  <tr><td style="border-top:1px solid #46534C;padding:18px 28px 24px;font-size:12px;line-height:1.55;color:#45524C">
     Caduca en unos minutos. <strong>No se lo des a nadie</strong>: no te lo pediremos nunca por teléfono ni por mensaje. Si no estabas haciendo nada, ignóralo y cambia tu contraseña por si acaso.<br><br>
-    <span style="color:#8CA69D">ahorrainvierte.es · Correo automático, no hace falta responder</span>
+    <span style="color:#45524C">ahorrainvierte.es · Correo automático, no hace falta responder</span>
   </td></tr>
 </table>
 </td></tr></table>

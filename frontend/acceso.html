@@ -16,49 +16,335 @@
 <meta name="destino" content="/index.html">
 <meta name="espera" content="10">
 
-<meta name="theme-color" content="#F9F4EC" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0B322D" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#D6DDD4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#262F2A" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="iconos/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
 
+<script>
+/* Mismo aspecto y modo que la app (se guardan en este navegador), antes
+   de pintar nada para que no parpadee. */
+try {
+  const d = document.documentElement, a = localStorage.getItem("cyc.aspecto"), m = localStorage.getItem("cyc.tema");
+  d.setAttribute("data-aspecto", ["salvia","niebla","malva","grafito"].includes(a) ? a : "salvia");
+  if (m === "light" || m === "dark") d.setAttribute("data-theme", m);
+} catch(_){ document.documentElement.setAttribute("data-aspecto", "salvia"); }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 
 <style>
-/* ── Los mismos tokens que la app, para que no parezca pegada con cola ── */
+/* ── Los MISMOS tokens que la app (copiados del bloque generado de
+   index.html): si cambias uno allí, cámbialo aquí. ── */
+/* ── Tokens ───────────────────────────────────────────────────
+   GENERADO (no editar a mano los colores sueltos): cuatro aspectos —
+   salvia, niebla, malva y grafito— en día y en noche. El aspecto va en
+   <html data-aspecto="…"> y el modo en data-theme ("light", "dark" o
+   nada = lo que diga el sistema). Todas las parejas texto/fondo pasan
+   el contraste AA (4,5:1) y las series de gráficos 3:1. Rediseño retro
+   pastel del 01/10/2026. */
 :root{
-  color-scheme: light;
-  --ground:#F1EAE0; --surface:#F9F4EC; --surface-2:#EAE1D4;
-  --ink:#0B2E29; --ink-2:#3D5C56; --ink-3:#586D64;
-  --rule:#E2D8C9;
-  --accent:#B84400; --accent-wash:rgba(184,68,0,.10);
-  --grad:linear-gradient(126deg,#C24E14 0%,#B03E05 46%,#8E3204 100%);
-  --grad-ink:#FFFFFF;
-  --good:#076B4A; --good-ink:#076B4A;
-  --warn-ink:#8A5F00;
-  --crit:#B4243C; --crit-ink:#B4243C;
-  --rise:-5px -5px 12px rgba(255,255,255,.92), 6px 7px 18px rgba(120,102,80,.22);
-  --rise-sm:-2px -2px 6px rgba(255,255,255,.88), 3px 3px 8px rgba(120,102,80,.19);
-  --sink-sm:inset 2px 2px 5px rgba(120,102,80,.17), inset -2px -2px 5px rgba(255,255,255,.88);
-  --r:20px; --r-sm:12px;
+  --r:6px; --r-sm:4px;
+  /* Relieve retro: borde fino + sombra dura desplazada, sin difuminar.
+     Se hace con box-shadow para no mover nada de sitio. */
+  --rise:0 0 0 1.5px var(--linea), 3px 3px 0 1.5px var(--sombra);
+  --rise-sm:0 0 0 1.5px var(--linea), 2px 2px 0 1.5px var(--sombra);
+  --sink:inset 0 0 0 1.5px var(--linea);
+  --sink-sm:inset 0 0 0 1.5px var(--linea);
+  --shadow:var(--rise);
+}
+
+/* salvia */
+:root, :root[data-aspecto="salvia"]{
+  color-scheme:light;
+  --ground:#C3CCC2; --surface:#D6DDD4; --surface-2:#CBD3C9;
+  --surface-3:color-mix(in srgb, #CBD3C9 70%, #46534C);
+  --barra:#B3C2B6;
+  --ink:#1E2924; --ink-2:#36433D; --ink-3:#45524C;
+  --rule:#B7C1B5; --rule-strong:color-mix(in srgb, #46534C 55%, #D6DDD4);
+  --linea:#46534C; --sombra:#46534C;
+  --accent:#5E4763; --accent-ink:#5E4763; --accent-2:#284F6C;
+  --accent-wash:#D3C6D4; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#5E4763, #5E4763); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#D3C6D4;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#B9D6C4;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#DFD0A6;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E4C3C8;
+  --serious:#7C4220;
+  --info:#284F6C; --info-wash:#BED0DE;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
 }
 @media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    color-scheme: dark;
-    --ground:#05221F; --surface:#0B322D; --surface-2:#082A26;
-    --ink:#F2EDE3; --ink-2:#A8BDB6; --ink-3:#8CA69D;
-    --rule:#123E38;
-    --accent:#E4622A; --accent-wash:rgba(228,98,42,.15);
-    --grad:linear-gradient(126deg,#F5814A 0%,#E4622A 46%,#C9481B 100%);
-    --grad-ink:#2A0E03;
-    --good:#3FD8A0; --good-ink:#3FD8A0;
-    --warn-ink:#FFC24D;
-    --crit:#FF8080; --crit-ink:#FF8080;
-    --rise:-5px -5px 12px rgba(255,255,255,.045), 6px 7px 18px rgba(0,0,0,.55);
-    --rise-sm:-2px -2px 6px rgba(255,255,255,.038), 3px 3px 9px rgba(0,0,0,.5);
-    --sink-sm:inset 2px 2px 5px rgba(0,0,0,.55), inset -2px -2px 5px rgba(255,255,255,.04);
+  :root:not([data-theme="light"]):not([data-aspecto]), :root[data-aspecto="salvia"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#1D2420; --surface:#262F2A; --surface-2:#2E3832;
+  --surface-3:color-mix(in srgb, #2E3832 70%, #56635B);
+  --barra:#333F38;
+  --ink:#DDE3DC; --ink-2:#B2BCB3; --ink-3:#99A49B;
+  --rule:#38433D; --rule-strong:color-mix(in srgb, #56635B 55%, #262F2A);
+  --linea:#56635B; --sombra:#111613;
+  --accent:#CDB4D0; --accent-ink:#CDB4D0; --accent-2:#A6C4DC;
+  --accent-wash:#41364A; --accent-on:#231A26;
+  --grad:linear-gradient(#CDB4D0, #CDB4D0); --grad-ink:#231A26;
+  --grad-ink-2:color-mix(in srgb, #231A26 82%, transparent);
+  --grad-veil:color-mix(in srgb, #231A26 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #231A26 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #231A26 30%, transparent); --grad-shadow:transparent;
+  --hero:#41364A;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
   }
+}
+:root[data-theme="dark"]:not([data-aspecto]), :root[data-aspecto="salvia"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#1D2420; --surface:#262F2A; --surface-2:#2E3832;
+  --surface-3:color-mix(in srgb, #2E3832 70%, #56635B);
+  --barra:#333F38;
+  --ink:#DDE3DC; --ink-2:#B2BCB3; --ink-3:#99A49B;
+  --rule:#38433D; --rule-strong:color-mix(in srgb, #56635B 55%, #262F2A);
+  --linea:#56635B; --sombra:#111613;
+  --accent:#CDB4D0; --accent-ink:#CDB4D0; --accent-2:#A6C4DC;
+  --accent-wash:#41364A; --accent-on:#231A26;
+  --grad:linear-gradient(#CDB4D0, #CDB4D0); --grad-ink:#231A26;
+  --grad-ink-2:color-mix(in srgb, #231A26 82%, transparent);
+  --grad-veil:color-mix(in srgb, #231A26 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #231A26 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #231A26 30%, transparent); --grad-shadow:transparent;
+  --hero:#41364A;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+}
+
+/* niebla */
+:root[data-aspecto="niebla"]{
+  color-scheme:light;
+  --ground:#BFC8D3; --surface:#D2D9E2; --surface-2:#C7CFDA;
+  --surface-3:color-mix(in srgb, #C7CFDA 70%, #435064);
+  --barra:#B0BED0;
+  --ink:#1C2431; --ink-2:#344052; --ink-3:#435064;
+  --rule:#B3BDCA; --rule-strong:color-mix(in srgb, #435064 55%, #D2D9E2);
+  --linea:#435064; --sombra:#435064;
+  --accent:#7D3F2C; --accent-ink:#7D3F2C; --accent-2:#2A4A78;
+  --accent-wash:#E2C7BC; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#7D3F2C, #7D3F2C); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#E2C7BC;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#B8D5C5;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#DCCFA8;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E2C3CA;
+  --serious:#7C4220;
+  --info:#2A4A78; --info-wash:#BACAE0;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-aspecto="niebla"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#1B212C; --surface:#242B38; --surface-2:#2C3443;
+  --surface-3:color-mix(in srgb, #2C3443 70%, #535E73);
+  --barra:#313B4E;
+  --ink:#DFE4EC; --ink-2:#B3BCCA; --ink-3:#9AA4B4;
+  --rule:#363F50; --rule-strong:color-mix(in srgb, #535E73 55%, #242B38);
+  --linea:#535E73; --sombra:#0F1218;
+  --accent:#EDB59F; --accent-ink:#EDB59F; --accent-2:#A9C2E6;
+  --accent-wash:#4A3530; --accent-on:#2A1610;
+  --grad:linear-gradient(#EDB59F, #EDB59F); --grad-ink:#2A1610;
+  --grad-ink-2:color-mix(in srgb, #2A1610 82%, transparent);
+  --grad-veil:color-mix(in srgb, #2A1610 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #2A1610 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #2A1610 30%, transparent); --grad-shadow:transparent;
+  --hero:#4A3530;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A9C2E6; --info-wash:#2B3A52;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+  }
+}
+:root[data-aspecto="niebla"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#1B212C; --surface:#242B38; --surface-2:#2C3443;
+  --surface-3:color-mix(in srgb, #2C3443 70%, #535E73);
+  --barra:#313B4E;
+  --ink:#DFE4EC; --ink-2:#B3BCCA; --ink-3:#9AA4B4;
+  --rule:#363F50; --rule-strong:color-mix(in srgb, #535E73 55%, #242B38);
+  --linea:#535E73; --sombra:#0F1218;
+  --accent:#EDB59F; --accent-ink:#EDB59F; --accent-2:#A9C2E6;
+  --accent-wash:#4A3530; --accent-on:#2A1610;
+  --grad:linear-gradient(#EDB59F, #EDB59F); --grad-ink:#2A1610;
+  --grad-ink-2:color-mix(in srgb, #2A1610 82%, transparent);
+  --grad-veil:color-mix(in srgb, #2A1610 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #2A1610 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #2A1610 30%, transparent); --grad-shadow:transparent;
+  --hero:#4A3530;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A9C2E6; --info-wash:#2B3A52;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+}
+
+/* malva */
+:root[data-aspecto="malva"]{
+  color-scheme:light;
+  --ground:#CAC5D3; --surface:#DBD7E2; --surface-2:#D0CBD9;
+  --surface-3:color-mix(in srgb, #D0CBD9 70%, #4A4659);
+  --barra:#BDB3D2;
+  --ink:#221F2C; --ink-2:#3B3749; --ink-3:#4A4659;
+  --rule:#BEB8C8; --rule-strong:color-mix(in srgb, #4A4659 55%, #DBD7E2);
+  --linea:#4A4659; --sombra:#4A4659;
+  --accent:#4F3E86; --accent-ink:#4F3E86; --accent-2:#284F6C;
+  --accent-wash:#CCC2E6; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#4F3E86, #4F3E86); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#CCC2E6;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#BCD7C6;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#E0D1A8;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E5C4CA;
+  --serious:#7C4220;
+  --info:#284F6C; --info-wash:#C0D0DE;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-aspecto="malva"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#201E29; --surface:#2A2734; --surface-2:#322F3E;
+  --surface-3:color-mix(in srgb, #322F3E 70%, #5A5470);
+  --barra:#3A3452;
+  --ink:#E4E1EC; --ink-2:#B9B5C7; --ink-3:#A09BB0;
+  --rule:#3B3749; --rule-strong:color-mix(in srgb, #5A5470 55%, #2A2734);
+  --linea:#5A5470; --sombra:#110F16;
+  --accent:#C5B6EC; --accent-ink:#C5B6EC; --accent-2:#A6C4DC;
+  --accent-wash:#3D3558; --accent-on:#1E1830;
+  --grad:linear-gradient(#C5B6EC, #C5B6EC); --grad-ink:#1E1830;
+  --grad-ink-2:color-mix(in srgb, #1E1830 82%, transparent);
+  --grad-veil:color-mix(in srgb, #1E1830 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #1E1830 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #1E1830 30%, transparent); --grad-shadow:transparent;
+  --hero:#3D3558;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+  }
+}
+:root[data-aspecto="malva"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#201E29; --surface:#2A2734; --surface-2:#322F3E;
+  --surface-3:color-mix(in srgb, #322F3E 70%, #5A5470);
+  --barra:#3A3452;
+  --ink:#E4E1EC; --ink-2:#B9B5C7; --ink-3:#A09BB0;
+  --rule:#3B3749; --rule-strong:color-mix(in srgb, #5A5470 55%, #2A2734);
+  --linea:#5A5470; --sombra:#110F16;
+  --accent:#C5B6EC; --accent-ink:#C5B6EC; --accent-2:#A6C4DC;
+  --accent-wash:#3D3558; --accent-on:#1E1830;
+  --grad:linear-gradient(#C5B6EC, #C5B6EC); --grad-ink:#1E1830;
+  --grad-ink-2:color-mix(in srgb, #1E1830 82%, transparent);
+  --grad-veil:color-mix(in srgb, #1E1830 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #1E1830 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #1E1830 30%, transparent); --grad-shadow:transparent;
+  --hero:#3D3558;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+}
+
+/* grafito */
+:root[data-aspecto="grafito"]{
+  color-scheme:light;
+  --ground:#C6C9CC; --surface:#D8DADD; --surface-2:#CDD0D3;
+  --surface-3:color-mix(in srgb, #CDD0D3 70%, #474C52);
+  --barra:#B5C6C5;
+  --ink:#1F2326; --ink-2:#383D42; --ink-3:#474C52;
+  --rule:#B9BDC1; --rule-strong:color-mix(in srgb, #474C52 55%, #D8DADD);
+  --linea:#474C52; --sombra:#474C52;
+  --accent:#245E62; --accent-ink:#245E62; --accent-2:#284F6C;
+  --accent-wash:#B6D3D2; --accent-on:#FFFFFF;
+  --grad:linear-gradient(#245E62, #245E62); --grad-ink:#FFFFFF;
+  --grad-ink-2:color-mix(in srgb, #FFFFFF 82%, transparent);
+  --grad-veil:color-mix(in srgb, #FFFFFF 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #FFFFFF 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #FFFFFF 30%, transparent); --grad-shadow:transparent;
+  --hero:#B6D3D2;
+  --good:#1B5640; --good-ink:#1B5640; --good-wash:#BAD6C5;
+  --warn:#634A0F; --warn-ink:#634A0F; --warn-wash:#DED0A7;
+  --crit:#843041; --crit-ink:#843041; --crit-wash:#E3C3C9;
+  --serious:#7C4220;
+  --info:#284F6C; --info-wash:#BECFDD;
+  --s1:#3E7760; --s2:#77587D; --s3:#3D6890; --s4:#80621A; --s5:#94485A;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-aspecto="grafito"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#1E2023; --surface:#272A2E; --surface-2:#2F3337;
+  --surface-3:color-mix(in srgb, #2F3337 70%, #575D63);
+  --barra:#2F3D3E;
+  --ink:#E1E3E5; --ink-2:#B6BABE; --ink-3:#9CA1A6;
+  --rule:#383C41; --rule-strong:color-mix(in srgb, #575D63 55%, #272A2E);
+  --linea:#575D63; --sombra:#101113;
+  --accent:#95D0CB; --accent-ink:#95D0CB; --accent-2:#A6C4DC;
+  --accent-wash:#26403F; --accent-on:#0F2322;
+  --grad:linear-gradient(#95D0CB, #95D0CB); --grad-ink:#0F2322;
+  --grad-ink-2:color-mix(in srgb, #0F2322 82%, transparent);
+  --grad-veil:color-mix(in srgb, #0F2322 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #0F2322 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #0F2322 30%, transparent); --grad-shadow:transparent;
+  --hero:#26403F;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
+  }
+}
+:root[data-aspecto="grafito"][data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#1E2023; --surface:#272A2E; --surface-2:#2F3337;
+  --surface-3:color-mix(in srgb, #2F3337 70%, #575D63);
+  --barra:#2F3D3E;
+  --ink:#E1E3E5; --ink-2:#B6BABE; --ink-3:#9CA1A6;
+  --rule:#383C41; --rule-strong:color-mix(in srgb, #575D63 55%, #272A2E);
+  --linea:#575D63; --sombra:#101113;
+  --accent:#95D0CB; --accent-ink:#95D0CB; --accent-2:#A6C4DC;
+  --accent-wash:#26403F; --accent-on:#0F2322;
+  --grad:linear-gradient(#95D0CB, #95D0CB); --grad-ink:#0F2322;
+  --grad-ink-2:color-mix(in srgb, #0F2322 82%, transparent);
+  --grad-veil:color-mix(in srgb, #0F2322 14%, transparent);
+  --grad-veil-2:color-mix(in srgb, #0F2322 24%, transparent);
+  --grad-glow:transparent; --grad-rule:color-mix(in srgb, #0F2322 30%, transparent); --grad-shadow:transparent;
+  --hero:#26403F;
+  --good:#9CCFB1; --good-ink:#9CCFB1; --good-wash:#2A4236;
+  --warn:#DCC58C; --warn-ink:#DCC58C; --warn-wash:#433A22;
+  --crit:#E8A6AF; --crit-ink:#E8A6AF; --crit-wash:#4B2E35;
+  --serious:#EDB48F;
+  --info:#A6C4DC; --info-wash:#2A3A48;
+  --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
 }
 
 *{box-sizing:border-box}
@@ -77,17 +363,17 @@ body{
 .marca{display:flex; align-items:center; gap:9px; justify-content:center; margin-bottom:6px}
 .marca svg{width:26px; height:26px; color:var(--accent)}
 .marca span{
-  font-family:"Outfit",sans-serif; font-weight:700; font-size:18px;
+  font-family:"Space Grotesk",sans-serif; font-weight:700; font-size:18px;
   letter-spacing:-.02em;
 }
 .lema{text-align:center; color:var(--ink-3); font-size:12.5px; margin:0 0 24px}
 
 /* ── Selector entrar / crear cuenta ── */
-.modos{display:flex; gap:3px; background:var(--surface-2); border-radius:100px;
+.modos{display:flex; gap:3px; background:var(--surface-2); border-radius:4px;
   padding:3px; margin-bottom:22px; box-shadow:var(--sink-sm)}
 .modo{
   flex:1; border:none; background:none; cursor:pointer; padding:8px;
-  border-radius:100px; font-family:"Outfit",sans-serif; font-size:13px;
+  border-radius:4px; font-family:"Space Grotesk",sans-serif; font-size:13px;
   font-weight:600; color:var(--ink-3); transition:.16s;
 }
 .modo[aria-selected="true"]{background:var(--surface); color:var(--ink); box-shadow:var(--rise-sm)}
@@ -109,8 +395,8 @@ body{
 .pista{font-size:11.5px; color:var(--ink-3); margin-top:-8px; margin-bottom:14px}
 
 .btn{
-  width:100%; border:none; border-radius:100px; padding:12px;
-  font-family:"Outfit",sans-serif; font-size:14px; font-weight:600;
+  width:100%; border:none; border-radius:4px; padding:12px;
+  font-family:"Space Grotesk",sans-serif; font-size:14px; font-weight:600;
   cursor:pointer; transition:.16s; background:var(--grad); color:var(--grad-ink);
   box-shadow:var(--rise-sm); margin-top:4px;
 }
@@ -133,7 +419,7 @@ body{
 [hidden]{display:none !important}
 
 .panel-ok{text-align:center}
-.panel-ok h2{font-family:"Outfit",sans-serif; font-size:19px; margin:0 0 6px}
+.panel-ok h2{font-family:"Space Grotesk",sans-serif; font-size:19px; margin:0 0 6px}
 .panel-ok .sub{margin:0 0 20px; font-size:13px; color:var(--ink-2)}
 .dato{
   display:flex; justify-content:space-between; gap:12px; padding:9px 0;
@@ -179,7 +465,7 @@ body{
    queda de un vistazo y la cifra lo concreta para quien quiera mirarla. */
 .reloj .cuenta{
   position:absolute; inset:0; display:grid; place-items:center;
-  font-family:"Outfit",sans-serif; font-size:32px; font-weight:600;
+  font-family:"Space Grotesk",sans-serif; font-size:32px; font-weight:600;
   color:var(--ink); font-variant-numeric:tabular-nums; letter-spacing:-.02em;
 }
 
@@ -221,6 +507,33 @@ body{
 }
 
 .pie{text-align:center; margin-top:18px; font-size:11.5px; color:var(--ink-3)}
+
+/* ═══ Capa retro (01/10/2026) — la misma forma que la app ═══ */
+h1,h2{font-family:"Space Grotesk","Helvetica Neue",Arial,sans-serif;letter-spacing:-.01em}
+.marca svg{color:var(--accent)}
+/* La tarjeta es una ventana, con su barra de título y sus dos cuadritos */
+.tarjeta{position:relative;overflow:hidden;border-radius:var(--r);box-shadow:var(--rise);padding:54px 28px 28px}
+.tarjeta::before{content:"";position:absolute;left:0;right:0;top:0;height:30px;background:var(--barra);border-bottom:1.5px solid var(--linea)}
+.tarjeta::after{content:"";position:absolute;left:12px;top:10.5px;width:22px;height:9px;background:var(--linea);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 9'%3E%3Cg fill='none' stroke='black' stroke-width='1.5'%3E%3Crect x='.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='13.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 9'%3E%3Cg fill='none' stroke='black' stroke-width='1.5'%3E%3Crect x='.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='13.75' y='.75' width='7.5' height='7.5' rx='1.5'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain}
+.modos{gap:0;padding:0;overflow:hidden;border-radius:5px;background:var(--surface-2);box-shadow:0 0 0 1.5px var(--linea)}
+.modo{border-radius:0;color:var(--ink-2)}
+.modo + .modo{border-left:1.5px solid var(--linea)}
+.modo[aria-selected="true"]{background:var(--accent);color:var(--accent-on);box-shadow:none}
+.campo label{text-transform:none;letter-spacing:0;font-size:12.5px;color:var(--ink-2)}
+.campo input{border:none;border-radius:4px}
+.campo input:focus{box-shadow:inset 0 0 0 1.5px var(--accent), 0 0 0 3px var(--accent-wash)}
+.btn{border-radius:5px;background:var(--accent);color:var(--accent-on);box-shadow:var(--rise-sm);transition:transform .1s, box-shadow .1s}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:0 0 0 1.5px var(--linea)}
+.btn-suave{background:none;box-shadow:none;color:var(--ink-2)}
+.btn-suave:hover:not(:disabled){background:var(--surface-2);box-shadow:var(--rise-sm)}
+.aviso{border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--linea)}
+.aviso.malo{background:var(--crit-wash);color:var(--crit)}
+.aviso.bien{background:var(--good-wash);color:var(--good)}
+.aviso.info{background:var(--surface-2);color:var(--ink-2)}
+.reloj .avance{filter:none}
+.pie a{color:var(--accent);font-weight:600}
+@media (max-width:420px){ body{padding:14px} .tarjeta{padding:50px 18px 22px} }
 </style>
 </head>
 <body>
@@ -356,7 +669,7 @@ body{
     <p class="pie" id="okQuien">—</p>
   </section>
 
-  <p class="pie">Página de pruebas del acceso · no es la app todavía</p>
+  <p class="pie">¿Solo quieres curiosear? <a href="index.html?demo=1">Prueba el modo demo</a> · <a href="guia/">Guía de uso</a></p>
 </main>
 
 <script>
