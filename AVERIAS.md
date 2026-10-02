@@ -176,7 +176,7 @@ grant select, insert, update on public.estado to service_role;
 ```
 
 No requiere redesplegar: es un cambio en la base de datos, tiene efecto
-inmediato. El `schema.sql` de este repositorio ya incluye esta línea.
+inmediato. (Era de la tabla antigua `estado`, ya retirada.)
 
 ---
 

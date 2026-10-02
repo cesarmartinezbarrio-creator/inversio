@@ -382,11 +382,6 @@ p{margin:0}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 .num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
-.eyebrow{
-  font-size:10.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
-  color:var(--ink-3);
-}
-.serif{font-family:"Space Grotesk","Helvetica Neue",Arial,sans-serif}
 .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
 @media (max-width:640px){ .wrap{padding:0 14px} }
 
@@ -401,13 +396,6 @@ button{font:inherit;color:inherit}
 .brand-mark{width:22px;height:22px;flex-shrink:0;color:var(--accent)}
 .brand-name{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:15.5px;letter-spacing:-.025em;white-space:nowrap}
 .top-spacer{flex:1}
-.co-select{
-  appearance:none;
-  background:var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 4.5 6 8l3-3.5' fill='none' stroke='%237B888B' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 9px center;
-  border:none;border-radius:4px;box-shadow:var(--sink-sm);
-  padding:9px 32px 9px 15px;max-width:230px;
-  font-family:inherit;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;
-}
 .btn{
   display:inline-flex;align-items:center;gap:6px;
   border:none;background:var(--surface);color:var(--ink);
@@ -516,9 +504,6 @@ input.cel{
   font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
 }
 input.cel:focus{outline:none;border-color:var(--accent);box-shadow:var(--sink-sm), 0 0 0 3px var(--accent-wash)}
-.t-compact th,.t-compact td{padding:6px 8px}
-.t-compact input.cel,.t-compact select.cel{width:78px;padding:4px 6px}
-.t-compact td:first-child,.t-compact th:first-child{min-width:210px;padding-left:12px}
 
 .field{display:flex;flex-direction:column;gap:5px}
 .field label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
@@ -564,8 +549,6 @@ input.cel:focus{outline:none;border-color:var(--accent);box-shadow:var(--sink-sm
 .check{display:grid;grid-template-columns:22px 1fr auto;gap:12px;align-items:start;padding:13px 18px;border-bottom:1px solid var(--rule)}
 .check:last-child{border-bottom:none}
 .check-ico{width:20px;height:20px;margin-top:1px}
-.check-t{font-weight:600;font-size:13.5px}
-.check-d{font-size:12.5px;color:var(--ink-2);margin-top:2px;max-width:70ch}
 .check-v{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:14px;font-weight:500;text-align:right;white-space:nowrap}
 
 /* ── Charts ───────────────────────────────────────────────── */
@@ -593,10 +576,7 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 .tip-r i{width:9px;height:9px;border-radius:2px;flex-shrink:0}
 .tip-r b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-weight:500}
 
-/* ── The gauge (hero) ─────────────────────────────────────── */
-.gauge{padding:22px 22px 14px}
 .card-bd.tight > .note,.card-bd.tight > .help{padding:0 22px 20px}
-.gauge svg{display:block;width:100%;height:auto;overflow:visible}
 .g-track{fill:var(--surface-2)}
 .g-fill-good{fill:color-mix(in srgb,var(--good) 26%,transparent)}
 .g-fill-bad{fill:color-mix(in srgb,var(--crit) 24%,transparent)}
@@ -630,15 +610,6 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 
 /* ── Fuentes de datos ─────────────────────────────────────── */
 .src{display:flex;flex-direction:column;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:5px;overflow:hidden}
-.src-row{display:grid;grid-template-columns:1fr auto;gap:6px 16px;background:var(--surface);padding:12px 15px;align-items:baseline}
-.src-row h4{font-size:13px}
-.src-row a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid var(--accent-wash)}
-.src-row a:hover{border-bottom-color:currentColor}
-.src-row p{grid-column:1/-1;font-size:12px;color:var(--ink-2);line-height:1.5;max-width:76ch}
-.src-lim{
-  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;color:var(--ink-3);
-  white-space:nowrap;
-}
 .stamp{
   display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-3);
   font-family:"IBM Plex Mono",ui-monospace,monospace;
@@ -665,16 +636,6 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 .alerta:last-child{border-bottom:none}
 .alerta-ico{width:24px;height:24px;border-radius:4px;display:grid;place-items:center;flex-shrink:0;margin-top:1px}
 .alerta-ico svg{width:14px;height:14px}
-.a-crit .alerta-ico{background:color-mix(in srgb,var(--crit) 16%,transparent);color:var(--crit)}
-.a-aviso .alerta-ico{background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn-ink)}
-.a-opor .alerta-ico{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good-ink)}
-.a-info .alerta-ico{background:var(--surface-2);color:var(--ink-3)}
-.alerta-t{font-weight:600;font-size:13.5px}
-.alerta-d{font-size:12.5px;color:var(--ink-2);margin-top:2px;max-width:74ch;line-height:1.5}
-.alerta-v{
-  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
-  font-size:14px;font-weight:500;white-space:nowrap;text-align:right;
-}
 
 /* ── Inicio ───────────────────────────────────────────────── */
 .hero{
@@ -690,25 +651,11 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
     radial-gradient(90% 120% at 8% 120%, rgba(0,0,0,.20), transparent 60%);
 }
 .hero > *{position:relative;z-index:1}
-.hero .eyebrow{color:var(--grad-ink-2)}
 .hero .chip{background:var(--grad-veil);box-shadow:none;color:var(--grad-ink);backdrop-filter:blur(4px)}
 .hero .chip .dot{background:var(--grad-ink)}
 .hero .btn{background:var(--grad-veil);box-shadow:none;color:var(--grad-ink);backdrop-filter:blur(4px)}
 .hero .btn:hover{background:var(--grad-veil-2);color:var(--grad-ink)}
 .hero .up,.hero .down{color:var(--grad-ink)}
-.hero-main{flex:1;min-width:250px}
-.hero-val{
-  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
-  font-size:40px;font-weight:500;letter-spacing:-.035em;line-height:1.05;margin-top:4px;
-}
-.hero-sub{font-size:13.5px;color:var(--grad-ink-2);margin-top:8px}
-.hero-sub strong{color:var(--grad-ink)}
-.hero-estado{
-  display:flex;flex-direction:column;gap:8px;align-items:flex-end;
-  padding-left:26px;border-left:1px solid var(--grad-rule);
-}
-@media (max-width:700px){ .hero-estado{border-left:none;padding-left:0;align-items:flex-start} }
-.hero-val{font-size:42px}
 
 .modcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:16px}
 .modcard{
@@ -731,20 +678,6 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
   font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-weight:600;
 }
 .modcard-go{font-size:12.5px;font-weight:600;color:var(--accent-ink)}
-
-/* ── Asignación por clase ─────────────────────────────────── */
-.alloc{display:flex;flex-direction:column;gap:14px}
-.alloc-row{display:grid;grid-template-columns:130px 1fr 150px;gap:14px;align-items:center}
-@media (max-width:640px){ .alloc-row{grid-template-columns:1fr;gap:6px} }
-.alloc-name{font-size:13px;font-weight:500}
-.alloc-track{height:22px;background:var(--surface-2);border-radius:4px;box-shadow:var(--sink-sm);position:relative;overflow:hidden}
-.alloc-fill{height:100%;background:var(--s1);border-radius:4px}
-.alloc-obj{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);border-radius:1px}
-.alloc-nums{
-  display:flex;gap:10px;justify-content:flex-end;align-items:baseline;
-  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:12.5px;
-}
-.alloc-nums input{width:62px}
 
 /* ── Popup de alertas ─────────────────────────────────────── */
 .pop-hd{padding:22px 24px 0;text-align:center}
@@ -771,8 +704,6 @@ svg.chart{display:block;width:100%;height:auto;overflow:visible}
 }
 .empty h3{color:var(--ink);margin-bottom:7px;font-size:16px}
 .empty p{max-width:44ch;margin:0 auto 16px;font-size:13.5px;line-height:1.55}
-.bar-row{display:flex;height:11px;border-radius:4px;overflow:hidden;gap:2px;background:var(--surface-2);box-shadow:var(--sink-sm)}
-.bar-row i{display:block;height:100%}
 .toast{
   position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);
   background:var(--ink);color:var(--ground);padding:12px 20px;border-radius:4px;
@@ -861,20 +792,10 @@ textarea.code{
 .method-cell{background:var(--surface);padding:18px 20px;box-shadow:0 0 0 1px var(--rule)}
 .method-cell h4{font-size:13px;margin-bottom:6px}
 .method-cell p{font-size:12.5px;color:var(--ink-2);line-height:1.55}
-.ladder{display:flex;flex-direction:column;gap:1px;background:var(--rule);border-radius:8px;overflow:hidden;border:1px solid var(--rule)}
-.rung{display:flex;align-items:center;gap:12px;background:var(--surface);padding:10px 14px}
-.rung-n{
-  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;font-weight:600;
-  width:20px;height:20px;border-radius:4px;display:grid;place-items:center;flex-shrink:0;
-  background:var(--surface-2);color:var(--ink-3);
-}
-.rung-t{flex:1;font-size:13px;font-weight:500}
-.rung-d{font-size:12px;color:var(--ink-3);text-align:right}
 @media (max-width:1100px){
   .top,.tabs{position:static}
   .top-in{height:auto;min-height:52px;padding:8px 0;flex-wrap:wrap;gap:8px}
   .top-spacer{display:none}
-  .co-select{max-width:none;flex:1 1 160px}
 }
 @media (max-width:640px){
   .brand-name{display:none}
@@ -884,8 +805,6 @@ textarea.code{
   .card-bd{padding:14px}
   .check{grid-template-columns:20px 1fr;gap:9px;padding:12px 14px}
   .check-v{grid-column:2;text-align:left;margin-top:4px}
-  .src-row{grid-template-columns:1fr}
-  .src-lim{grid-row:2}
 }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 
@@ -914,12 +833,6 @@ textarea.code{
   padding:12px 20px;border-bottom:1px solid var(--rule);
 }
 .linea:last-child{border-bottom:none}
-.linea-t{font-size:13.5px;font-weight:500}
-.linea-d{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
-.linea-v{
-  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
-  font-size:14px;font-weight:500;
-}
 .linea-x{
   border:none;background:transparent;color:var(--ink-3);cursor:pointer;padding:5px;
   border-radius:4px;width:26px;height:26px;display:grid;place-items:center;line-height:1;
@@ -1051,7 +964,6 @@ textarea.code{
   .rev-fuente{max-width:150px}
 }
 
-
 /* ── Tarjetas de resultado de la portada ──────────────────── */
 .rescards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
 .rescard{
@@ -1163,30 +1075,6 @@ textarea.code{
 .partida input.cel{width:100%;min-width:0;text-align:left}
 .partida input.cel:not(.num){font-family:"Plus Jakarta Sans","Helvetica Neue",Arial,sans-serif;font-size:13px}
 .partida input.cel.num{text-align:right}
-
-/* ── Partidas que se pueden abrir ──────────────────────────────
-   Una partida con apuntes lleva dentro más de lo que enseña. Se avisa de
-   dos maneras: la fila se resalta al pasar por encima, y el nombre se
-   comporta como un enlace. En el móvil no hay «pasar por encima», así que
-   el nombre subrayado al tocarlo es lo que de verdad lo delata. */
-.partida.tocable{cursor:default;transition:background .12s}
-.partida.tocable:hover{background:var(--surface-2)}
-.partida.tocable:hover .partida-n.comoLink{text-decoration-color:var(--accent)}
-.partida-n.comoLink{
-  font:inherit;font-size:13.5px;font-weight:500;text-align:left;color:var(--ink);
-  background:none;border:0;padding:0;cursor:pointer;
-  text-decoration:underline;text-decoration-color:transparent;
-  text-underline-offset:3px;transition:text-decoration-color .12s;
-}
-.partida-n.comoLink:hover,
-.partida-n.comoLink:focus-visible{text-decoration-color:var(--accent);color:var(--accent)}
-.partida-suma{
-  font:inherit;font-size:13.5px;font-weight:600;text-align:right;
-  font-family:"IBM Plex Mono",ui-monospace,monospace;
-  background:var(--surface-2);border:1px solid var(--rule);border-radius:5px;
-  padding:8px 10px;width:100%;cursor:pointer;color:var(--ink);
-}
-.partida-suma:hover{border-color:var(--accent);color:var(--accent)}
 
 /* ── El mosaico de categorías ──────────────────────────────────
    Cada categoría es un azulejo con su inicial de color, su nombre y su
@@ -1393,8 +1281,7 @@ textarea.code{
 
 /* Importe traído por la chincheta y todavía sin confirmar. Discreto a
    propósito: es un aviso, no un error. */
-.partida.porconfirmar input.cel.num,
-.partida.porconfirmar .partida-suma{border-color:var(--accent);border-style:dashed}
+.partida.porconfirmar input.cel.num{border-color:var(--accent);border-style:dashed}
 .partida-f.porconfirmar{color:var(--accent);font-weight:600}
 
 /* ── El detalle de una partida ─────────────────────────────── */
@@ -1491,35 +1378,6 @@ svg.anillo{width:100%;max-width:210px;height:auto;margin:0 auto;display:block}
 
 /* ── Termómetro de precio contra valor ─────────────────────── */
 .termo{position:relative;height:76px;margin:30px 0 8px}
-.tv-riel{position:absolute;left:0;right:0;top:34px;height:10px;border-radius:4px;
-  background:var(--surface-2);box-shadow:var(--sink-sm);overflow:hidden}
-.tv-z{position:absolute;top:0;height:100%;opacity:.45}
-.tv-m{position:absolute;top:26px;transform:translateX(-50%);display:flex;flex-direction:column;
-  align-items:center;gap:3px}
-.tv-m.up{flex-direction:column-reverse;top:6px}
-.tv-p{width:3px;height:26px;border-radius:3px;display:block}
-.tv-t{font-size:10.5px;font-weight:600;white-space:nowrap;display:flex;gap:5px;align-items:baseline}
-.tv-t b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px}
-
-/* ── Cabecera de la ficha ──────────────────────────────────── */
-.fhero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:center}
-@media (max-width:760px){ .fhero{grid-template-columns:1fr;gap:16px} }
-.fhero-precio{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
-  font-size:40px;font-weight:600;letter-spacing:-.035em;line-height:1.05}
-.fhero-sub{font-size:12.5px;color:var(--ink-3);margin-top:5px}
-.fhero-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
-.fhero-ver{display:flex;gap:13px;align-items:flex-start;padding:15px 17px;border-radius:var(--r-sm);
-  background:var(--surface-2);box-shadow:var(--sink-sm)}
-.fhero-ver l{width:4px;border-radius:3px;flex-shrink:0;align-self:stretch;display:block}
-.fhero-ver h4{font-size:14.5px;margin-bottom:3px}
-.fhero-ver p{font-size:12.5px;color:var(--ink-2);line-height:1.5}
-
-/* Barra de resultado de las comprobaciones */
-.semb{display:flex;height:11px;border-radius:4px;overflow:hidden;gap:2px;margin:12px 0 8px}
-.semb i{display:block;height:100%}
-.semb-l{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2)}
-.semb-l span{display:inline-flex;align-items:center;gap:6px}
-.semb-l b{width:9px;height:9px;border-radius:3px;display:inline-block}
 
 /* ── Ficha: tarjeta de rentabilidad esperada y minis ───────── */
 .exito{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -1565,7 +1423,6 @@ td .lbl-sub.gan{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:6
 .paso.ojo{opacity:.72}
 .paso.ojo:hover{opacity:1}
 .paso.ojo h4{color:var(--ink-2)}
-
 
 /* ═══════════════════════════════════════════════════════════
    CAPA RETRO — rediseño del 01/10/2026
@@ -2154,8 +2011,6 @@ function mesMas(m, n){
   const d = new Date(a, b - 1 + n, 1);
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
 }
-const semestreDe  = m => (+String(m).split("-")[1] <= 6 ? 1 : 2);
-const anioDe      = m => String(m).split("-")[0];
 
 /* ── Estructura de la economía personal ───────────────────── */
 const SECCIONES = {
@@ -2497,14 +2352,6 @@ function saneaEstado(x){
       if (Array.isArray(x.etiquetas[k]) && x.etiquetas[k].length) o.etiquetas[k] = x.etiquetas[k].map(String);
     });
   if (x.migr && typeof x.migr === "object") o.migr = { ...x.migr };
-  /* Partida nueva: se añade una sola vez, para no reponerla si el usuario la borra */
-  if (!o.migr.aguaBasuras){
-    if (!o.etiquetas.fijos.includes("Agua y basuras")){
-      const i = o.etiquetas.fijos.indexOf("Luz");
-      o.etiquetas.fijos.splice(i >= 0 ? i + 1 : o.etiquetas.fijos.length, 0, "Agua y basuras");
-    }
-    o.migr.aguaBasuras = 1;
-  }
   if (Array.isArray(x.fijas)) o.fijas = x.fijas
     .filter(f => f && SECCIONES[f.seccion] && f.seccion !== "inversion" && f.item)
     .map(f => ({ id: idValido(f.id), seccion: f.seccion, item: String(f.item),
@@ -2593,15 +2440,15 @@ function cargarLocal(){
     if (o && o._uid && miUid() && o._uid !== miUid()) return null;
     return (o && Array.isArray(o.apuntes)) ? o : null; } catch(_){ return null; }
 }
-let apiArtifact = null, esEscritor = true;
+/* true cuando hay sesión y backend: entonces cada cambio se guarda en tu cuenta */
+let nubeLista = false;
 async function guardarNube(){
-  if (!apiArtifact) return { estado: "local" };
-  try { await apiArtifact.publish({ "data/estado.json": JSON.stringify(S) }); return { estado: "ok" }; }
+  if (!nubeLista) return { estado: "local" };
+  try { await guardarEstadoNube({ ...S }); return { estado: "ok" }; }
   catch(err){
     const c = err && err.code;
-    if (["not_writer","not_granted","capability_disabled","not_declared"].includes(c)){ esEscritor = false; apiArtifact = null; return { estado: "solo-lectura" }; }
+    if (c === "not_granted"){ nubeLista = false; return { estado: "solo-lectura" }; }
     if (c === "conflict") return { estado: "conflicto" };
-    if (c === "too_large") return { estado: "grande" };
     return { estado: "error" };
   }
 }
@@ -2692,12 +2539,6 @@ const ganPastilla = (p, d) => isN(p)
 /* El porcentaje ya pintado, listo para meter en el HTML */
 const ganPct = (p, d) => isN(p)
   ? `<span class="gan" style="color:${colorGan(p)}">${pctS(p, d ?? 1)}</span>` : `<span class="dim">—</span>`;
-
-const TRAMOS_GAN = [
-  { t: "Pérdida", p: -0.10 }, { t: "0%", p: 0 }, { t: "2%", p: 0.02 },
-  { t: "3%", p: 0.03 }, { t: "7%", p: 0.07 }, { t: "8%", p: 0.08 },
-  { t: "15%", p: 0.15 }, { t: "30%", p: 0.30 }
-];
 
 /* ── KPIs de la cartera ───────────────────────────────────── */
 function kpisCartera(){
@@ -3337,7 +3178,7 @@ function estimaConIndicadores(a){
 
   return {
     cons, opt, horiz: H,
-    fuente: `los indicadores que han traído los conectores, no de sus cuentas completas: beneficio por acción de ${dineroDe(a, k.bpa, 2)} y un crecimiento del ${pct(gCons, 1)} anual — la menor de dos señales, ${dice.join(" y ")}`,
+    fuente: `los indicadores que han traído los proveedores de datos, no de sus cuentas completas: beneficio por acción de ${dineroDe(a, k.bpa, 2)} y un crecimiento del ${pct(gCons, 1)} anual — la menor de dos señales, ${dice.join(" y ")}`,
     extra: {
       igual, perHoy, gCons, gOpt,
       texto: `Si dentro de ${H} años el mercado siguiera pagando lo mismo que hoy por esta empresa (${mult(perHoy)} beneficios, no ${mult(a.multCons)}), la rentabilidad sería del <strong>${pct(igual, 1)}</strong> anual. La diferencia entre esa cifra y la conservadora es <strong>lo que te juegas por el precio al que compras</strong>, no por el negocio.`
@@ -5487,8 +5328,8 @@ function renderPrecios(){
         <strong>Lo que no ha salido:</strong>
         <ul style="margin:8px 0 0;padding-left:18px;font-size:12.5px;line-height:1.6">${S.mcpFallos.map(f => `<li>${esc(f)}</li>`).join("")}</ul></div>` : ""}
       <p class="help" style="margin-top:12px">${mcpListo
-        ? "<strong>Actualizar ahora</strong> pide los precios a tus conectores con tus propias credenciales: ninguna clave pasa por esta página. Las acciones y los ETF van por Twelve Data, el bitcoin por Crypto.com y el tipo de cambio por Alpha Vantage. Cada producto necesita su símbolo."
-        : "Copia la petición, pégamela en el chat y devuélveme aquí el JSON. Para que la app los traiga sola, conecta <strong>Twelve Data</strong> o <strong>Alpha Vantage</strong> en claude.ai → Configuración → Conectores."}</p>`) +
+        ? "<strong>Actualizar ahora</strong> pide los precios a través de tu backend: las claves de los proveedores viven allí y ninguna pasa por esta página. Las acciones y los ETF van por Twelve Data, el bitcoin por Crypto.com y el tipo de cambio por Alpha Vantage. Cada producto necesita su símbolo."
+        : "Esta vista no está conectada al backend (en la demo, por ejemplo), así que no puede traer precios sola. Copia la petición, pásasela a un asistente como Claude y pega aquí el JSON que te devuelva."}</p>`) +
 
     card("Precio de cada producto", tabla(["Producto", "Símbolo", "Moneda", "Precio"], filas), null, true) +
 
@@ -5546,8 +5387,8 @@ function renderEstudio(){
         <button class="btn" data-act="nueva-ficha">Ficha en blanco</button>
       </div>
       <p class="help" style="margin-top:10px">${mcpListo
-        ? "<strong>Buscar y rellenar</strong> pregunta a tus conectores en qué bolsas cotiza. Eliges una y trae el símbolo, la moneda, el precio y la ficha de indicadores. Funciona con nombres («Inditex»), con símbolos («AAPL», «IWDA») y con cripto («bitcoin»)."
-        : "Para que la app busque sola, conecta <strong>Twelve Data</strong> o <strong>Alpha Vantage</strong> en claude.ai → Configuración → Conectores. Mientras tanto, «Ficha en blanco» y lo rellenas a mano."}</p>
+        ? "<strong>Buscar y rellenar</strong> pregunta a los proveedores de datos en qué bolsas cotiza. Eliges una y trae el símbolo, la moneda, el precio y la ficha de indicadores. Funciona con nombres («Inditex»), con símbolos («AAPL», «IWDA») y con cripto («bitcoin»)."
+        : "Esta vista no está conectada al backend, así que no puede buscar sola. Usa «Ficha en blanco» y rellénala a mano."}</p>
       <div class="sep" style="margin:18px 0"></div>
       <div class="soltar" id="zonaSoltar" tabindex="0" role="button" aria-label="Soltar un PDF o elegir un fichero">
         <div class="soltar-ico">
@@ -7334,11 +7175,11 @@ function confirmarTique(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Precios en vivo por conector
+   Precios en vivo
    ═══════════════════════════════════════════════════════════
-   Las llamadas van con TUS credenciales de claude.ai. La página
-   nunca ve una clave ni la guarda en ningún sitio. Cada forma de
-   respuesta de aquí abajo está observada de una petición real.
+   Las llamadas van al proxy del backend, que es quien tiene las
+   claves: la página nunca ve ninguna. Cada forma de respuesta de
+   aquí abajo está observada de una petición real.
    ═══════════════════════════════════════════════════════════ */
 
 let apiMcp = null, mcpListo = false;
@@ -7352,20 +7193,13 @@ const SRV = {
 function textoErrorMcp(err, servidor){
   const c = err && err.code;
   const M = {
-    needs_reauth:        `La contraseña guardada ya no vale. Vuelve a escribirla cuando te la pida.`,
+    needs_reauth:        `Tu sesión ha caducado. Vuelve a entrar.`,
     server_not_connected:`Falta la clave de ${servidor} en el backend de Vercel (variable de entorno).`,
-    selection_required:  `Tienes más de un conector llamado ${servidor}. claude.ai te preguntará cuál usar: elige uno y repite.`,
-    server_not_found:    `${servidor} ya no existe como conector.`,
+    server_not_found:    `${servidor} no está entre los proveedores del backend.`,
     server_unavailable:  `${servidor} no responde ahora mismo. Suele ser pasajero: inténtalo en un minuto.`,
-    not_in_manifest:     `Esta página no tiene permiso para usar esa herramienta de ${servidor}.`,
-    blocked_by_policy:   `La política de tu organización bloquea ${servidor}.`,
-    approval_required:   `${servidor} exige aprobar cada llamada, y eso todavía no se puede hacer desde aquí. Usa la petición manual.`,
+    not_in_manifest:     `El backend no permite esa consulta a ${servidor}.`,
     tool_error:          `${servidor} ha respondido con un error: ${(err && err.message) || "sin detalle"}.`,
     rate_limited:        `Has agotado la cuota gratuita de ${servidor} por hoy. Vuelve mañana o usa la petición manual.`,
-    cancelled:           `La petición a ${servidor} se canceló.`,
-    not_granted:         `Esta vista no tiene permiso para usar tus conectores. Abre la app desde tu propio enlace.`,
-    capability_disabled: `Los conectores no están disponibles en esta vista.`,
-    capability_removed:  `Los conectores no están disponibles en esta vista.`,
     // Este no es un fallo del conector: es que la cuenta todavía no tiene
     // acceso. Decir «no he podido leer de Twelve Data» despista, porque
     // Twelve Data no ha llegado a enterarse de nada.
@@ -7447,7 +7281,7 @@ async function precioDeUno(x){
 }
 
 async function actualizarPreciosEnVivo(){
-  if (!apiMcp){ toast("Los conectores no están disponibles en esta vista.", true); return; }
+  if (!apiMcp){ toast("Esta vista no está conectada al backend: no puede traer datos.", true); return; }
   const todos = S.activos.filter(a => (a.estado === "cartera" && !a.pausado) || a.estado === "observacion");
   const items = todos.filter(x => String(x.simbolo || "").trim());
   const sinSimbolo = todos.length - items.length;
@@ -7560,8 +7394,8 @@ function primerJSON(txt){
    la ficha de indicadores.
 
    Todas las formas de respuesta de aquí abajo están observadas
-   de peticiones reales. Las llamadas van con TUS credenciales
-   de claude.ai: ninguna clave pasa por esta página.
+   de peticiones reales. Las llamadas van por el proxy del
+   backend: ninguna clave pasa por esta página.
    ═══════════════════════════════════════════════════════════ */
 
 const CRIPTO_CONOCIDAS = {
@@ -7863,17 +7697,16 @@ async function lanzarBusqueda(texto, destinoId){
   const d = $("#dlgBuscar");
   $("#buscaTitulo").textContent = `Buscando «${texto}»…`;
   $("#buscaCuerpo").innerHTML = `<div class="progreso"><i style="width:60%;animation:none"></i></div>
-    <p class="help" style="margin-top:12px">Preguntando a tus conectores en qué bolsas cotiza.</p>`;
+    <p class="help" style="margin-top:12px">Preguntando en qué bolsas cotiza.</p>`;
   $("#buscaPie").innerHTML = `<button class="btn" data-close>Cancelar</button>`;
   if (!d.open) d.showModal();
 
   const r = await buscarProducto(texto);
   if (r.error === "no-mcp"){
-    $("#buscaTitulo").textContent = "Los conectores no están disponibles";
-    $("#buscaCuerpo").innerHTML = `<div class="callout"><strong>Esta vista no puede usar tus conectores.</strong>
-      Abre la app desde tu propio enlace y comprueba en claude.ai → Configuración → Conectores que tienes
-      <strong>Twelve Data</strong> o <strong>Alpha Vantage</strong> añadidos.</div>
-      <p class="note" style="margin-top:12px">Mientras tanto puedes escribir el símbolo y el precio a mano, o pedírmelos por el chat.</p>`;
+    $("#buscaTitulo").textContent = "La búsqueda no está disponible";
+    $("#buscaCuerpo").innerHTML = `<div class="callout"><strong>Esta vista no está conectada al backend</strong> (en la demo, por ejemplo),
+      así que no puede preguntar a los proveedores de datos.</div>
+      <p class="note" style="margin-top:12px">Puedes crear la ficha en blanco y escribir el símbolo y el precio a mano.</p>`;
     $("#buscaPie").innerHTML = `<button class="btn btn-primary" data-close>Entendido</button>`;
     return;
   }
@@ -8377,7 +8210,7 @@ function eventos(){
       }
       case "buscar-simbolo": if (act) lanzarBusqueda(act.nombre && act.nombre !== "Nuevo producto" ? act.nombre : (act.simbolo || ""), act.id); break;
       case "traer-datos": if (act){
-        if (!apiMcp){ toast("Los conectores no están disponibles en esta vista.", true); break; }
+        if (!apiMcp){ toast("Esta vista no está conectada al backend: no puede traer datos.", true); break; }
         b.disabled = true; b.textContent = "Trayendo…";
         const r = await traerDatos(act);
         b.disabled = false; b.textContent = "Traer precio y datos";
@@ -9077,7 +8910,7 @@ function pintaSync(){
 
 function programarGuardado(){
   guardarLocal();
-  if (!apiArtifact || !esEscritor){ estadoSync = "local"; pintaSync(); return; }
+  if (!nubeLista){ estadoSync = "local"; pintaSync(); return; }
   estadoSync = "pendiente"; pintaSync();
   clearTimeout(guardadoT);
   guardadoT = setTimeout(guardarYa, 4000);
@@ -9085,7 +8918,7 @@ function programarGuardado(){
 
 async function guardarYa(silencioso){
   clearTimeout(guardadoT);
-  if (!apiArtifact || !esEscritor){ estadoSync = "local"; pintaSync(); if (!silencioso) toast("Esta vista no puede guardar en tu cuenta. Tus datos siguen en este navegador.", true); return; }
+  if (!nubeLista){ estadoSync = "local"; pintaSync(); if (!silencioso) toast("Esta vista no puede guardar en tu cuenta. Tus datos siguen en este navegador.", true); return; }
   if (guardando){ guardadoT = setTimeout(() => guardarYa(silencioso), 2500); return; }
   if (enConflicto){ estadoSync = "error"; pintaSync(); if (!silencioso) toast("Hay una versión más nueva guardada desde otro sitio. Recarga la página.", true); return; }
   guardando = true; estadoSync = "guardando"; pintaSync();
@@ -9218,7 +9051,7 @@ function montaPerfil(){
    Arranque
    ═══════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════
-   Backend propio — sustituye a los conectores de claude.ai.
+   Backend propio (Vercel): proxy de mercado. El estado va a Supabase.
    API_BASE se lee de <meta name="api-base"> en el <head>.
    ═══════════════════════════════════════════════════════════ */
 const API_BASE = (document.querySelector('meta[name="api-base"]')?.content || "").trim().replace(/\/$/, "");
@@ -9373,17 +9206,7 @@ async function guardarEstadoNube(json){
   }
 }
 
-/* Misma forma que window.claude.use("artifact") */
-const apiArtifactBackend = {
-  async publish(ficheros){
-    let json;
-    try { json = JSON.parse(ficheros["data/estado.json"]); }
-    catch(_){ const e = new Error("estado ilegible"); e.code = "capability_disabled"; throw e; }
-    await guardarEstadoNube(json);
-  }
-};
-
-/* Misma forma que window.claude.use("mcp") */
+/* Las consultas de mercado pasan por el proxy del backend (api/mcp-proxy.js) */
 const apiMcpBackend = {
   async callTool(servidor, herramienta, entrada){
     const r = await llamaAPI("/api/mcp-proxy", {
@@ -9408,7 +9231,7 @@ const apiMcpBackend = {
   if (DEMO){
     montaTip(); montaGlobo(); eventos();
     S = datosDemo();
-    apiArtifact = null; esEscritor = false; estadoSync = "local"; pintaSync();
+    estadoSync = "local"; pintaSync();
     render();
     return;
   }
@@ -9428,14 +9251,14 @@ const apiMcpBackend = {
 
   if (!API_BASE || API_BASE.includes("REEMPLAZA-ESTO")){
     toast("Falta configurar la URL del backend: edita el meta \"api-base\" en el <head> del HTML.", true);
-    esEscritor = false; estadoSync = "local"; pintaSync();
+    estadoSync = "local"; pintaSync();
   } else {
     let nube = null, leida = true;
     try { nube = await leerEstadoNube(); } catch(_){ leida = false; }
     if (nube && Array.isArray(nube.apuntes) && (!local || (nube.rev || 0) >= (local.rev || 0))){
       S = saneaEstado(nube); render();
     }
-    apiArtifact = apiArtifactBackend; esEscritor = true;
+    nubeLista = true;
     /* Si no se ha podido leer la nube, no se dice «guardado»: se trabaja con
        la copia de este navegador y el primer guardado vuelve a mirar la
        nube antes de escribir, así que tampoco puede pisarla a ciegas. */

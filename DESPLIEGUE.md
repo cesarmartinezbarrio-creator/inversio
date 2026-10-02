@@ -94,9 +94,13 @@ pasado antes con `git add`.
 1. En [supabase.com](https://supabase.com), **New project**. Elige región
    cercana y guarda la contraseña de base de datos que te pide (no la
    necesitarás para esto, pero sí si algún día entras por SQL directo).
-2. Cuando el proyecto esté listo: **SQL Editor → New query**, pega el
-   contenido de [`supabase/schema.sql`](./supabase/schema.sql) y pulsa
-   **Run**. Debe responder *"Success. No rows returned"*.
+2. Cuando el proyecto esté listo: **SQL Editor → New query** y ejecuta, en
+   este orden y uno por uno, [`multiusuario.sql`](./supabase/multiusuario.sql),
+   [`invitaciones.sql`](./supabase/invitaciones.sql),
+   [`limite-invitaciones.sql`](./supabase/limite-invitaciones.sql) y
+   [`cache-y-limites.sql`](./supabase/cache-y-limites.sql). Cada uno debe
+   responder *"Success"*. Después, [`revision-seguridad.sql`](./supabase/revision-seguridad.sql)
+   comprueba que todo ha quedado con su candado.
 3. Ve a **Project Settings** (el engranaje, abajo del todo) → **API Keys** y
    copia dos valores:
    - La **Project URL**, con este aspecto:

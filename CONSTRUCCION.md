@@ -51,8 +51,7 @@ datos (para verlo desde cualquier dispositivo).
 
 En Supabase → SQL Editor, en este orden:
 
-1. `supabase/schema.sql` — tabla inicial (histórico de la época de un solo usuario).
-2. `supabase/multiusuario.sql` — la tabla `perfiles_estado`, una fila por
+1. `supabase/multiusuario.sql` — la tabla `perfiles_estado`, una fila por
    usuario, con **RLS activado**. Las políticas usan `auth.uid()`, que lo
    resuelve PostgreSQL leyendo el JWT: la aplicación no lo pasa, así que no
    puede mentir. Cada quien solo ve y toca su fila.
@@ -75,8 +74,8 @@ una función `security definer` con `set search_path = public` (sin eso, se la
 podría engañar creando tablas con el mismo nombre en otro esquema).
 
 Endurecimientos posteriores:
-- **Códigos aleatorios** en vez de adivinables (`INV-XXXXXXXX`): ver
-  `supabase/empezar-de-cero.sql`.
+- **Códigos aleatorios** en vez de adivinables (`INV-XXXXXXXX`); el script
+  que los creó se retiró el 02/10/2026 y sigue en el historial de git.
 - **Freno a la fuerza bruta** (`supabase/limite-invitaciones.sql`): un máximo
   de intentos fallidos por hora y usuario. Detalle clave: la función **no usa
   `raise`** para los fallos de código, porque `raise` revierte la transacción
@@ -186,8 +185,9 @@ chromium`.
 
 ## Empezar de cero y mantenimiento
 
-- `supabase/empezar-de-cero.sql` — borra todas las cuentas y datos (deja una
-  copia previa) y crea códigos de invitación aleatorios.
+- `supabase/vaciar-mi-cuenta-20260929.sql` — deja tu cuenta en blanco sin
+  borrar el usuario. Los scripts que borraban todas las cuentas se retiraron
+  el 02/10/2026 por peligrosos; siguen en el historial de git.
 - Borrar cuentas concretas: desde Supabase → Authentication → Users → Delete
   (por SQL no siempre funciona; la tabla `auth.users` está protegida en el
   editor).

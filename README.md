@@ -124,10 +124,11 @@ ni una credencial.
 
 ```
 frontend/index.html               La aplicación entera (HTML + CSS + JS)
-api/_common.js                    CORS, comprobación de token, lectura de cuerpo
-api/estado.js                     GET/POST del estado contra Supabase
+api/_common.js                    CORS, sesión y membresía, caché y cupo
 api/mcp-proxy.js                  Proxy hacia las tres APIs de mercado
-supabase/schema.sql               La tabla y sus permisos
+api/latido.js                     Visita diaria para que Supabase no se pause
+supabase/*.sql                    Tablas, permisos e invitaciones (ver MAPA.md §6)
+tests/                            Pruebas automáticas: npm test
 .github/workflows/deploy-frontend.yml   Sube el frontend a Hostinger por FTP
 DESPLIEGUE.md                     Cómo montarlo todo desde cero
 AVERIAS.md                        Qué hacer cuando algo falla
@@ -137,7 +138,7 @@ SEGURIDAD.md                      Modelo de amenazas y contramedidas
 
 ### Decisiones de diseño que merecen explicación
 
-**Un solo fichero HTML, sin framework ni build.** Son unas 6.700 líneas.
+**Un solo fichero HTML, sin framework ni build.** Son unas 9.300 líneas.
 A cambio: no hay `npm install`, no hay versiones que se pudran, no hay paso
 de compilación que se rompa en dos años, y el despliegue del frontend es
 copiar un fichero. Para una aplicación de un solo usuario, el coste de

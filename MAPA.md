@@ -363,16 +363,19 @@ en producción no hace falta volver a ejecutarlos.
 
 | Fichero | Estado | Qué hace |
 |---|---|---|
-| `schema.sql` | aplicado | La tabla original `estado` (histórico) |
 | `multiusuario.sql` | aplicado | `perfiles_estado`, `miembros`, RLS con `auth.uid()` |
 | `invitaciones.sql` | aplicado | Códigos de invitación + `canjea_invitacion()` |
+| `limite-invitaciones.sql` | aplicado | Freno a la fuerza bruta de códigos |
 | `cache-y-limites.sql` | aplicado | `precios_cache`, `uso_diario`, `consume_peticion()` |
-| `cerrar-puerta-vieja.sql` | aplicado | Renombró `estado` → `estado_copia_20260903` |
 | `revision-seguridad.sql` | herramienta | Audita RLS, permisos, funciones. Se puede ejecutar cuando sea |
-| `limpieza-total.sql` | a mano | Borra todas las cuentas. Paso 1 comprueba, paso 2 borra |
-| `restaurar-mis-datos.sql` | a mano | Devuelve la cartera desde la copia de seguridad |
-| `migrar-mis-datos.sql` | histórico | De `estado` a `perfiles_estado` |
+| `vaciar-mi-cuenta-20260929.sql` | a mano | Deja tu cuenta en blanco sin borrar el usuario |
+| `limpiar-septiembre-y-agua-20261002.sql` | a mano | Borra septiembre y la partida «Agua», con copia previa |
 | `plantillas-correo.md` | a mano | Los seis correos de Supabase, con marca propia |
+
+Los scripts de un solo uso ya aplicados (la tabla antigua `estado`, su
+migración, la restauración de septiembre, la demo en base de datos) y los que
+borraban todas las cuentas se retiraron el 02/10/2026; siguen en el historial
+de git.
 
 ### Las tablas
 
