@@ -53,6 +53,10 @@ create table if not exists public.perfiles_estado_copia_20261002 as
 select p.* from public.perfiles_estado p
   join auth.users u on u.id = p.user_id
  where lower(u.email) = 'cesarmartinezbarrio@gmail.com';
+-- Candado: sin esto, la copia se podría leer con la clave pública de la
+-- página. Con RLS activo y sin políticas, solo la ve el SQL Editor.
+alter table public.perfiles_estado_copia_20261002 enable row level security;
+revoke all on public.perfiles_estado_copia_20261002 from anon, authenticated;
 
 
 -- ── PASO 3 · HACER LA LIMPIEZA ────────────────────────────────
