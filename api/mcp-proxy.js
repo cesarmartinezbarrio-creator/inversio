@@ -39,7 +39,12 @@ const CADUCIDAD = {
 // caché no serviría de nada.
 function claveCache(servidor, herramienta, entrada) {
   const e = entrada && typeof entrada === "object" ? entrada : {};
-  const partes = Object.keys(e).sort()
+  /* Solo cuentan los parámetros que de verdad se mandan al proveedor: con
+     cualquier otro campo de relleno, la misma consulta ocupaba otra entrada
+     de la caché y volvía a gastar cuota. */
+  const usados = servidor === "Alpha Vantage MCP Server" ? (PARAMS_ALPHA[herramienta] || [])
+    : servidor === "Crypto.com" ? ["instrument_name"] : ["symbol", "outputsize"];
+  const partes = Object.keys(e).filter((k) => usados.includes(k)).sort()
     .map((k) => `${k}=${String(e[k]).trim().toUpperCase()}`)
     .join("&");
   return `${servidor}:${herramienta}:${partes}`;
@@ -134,6 +139,9 @@ async function llamarAlpha(herramienta, entrada) {
   const r = await fetch(url);
   const j = await jsonOrThrow(r, "Alpha Vantage");
   if (j.Note || j.Information) { const e = new Error(j.Note || j.Information); e.code = "rate_limited"; e.retryable = false; throw e; }
+  // Un símbolo mal escrito llega con HTTP 200 y {"Error Message": …}: es un
+  // error, no un dato, y no puede acabar guardado en la caché como bueno.
+  if (j["Error Message"]) { const e = new Error(String(j["Error Message"]).slice(0, 200)); e.code = "tool_error"; throw e; }
   return j;
 }
 
@@ -142,7 +150,10 @@ async function llamarAlpha(herramienta, entrada) {
 async function cryptoGetTicker(entrada) {
   const url = `https://api.crypto.com/v2/public/get-ticker?instrument_name=${encodeURIComponent(entrada.instrument_name)}`;
   const r = await fetch(url);
-  return jsonOrThrow(r, "Crypto.com");
+  const j = await jsonOrThrow(r, "Crypto.com");
+  // Igual que arriba: Crypto.com contesta 200 con un código distinto de 0 si falla
+  if (j && j.code != null && Number(j.code) !== 0) { const e = new Error(j.message || "error de Crypto.com"); e.code = "tool_error"; throw e; }
+  return j;
 }
 
 module.exports = async (req, res) => {

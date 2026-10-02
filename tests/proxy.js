@@ -26,12 +26,13 @@ const { aplicarCORS } = require(path.join(API, '_common.js'));
 let salidas = [];
 let contadorOk = true;
 let respuestaProveedor = null;
+let guardadosCache = 0;
 global.fetch = async (url, opciones = {}) => {
   const u = String(url);
   const json = (b, s = 200) => ({ ok: s < 400, status: s, json: async () => b });
   if (u.includes('/auth/v1/user')) return json({ id: 'u-1', email: 'a@b.es' });
   if (u.includes('/rest/v1/miembros')) return json([{ user_id: 'u-1' }]);
-  if (u.includes('/rest/v1/precios_cache')) return opciones.method === 'POST' ? json({}) : json([]);
+  if (u.includes('/rest/v1/precios_cache')) { if (opciones.method === 'POST') { guardadosCache++; return json({}); } return json([]); }
   if (u.includes('/rpc/consume_peticion'))
     return contadorOk ? json([{ permitido: true, usadas: 1, limite_dia: 300 }]) : json({}, 500);
   salidas.push(u);
@@ -89,6 +90,17 @@ async function llama(cuerpo) {
   respuestaProveedor = null;
   r['7. un error del proveedor sigue llegando como error'] = z.code === 502 && z.cuerpo?.code === 'tool_error';
   r['8. nuestra clave NUNCA vuelve al navegador en el mensaje'] = !JSON.stringify(z.cuerpo).includes('CLAVE-TWELVE-SECRETA');
+
+  // ── Revisión del 02/10/2026: un error con HTTP 200 no es un dato ──
+  salidas = []; guardadosCache = 0;
+  respuestaProveedor = { 'Error Message': 'Invalid API call. Please retry or visit the documentation.' };
+  z = await llama({ servidor: 'Alpha Vantage MCP Server', herramienta: 'GLOBAL_QUOTE', entrada: { symbol: 'NOEXISTE' } });
+  respuestaProveedor = null;
+  r['12. un «Error Message» de Alpha Vantage llega como error'] = z.code === 502 && z.cuerpo?.code === 'tool_error';
+  r['13. y NO se guarda en la caché'] = guardadosCache === 0;
+  guardadosCache = 0;
+  z = await llama({ servidor: 'Alpha Vantage MCP Server', herramienta: 'GLOBAL_QUOTE', entrada: { symbol: 'AAPL' } });
+  r['14. una respuesta buena sí se guarda (control)'] = z.code === 200 && guardadosCache === 1;
 
   // ── CORS ─────────────────────────────────────────────────────
   const cors = (origen) => { const res = resFalso(); aplicarCORS({ headers: { origin: origen } }, res); return res.cab['access-control-allow-origin']; };

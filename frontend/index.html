@@ -2123,8 +2123,24 @@ const mult = (v, d = 1) => isN(v) && v > 0 ? v.toLocaleString(NL, { minimumFract
 const media = a => { const v = a.filter(isN); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
 const ultimo = a => { for (let i = a.length - 1; i >= 0; i--) if (isN(a[i])) return a[i]; return null; };
 const cagr = (a, b, n) => (isN(a) && isN(b) && a > 0 && b > 0 && n > 0) ? Math.pow(b / a, 1 / n) - 1 : null;
+/* Crecimiento anual entre el primer y el último dato de una serie, contando
+   los años que de verdad pasan entre ellos. Antes se quitaban los huecos y
+   los datos restantes se contaban como años seguidos: 2019 y 2023 con tres
+   años vacíos en medio salían como «un año» de crecimiento. */
+const cagrSerie = (vals, anios) => {
+  let i0 = -1, i1 = -1;
+  vals.forEach((v, i) => { if (isN(v)){ if (i0 < 0) i0 = i; i1 = i; } });
+  if (i0 < 0 || i1 <= i0) return null;
+  const n = anios && isN(+anios[i0]) && isN(+anios[i1]) && +anios[i1] > +anios[i0] ? +anios[i1] - +anios[i0] : i1 - i0;
+  return cagr(vals[i0], vals[i1], n);
+};
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const uid = () => "x" + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
+/* Los identificadores van tal cual dentro de atributos HTML (data-abrir="…").
+   Los de una copia restaurada solo se aceptan si son letras, números, «_» o
+   «-»: una copia manipulada podía colar ahí comillas y atributos nuevos. */
+const idOk = v => typeof v === "string" && /^[A-Za-z0-9_-]{1,40}$/.test(v);
+const idValido = v => idOk(v) ? v : uid();
 const suma = a => a.reduce((s, x) => s + (isN(x) ? x : 0), 0);
 
 /* ── Meses ────────────────────────────────────────────────── */
@@ -2286,7 +2302,7 @@ const AYUDA = {
   valorReal:    ["Valor real", "Lo mismo, pero descontando la inflación: lo que ese dinero podrá comprar de verdad."],
   valorNeto:    ["Valor neto", "Lo que te quedaría después de que Hacienda se lleve su parte de las ganancias al vender."],
   ganancia:     ["Ganancia", "La diferencia entre lo que vale hoy y lo que pusiste. El color te lo dice de un vistazo: rojo hasta el 2%, naranja del 3 al 7%, y verde del 8% en adelante, más intenso cuanto mayor sea."],
-  anualizada:   ["Rentabilidad anualizada", "Lo que has ganado al año, de media, desde tu primera compra. Es la cifra comparable: un 10% en dos años no es lo mismo que un 10% en dos meses."],
+  anualizada:   ["Rentabilidad anualizada", "Lo que has ganado al año, de media, teniendo en cuenta cuándo entró cada aportación (de cada una solo se sabe el mes, así que se supone que a mitad de mes). Es la cifra comparable: un 10% en dos años no es lo mismo que un 10% en dos meses."],
   patrimonio:   ["Patrimonio", "Todo tu dinero guardado: el colchón más lo que tienes invertido. Es la cifra que debería subir mes a mes."],
   marketCap:    ["Capitalización", "Lo que cuesta la empresa entera en bolsa: precio por acción × número de acciones."],
   roe:          ["ROE", "Cuánto gana la empresa por cada euro que han puesto sus dueños. Por encima del 15% es bueno; ojo si viene de mucha deuda."],
@@ -2435,7 +2451,7 @@ function saneaEstado(x){
 
 
   if (Array.isArray(x.apuntes)) o.apuntes = x.apuntes.filter(a => a && a.mes && a.seccion).map(a => ({
-    id: a.id || uid(), mes: String(a.mes), seccion: a.seccion,
+    id: idValido(a.id), mes: String(a.mes), seccion: a.seccion,
     item: String(a.item || ""), desc: String(a.desc || ""),
     // La fecha del día se añadió después: los apuntes viejos no la tienen y se
     // quedan sin ella a propósito. Inventarles una sería mentir sobre cuándo
@@ -2448,13 +2464,16 @@ function saneaEstado(x){
     importe: isN(a.importe) ? a.importe : (num(a.importe) ?? 0)
   }));
   if (Array.isArray(x.aportaciones)) o.aportaciones = x.aportaciones.filter(a => a && a.mes).map(a => ({
-    id: a.id || uid(), mes: String(a.mes), activoId: a.activoId || null,
+    id: idValido(a.id), mes: String(a.mes), activoId: idOk(a.activoId) ? a.activoId : null,
     importe: isN(a.importe) ? a.importe : (num(a.importe) ?? 0),
     unidades: isN(a.unidades) ? a.unidades : (num(a.unidades) ?? null)
   }));
   if (Array.isArray(x.activos)) o.activos = x.activos.map(a => {
     const v = activoVacio(a.nombre);
     ["id","nombre","simbolo","categoria","catOtro","moneda","estado","tesis","informe","plazoBeneficio","creado"].forEach(k => { if (a[k] != null) v[k] = a[k]; });
+    if (!idOk(v.id)) v.id = uid();
+    if (!["€", "$"].includes(v.moneda)) v.moneda = "€";
+    if (!["cartera", "estudio", "observacion", "cerrado"].includes(v.estado)) v.estado = "estudio";
     ["precio","rentCons","rentOpt","multCons","multReal","gCons","gReal"].forEach(k => { if (isN(a[k])) v[k] = a[k]; });
     if (!CATEGORIAS.includes(v.categoria)) v.categoria = "Otros";
     if (a.plan) ["compra","ampliar","objetivo","stop"].forEach(k => { v.plan[k] = isN(a.plan[k]) ? a.plan[k] : null; });
@@ -2488,7 +2507,7 @@ function saneaEstado(x){
   }
   if (Array.isArray(x.fijas)) o.fijas = x.fijas
     .filter(f => f && SECCIONES[f.seccion] && f.seccion !== "inversion" && f.item)
-    .map(f => ({ id: f.id || uid(), seccion: f.seccion, item: String(f.item),
+    .map(f => ({ id: idValido(f.id), seccion: f.seccion, item: String(f.item),
                  importe: isN(f.importe) ? Math.abs(f.importe) : (Math.abs(num(f.importe)) || 0) }))
     .filter(f => f.importe > 0);
   if (x.presupuestos && typeof x.presupuestos === "object")
@@ -2560,10 +2579,19 @@ function saneaEstado(x){
   if (["mes","trimestre","semestre","anio"].includes(x.periodo)) o.periodo = x.periodo;
   return o;
 }
-function guardarLocal(){ if (DEMO) return; try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(_){} }
+/* La copia de este navegador lleva dentro de quién es: si en el mismo
+   navegador entra otra cuenta (una de prueba, por ejemplo), no carga la
+   copia de la anterior. Tras un conflicto no se escribe: así, al recargar,
+   manda la versión de la nube. */
+function guardarLocal(){
+  if (DEMO || enConflicto) return;
+  try { localStorage.setItem(LS_KEY, JSON.stringify({ ...S, _uid: miUid() })); } catch(_){}
+}
 function cargarLocal(){
   try { const r = localStorage.getItem(LS_KEY); if (!r) return null;
-    const o = JSON.parse(r); return (o && Array.isArray(o.apuntes)) ? o : null; } catch(_){ return null; }
+    const o = JSON.parse(r);
+    if (o && o._uid && miUid() && o._uid !== miUid()) return null;
+    return (o && Array.isArray(o.apuntes)) ? o : null; } catch(_){ return null; }
 }
 let apiArtifact = null, esEscritor = true;
 async function guardarNube(){
@@ -2685,7 +2713,7 @@ function kpisCartera(){
     anios = Math.max(d, 1) / 12;
   }
   const anualizada = (isN(T.plPct) && anios && anios >= 0.25 && T.invertido > 0)
-    ? Math.pow(T.valor / T.invertido, 1 / anios) - 1 : null;
+    ? tirMensual(ap, T.valor) : null;
   const ordenadas = pos.slice().sort((a, b) => (b.plPct ?? -9) - (a.plPct ?? -9));
   const cats = new Set(pos.map(p => p.act.categoria));
   const pesoMax = pos.length ? Math.max(...pos.map(p => p.peso || 0)) : null;
@@ -2696,6 +2724,26 @@ function kpisCartera(){
     categorias: cats.size, pesoMax, sinPrecio,
     aportadoMes: ap.length && meses.length ? T.invertido / Math.max(1, new Set(meses).size) : 0
   };
+}
+
+/* Rentabilidad anual que tiene en cuenta CUÁNDO entró cada euro (TIR).
+   Antes se hacía como si todo se hubiera invertido el primer mes, y quien
+   aporta cada mes salía con una anualizada muy por debajo de la real. De
+   cada aportación solo se sabe el mes: se supone que entró a mitad de mes. */
+function tirMensual(aps, valorHoy){
+  const hoy = new Date();
+  const anios = aps.map(a => {
+    const [y, m] = a.mes.split("-").map(Number);
+    return Math.max(0, (hoy - new Date(y, m - 1, 15)) / (365.25 * 86400000));
+  });
+  const vpn = r => suma(aps.map((a, i) => a.importe * Math.pow(1 + r, anios[i]))) - valorHoy;
+  let lo = -0.99, hi = 10;
+  if (vpn(lo) * vpn(hi) > 0) return null;
+  for (let k = 0; k < 120; k++){
+    const mid = (lo + hi) / 2;
+    if (vpn(lo) * vpn(mid) <= 0) hi = mid; else lo = mid;
+  }
+  return (lo + hi) / 2;
 }
 
 /* ── Meses con datos, en orden ────────────────────────────── */
@@ -2790,15 +2838,21 @@ function aportacionesDe(id){ return S.aportaciones.filter(a => a.activoId === id
 function posicion(act){
   const ap = aportacionesDe(act.id);
   const invertido = suma(ap.map(a => a.importe));
-  const unidades = suma(ap.map(a => a.unidades));
-  const conUnidades = ap.some(a => isN(a.unidades) && a.unidades > 0);
-  const costeMedio = conUnidades && unidades > 0 ? invertido / unidades : null;
-  /* Si no hay unidades, el valor solo puede seguirse por lo invertido */
-  const valor = (conUnidades && isN(act.precio)) ? unidades * act.precio * (act.moneda === S.ajustes.moneda ? 1 : (act.moneda === "$" ? S.ajustes.usdEur : 1 / S.ajustes.usdEur)) : invertido;
-  const estimado = !(conUnidades && isN(act.precio));
+  /* Solo se valora a precio de mercado lo que tiene unidades. Una compra sin
+     unidades se sigue por lo que costó: antes se valoraba a cero y aparecía
+     una pérdida que no existe. */
+  const conU = ap.filter(a => isN(a.unidades) && a.unidades > 0);
+  const unidades = suma(conU.map(a => a.unidades));
+  const invConU = suma(conU.map(a => a.importe));
+  const conUnidades = conU.length > 0;
+  const parcial = conUnidades && conU.length < ap.length;   // unas compras con unidades y otras sin
+  const costeMedio = conUnidades && unidades > 0 ? invConU / unidades : null;
+  const fx = act.moneda === S.ajustes.moneda ? 1 : (act.moneda === "$" ? S.ajustes.usdEur : 1 / S.ajustes.usdEur);
+  const valor = (conUnidades && isN(act.precio)) ? unidades * act.precio * fx + (invertido - invConU) : invertido;
+  const estimado = !(conUnidades && isN(act.precio)) || parcial;
   const pl = valor - invertido;
   const plPct = invertido > 0 ? pl / invertido : null;
-  return { act, invertido, unidades: conUnidades ? unidades : null, costeMedio, valor, estimado, pl, plPct, n: ap.length };
+  return { act, invertido, unidades: conUnidades ? unidades : null, costeMedio, valor, estimado, parcial, pl, plPct, n: ap.length };
 }
 
 function cartera(){ return S.activos.filter(a => a.estado === "cartera").map(posicion); }
@@ -2990,12 +3044,9 @@ function analizar(e){
   A.mEbit = arr("ebit").map((v, i) => isN(v) && isN(arr("ventas")[i]) && arr("ventas")[i] > 0 ? v / arr("ventas")[i] : null);
   A.roicMedio = media(A.roic);
   A.roicUlt = ultimo(A.roic);
-  const vv = arr("ventas").filter(isN);
-  A.cagrVentas = vv.length >= 2 ? cagr(vv[0], vv[vv.length - 1], vv.length - 1) : null;
-  const bb = A.bpa.filter(isN);
-  A.cagrBpa = bb.length >= 2 ? cagr(bb[0], bb[bb.length - 1], bb.length - 1) : null;
-  const ac = arr("acciones").filter(isN);
-  A.varAcciones = ac.length >= 2 ? cagr(ac[0], ac[ac.length - 1], ac.length - 1) : null;
+  A.cagrVentas = cagrSerie(arr("ventas"), e.anios);
+  A.cagrBpa = cagrSerie(A.bpa, e.anios);
+  A.varAcciones = cagrSerie(arr("acciones"), e.anios);
   const sbcU = ultimo(arr("sbc")), fcfU = ultimo(A.fcf);
   A.sbcFcf = isN(sbcU) && isN(fcfU) && fcfU > 0 ? sbcU / fcfU : null;
 
@@ -3028,13 +3079,13 @@ function analizar(e){
 const CHECKS = [
   { t: "Las ventas crecen",            crit: false, ay: "Un negocio que no vende más cada año acaba valiendo menos, por bien que gestione." },
   { t: "El margen no se deteriora",    crit: false, ay: "Si cada euro vendido deja menos beneficio que hace cinco años, algo se está estropeando." },
-  { t: "ROIC por encima del mercado",  crit: true,  ay: "Rinde más que la media del mercado (13%) por cada euro empleado. Es la señal de un buen negocio." },
+  { t: "ROIC por encima de tu listón",  crit: true,  ay: "Rinde más de un 13% por cada euro empleado en el negocio. Es un listón personal, no una media universal: cambia mucho de un sector a otro, y en bancos y aseguradoras no sirve." },
   { t: "El ROIC no se está secando",   crit: false, ay: "El último año frente a su propia media. Cuando cae mucho, la ventaja competitiva se está cerrando." },
   { t: "Salud financiera",             crit: true,  ay: "Deuda neta frente al beneficio bruto. Por encima de 3 veces, un mal año se convierte en un problema." },
-  { t: "Genera caja de verdad",        crit: true,  ay: "El flujo de caja libre es positivo y crece. Sin caja, el beneficio contable no sirve de nada." },
+  { t: "Genera caja de verdad",        crit: true,  ay: "El flujo de caja libre es positivo y crece. Sin caja, el beneficio contable no sirve de nada. Ojo: aquí es una aproximación —beneficio bruto menos la inversión de mantenimiento, intereses e impuestos— que no cuenta el dinero que se queda atrapado en existencias y clientes ni la inversión para crecer." },
   { t: "No te diluye",                 crit: false, ay: "Si el número de acciones sube, tu trozo de la empresa se encoge cada año sin que hagas nada." },
   { t: "El equipo no se paga con tu dinero", crit: true, ay: "Cuánto del flujo de caja se va en pagar a directivos con acciones. Por encima del 15% es abusivo." },
-  { t: "Usa bien el capital",          crit: false, ay: "Adónde va el dinero que genera: reinversión productiva, dividendos, recompras o caja parada." },
+  { t: "Reinvierte lo que genera",     crit: false, ay: "Qué parte de la caja va a inversión, compras de empresas o recompras de acciones, en vez de quedarse parada. Dice adónde va el dinero, no si se usa bien: eso hay que mirarlo a mano." },
   { t: "Los inventarios no se atascan", crit: false, ay: "Si las existencias crecen mucho más que las ventas, es que no está vendiendo lo que fabrica." }
 ];
 
@@ -3048,8 +3099,8 @@ function semaforo(e, A){
   const dn = ultimo(A.dnEbitda);
   const f3 = A.fcf.slice(-3).filter(isN);
   const fcfOk = f3.length >= 2 ? (f3.every(v => v > 0) ? (f3[f3.length - 1] > f3[0] ? "ok" : "mid") : "bad") : "na";
-  const inv = arr("inventarios").filter(isN), ven = arr("ventas").filter(isN);
-  const gap = (inv.length >= 2 && ven.length >= 2) ? (cagr(ven[0], ven[ven.length - 1], ven.length - 1) - cagr(inv[0], inv[inv.length - 1], inv.length - 1)) : null;
+  const gV = cagrSerie(arr("ventas"), e.anios), gI = cagrSerie(arr("inventarios"), e.anios);
+  const gap = isN(gV) && isN(gI) ? gV - gI : null;
   const fcfU = ultimo(A.fcf);
   const prod = isN(fcfU) && fcfU > 0 ? (suma([ultimo(arr("capexTotal")), ultimo(arr("adquisiciones")), ultimo(arr("recompras"))]) / fcfU) : null;
 
@@ -3081,9 +3132,12 @@ function semaforo(e, A){
   const rojasCrit = checks.filter(c => c.crit && c.estado === "bad");
   const rojas = checks.filter(c => c.estado === "bad");
   const verdes = checks.filter(c => c.estado === "ok");
-  const vEstado = rojasCrit.length ? "bad" : (rojas.length > 1 || verdes.length < 5) ? "mid" : "ok";
-  const veredicto = vEstado === "bad" ? "Descartar por ahora" : vEstado === "mid" ? "Requiere investigación" : "Candidata a análisis profundo";
-  return { checks, rojasCrit, rojas, verdes, vEstado, veredicto };
+  // Una comprobación crítica sin dato no puede acabar en un veredicto favorable
+  const critSinDato = checks.filter(c => c.crit && c.estado === "na");
+  const vEstado = rojasCrit.length ? "bad" : (rojas.length > 1 || verdes.length < 5 || critSinDato.length) ? "mid" : "ok";
+  const veredicto = vEstado === "bad" ? "Descartar por ahora"
+    : critSinDato.length && !rojas.length ? "Datos insuficientes" : vEstado === "mid" ? "Requiere investigación" : "Candidata a análisis profundo";
+  return { checks, rojasCrit, rojas, verdes, critSinDato, vEstado, veredicto };
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -3147,7 +3201,8 @@ function semaforoEtf(a){
   const rojas = checks.filter(c => c.estado === "bad");
   const verdes = checks.filter(c => c.estado === "ok");
   const sinDato = checks.filter(c => c.estado === "na");
-  const vEstado = rojasCrit.length ? "bad" : (rojas.length > 1) ? "bad" : (rojas.length || sinDato.length > 2) ? "mid" : verdes.length >= 7 ? "ok" : "mid";
+  const critSinDato = checks.filter(c => c.crit && c.estado === "na");
+  const vEstado = rojasCrit.length ? "bad" : (rojas.length > 1) ? "bad" : (rojas.length || sinDato.length > 2 || critSinDato.length) ? "mid" : verdes.length >= 7 ? "ok" : "mid";
   const veredicto = vEstado === "bad" ? "Busca otro: este envase no compensa"
     : vEstado === "mid" ? "Vale, pero compáralo con dos más"
     : "Buen envase para ese índice";
@@ -3181,7 +3236,7 @@ function solapamientos(){
 /* ── Bitcoin, oro y demás: no se valora, se dimensiona ────── */
 const CHECKS_PESO = [
   { t: "Pesa menos de tu tope",       crit: true,  ay: "Qué parte de todo lo invertido tienes aquí, frente al tope que tú mismo te has fijado. En algo que no genera nada, esta es la única decisión de verdad." },
-  { t: "Aguantarías su peor caída",   crit: true,  ay: "Se toma la caída que este tipo de activo ya ha sufrido en el pasado sin que pasara nada extraordinario y se mira cuánto sería sobre todo tu patrimonio. Si esa cifra te quitaría el sueño, llevas más de lo que puedes." },
+  { t: "Aguantarías una caída fuerte", crit: true,  ay: "Se toma una caída que este tipo de activo ya ha sufrido en el pasado sin que pasara nada extraordinario y se mira cuánto sería sobre todo tu patrimonio. No es lo peor que puede pasar: puede caer más, e incluso perderse entero. Si esa cifra ya te quitaría el sueño, llevas más de lo que puedes." },
   { t: "El colchón está antes",       crit: true,  ay: "Nadie debería tener nada de esto sin tener antes los meses de gastos guardados. Es lo que evita venderlo en el peor momento porque se rompió la lavadora." },
   { t: "Sabes por qué lo tienes",     crit: false, ay: "Sin una frase escrita explicando para qué está ahí, la primera caída fuerte decide por ti." },
   { t: "No es el único sitio donde inviertes", crit: false, ay: "Si es lo único que tienes, tu resultado depende entero de un activo que puede pasarse años sin ir a ninguna parte." }
@@ -3217,8 +3272,10 @@ function semaforoPeso(a){
   const rojasCrit = checks.filter(c => c.crit && c.estado === "bad");
   const rojas = checks.filter(c => c.estado === "bad");
   const verdes = checks.filter(c => c.estado === "ok");
-  const vEstado = rojasCrit.length ? "bad" : rojas.length ? "mid" : "ok";
+  const critSinDato = checks.filter(c => c.crit && c.estado === "na");
+  const vEstado = rojasCrit.length ? "bad" : (rojas.length || critSinDato.length) ? "mid" : "ok";
   const veredicto = vEstado === "bad" ? "Pesa más de lo que puedes sostener"
+    : critSinDato.length && !rojas.length ? "Faltan datos para juzgarlo"
     : vEstado === "mid" ? "Dentro de lo razonable, con algo que ajustar"
     : "Dimensionado como te habías propuesto";
   return { checks, rojasCrit, rojas, verdes, sinDato: [], vEstado, veredicto, tipo: "peso",
@@ -3261,7 +3318,8 @@ function estimaConIndicadores(a){
   const senales = [gRoe, gFwd].filter(isN).filter(g => g > -0.5);
   if (!senales.length) return null;
 
-  const gCons = Math.min(TOPE_G_CONS, Math.max(0, Math.min(...senales)));
+  // Puede ser negativo: si las señales dicen que encoge, el prudente lo refleja
+  const gCons = Math.min(TOPE_G_CONS, Math.min(...senales));
   const gOpt  = Math.min(TOPE_G_OPT,  Math.max(gCons, Math.max(...senales)));
 
   const perHoy = a.precio / k.bpa;
@@ -3274,7 +3332,7 @@ function estimaConIndicadores(a){
   const igual = cagr(val(gCons, perHoy));
 
   const dice = [];
-  if (isN(gFwd)) dice.push(`lo que los analistas dan por descontado (${pct(Math.max(0, gFwd), 1)})`);
+  if (isN(gFwd)) dice.push(`lo que los analistas dan por descontado (${pct(gFwd, 1)})`);
   if (isN(gRoe)) dice.push(`lo que puede financiar con lo que gana (${pct(gRoe, 0)}${gRoe > TOPE_G_CONS ? ", recortado" : ""})`);
 
   return {
@@ -3450,7 +3508,8 @@ function tablaCompuesto(inicial, aportacionMensual, r, anios, inflacion, fiscali
   const filas = [];
   for (let n = 1; n <= anios; n++){
     const capital = inicial * Math.pow(1 + r, n);
-    const aport = i > 0 ? aportacionMensual * ((Math.pow(1 + i, 12 * n) - 1) / i) : aportacionMensual * 12 * n;
+    // Solo la tasa cero va aparte: la fórmula vale también con rentabilidad negativa
+    const aport = i !== 0 ? aportacionMensual * ((Math.pow(1 + i, 12 * n) - 1) / i) : aportacionMensual * 12 * n;
     const total = capital + aport;
     const aportado = inicial + aportacionMensual * 12 * n;
     const generado = total - aportado;
@@ -8635,7 +8694,13 @@ function eventos(){
      él, la pantalla de acceso vería la sesión todavía válida y te
      devolvería aquí de rebote. */
   $("#btnSalir").addEventListener("click", async () => {
-    try { await guardarYa(false); } catch(_){}
+    try { await guardarYa(true); } catch(_){}
+    /* Al salir se borra también la copia de tus datos de este navegador
+       (antes se quedaba). Si lo último no ha llegado a la nube, se pregunta:
+       borrar esa copia sería perder esos cambios. */
+    if (estadoSync !== "ok" && !DEMO &&
+        !confirm("Lo último que has cambiado no ha llegado a guardarse en tu cuenta. Si sales ahora se pierde. ¿Salir igualmente?")) return;
+    try { localStorage.removeItem(LS_KEY); localStorage.removeItem("cyc.estado.conflicto"); } catch(_){}
     location.href = PAGINA_ACCESO + "?salir";
   });
 
@@ -8987,7 +9052,7 @@ function datosDemo(){
 /* ═══════════════════════════════════════════════════════════
    Guardado — automático, para poder abrirlo desde el móvil
    ═══════════════════════════════════════════════════════════ */
-let guardadoT = null, guardando = false, ultimoGuardado = null, estadoSync = "local";
+let guardadoT = null, guardando = false, ultimoGuardado = null, estadoSync = "local", enConflicto = false;
 
 function pintaSync(){
   const el = $("#sync"), t = $("#syncTxt");
@@ -9022,13 +9087,21 @@ async function guardarYa(silencioso){
   clearTimeout(guardadoT);
   if (!apiArtifact || !esEscritor){ estadoSync = "local"; pintaSync(); if (!silencioso) toast("Esta vista no puede guardar en tu cuenta. Tus datos siguen en este navegador.", true); return; }
   if (guardando){ guardadoT = setTimeout(() => guardarYa(silencioso), 2500); return; }
+  if (enConflicto){ estadoSync = "error"; pintaSync(); if (!silencioso) toast("Hay una versión más nueva guardada desde otro sitio. Recarga la página.", true); return; }
   guardando = true; estadoSync = "guardando"; pintaSync();
   S.rev = (S.rev || 0) + 1;
   guardarLocal();
   const r = await guardarNube();
   guardando = false;
   if (r.estado === "ok"){ estadoSync = "ok"; ultimoGuardado = Date.now(); if (!silencioso) toast("Guardado en tu cuenta. Ábrelo en el móvil con el mismo enlace."); }
-  else if (r.estado === "conflicto"){ estadoSync = "error"; if (!silencioso) toast("Alguien ha guardado desde otro sitio. Recarga la página para ver la versión buena.", true); }
+  else if (r.estado === "conflicto"){
+    /* Lo de este navegador no se pierde: queda aparte en «cyc.estado.conflicto».
+       Y se quita la copia normal para que, al recargar, mande la de la nube. */
+    try { localStorage.setItem("cyc.estado.conflicto", JSON.stringify({ ...S, _uid: miUid(), _cuando: new Date().toISOString() }));
+          localStorage.removeItem(LS_KEY); } catch(_){}
+    enConflicto = true; estadoSync = "error";
+    toast("Desde otro dispositivo se ha guardado algo más nuevo. Recarga la página para verlo. Lo de este navegador queda guardado aparte.", true);
+  }
   else if (r.estado === "solo-lectura" || r.estado === "local"){ estadoSync = "local"; if (!silencioso) toast("Desde esta vista no se puede guardar en la nube.", true); }
   else { estadoSync = "error"; if (!silencioso) toast("No he podido guardar en tu cuenta. Sigue en este navegador.", true); }
   pintaSync();
@@ -9243,27 +9316,59 @@ async function sbEstado(ruta, opciones = {}){
   });
 }
 
+/* La revisión que tiene la nube según lo último que este navegador leyó
+   o guardó. undefined = aún no se sabe · null = todavía no hay fila. */
+let revNube;
+
+/* Lanza un error si no se puede leer (antes devolvía null, y un fallo de
+   red se confundía con «cuenta vacía» y el indicador decía «guardado»). */
 async function leerEstadoNube(){
   const uid = miUid();
   if (!uid) return null;
   const r = await sbEstado(`/rest/v1/perfiles_estado?user_id=eq.${encodeURIComponent(uid)}&select=json`, { cache: "no-store" });
-  if (!r.ok) return null;
-  const filas = await r.json().catch(() => []);
-  return Array.isArray(filas) && filas.length ? filas[0].json : null;
+  if (!r.ok) throw new Error("no se pudo leer la cuenta: " + r.status);
+  const filas = await r.json();
+  const j = Array.isArray(filas) && filas.length ? filas[0].json : null;
+  revNube = j ? (isN(j.rev) ? j.rev : 0) : null;
+  return j;
 }
 
+/* Se guarda SOLO si la nube sigue en la revisión que este navegador
+   conoce. Si otro dispositivo (o el script de limpieza) ha guardado
+   después, la base de datos no toca nada y se avisa de conflicto, en vez
+   de pisar en silencio lo del otro. La comprobación va en el mismo UPDATE,
+   así que no hay hueco entre mirar y escribir. */
 async function guardarEstadoNube(json){
   const uid = miUid();
   if (!uid) throw new Error("sin sesión");
-  const r = await sbEstado(`/rest/v1/perfiles_estado`, {
-    method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-    body: JSON.stringify([{ user_id: uid, json, actualizado: new Date().toISOString() }]),
-  });
+  if (revNube === undefined) await leerEstadoNube();
+  json.rev = S.rev = Math.max(isN(json.rev) ? json.rev : 0, (revNube || 0) + 1);
+  const ahora = new Date().toISOString();
+  const r = revNube === null
+    ? await sbEstado(`/rest/v1/perfiles_estado?select=user_id`, {
+        method: "POST",
+        headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
+        body: JSON.stringify([{ user_id: uid, json, actualizado: ahora }]),
+      })
+    : await sbEstado(`/rest/v1/perfiles_estado?user_id=eq.${encodeURIComponent(uid)}&json->>rev=eq.${encodeURIComponent(String(revNube))}&select=user_id`, {
+        method: "PATCH",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ json, actualizado: ahora }),
+      });
+  if (r.ok){
+    const filas = await r.json().catch(() => []);
+    if (!Array.isArray(filas) || !filas.length){
+      const e = new Error("la nube tiene una versión más nueva"); e.code = "conflict"; throw e;
+    }
+    revNube = json.rev;
+    return;
+  }
   if (!r.ok){
     const texto = await r.text().catch(() => "");
     const e = new Error("no se pudo guardar: " + texto.slice(0, 200));
-    e.code = "capability_disabled";
+    // Antes cualquier fallo (un corte de red) dejaba la sesión sin guardar
+    // en la nube hasta recargar. Solo un «no tienes permiso» la apaga.
+    e.code = r.status === 401 || r.status === 403 ? "not_granted" : "error";
     throw e;
   }
 }
@@ -9325,12 +9430,17 @@ const apiMcpBackend = {
     toast("Falta configurar la URL del backend: edita el meta \"api-base\" en el <head> del HTML.", true);
     esEscritor = false; estadoSync = "local"; pintaSync();
   } else {
-    let nube = null;
-    try { nube = await leerEstadoNube(); } catch(_){}
+    let nube = null, leida = true;
+    try { nube = await leerEstadoNube(); } catch(_){ leida = false; }
     if (nube && Array.isArray(nube.apuntes) && (!local || (nube.rev || 0) >= (local.rev || 0))){
       S = saneaEstado(nube); render();
     }
-    apiArtifact = apiArtifactBackend; esEscritor = true; estadoSync = "ok"; ultimoGuardado = Date.now();
+    apiArtifact = apiArtifactBackend; esEscritor = true;
+    /* Si no se ha podido leer la nube, no se dice «guardado»: se trabaja con
+       la copia de este navegador y el primer guardado vuelve a mirar la
+       nube antes de escribir, así que tampoco puede pisarla a ciegas. */
+    if (leida){ estadoSync = "ok"; ultimoGuardado = Date.now(); }
+    else { estadoSync = "error"; toast("No he podido leer tu cuenta. Trabajas con la copia de este navegador; se guardará en cuanto haya conexión.", true); }
     apiMcp = apiMcpBackend; mcpListo = true;
     pintaSync();
     setInterval(pintaSync, 60000);

@@ -21,7 +21,8 @@
 // Los iconos llevan ?v=3 en su dirección: los navegadores guardan el
 // favicon aparte y casi nunca lo renuevan; con otra dirección, sí.
 // v4 (02/10/2026): fondo de cómic.
-const VERSION = "cyc-v4";
+// v5 (02/10/2026): correcciones de la revisión (cálculos, guardado, sesión).
+const VERSION = "cyc-v5";
 const ARMAZON = [
   "/",
   "/index.html",
