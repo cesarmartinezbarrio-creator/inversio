@@ -2167,7 +2167,8 @@ const SUGERIDAS = {
               "Internet", "Móvil", "Seguros", "Colegio", "Guardería",
               "Préstamo", "Suscripciones", "Gimnasio", "Comida"],
   variables: ["Transporte", "Gasolina", "Ocio", "Ropa", "Salud",
-              "Farmacia", "Restaurantes", "Regalos", "Casa", "Mascotas", "Viajes"]
+              "Farmacia", "Restaurantes", "Regalos", "Casa", "Mascotas", "Viajes",
+              "Gastos personales"]
 };
 /* En estas partidas se pide una descripción libre, porque «Otros» sin más no dice nada */
 const PIDE_DESC = ["Otros", "Gastos personales"];
@@ -2405,7 +2406,7 @@ function saneaEstado(x){
     partidaAbierta: null,
     ajustes: { ...AJUSTES }, preciosTs: null, avisosVistos: {}, mcpFallos: [], rev: 0,
     fijas: [], migr: {},
-    // Importe previsto al mes por partida ("seccion|item" → €). Hoy solo lo usa Comida.
+    // Importe previsto al mes por partida ("seccion|item" → €). Lo usan Comida y Gastos personales.
     presupuestos: {}
   };
   if (!x || typeof x !== "object") return o;
@@ -4364,7 +4365,8 @@ function guardaAnadir(){
     toast(`Comida: +${dinero(Math.abs(imp))}.`);
     return;
   }
-  // Lo mismo con Gastos personales: cada importe se suma a lo que ya hay
+  // Lo mismo con Gastos personales, que vive en variables
+  if (k === "fijos" && esGastoPersonal(item)) k = "variables";
   if (esComida(k, item)){
     const lv = S.etiquetas[k] || (S.etiquetas[k] = []);
     const nombre = lv.find(x => esGastoPersonal(x)) || item;
@@ -8758,6 +8760,7 @@ function datosDemo(){
   const S0 = saneaEstado({});
   S0.configurado = true;
   S0.presupuestos["fijos|Comida"] = 450;
+  S0.presupuestos["variables|Gastos personales"] = 120;
 
   /* Los doce meses, del más antiguo al actual. */
   const hoy = mesHoy();
@@ -8812,6 +8815,10 @@ function datosDemo(){
                     ["Carnicería", az2(14, 33)], ["Panadería", az2(6, 14)]];
     compra.forEach(([d, imp]) => pon(mes, "fijos", "Comida", imp, d));
     pon(mes, "fijos", "Comida", az2(120, 210));              // el resto del mes
+    /* Gastos personales, igual: un previsto al mes y los gastos sumándose */
+    [["Peluquería", az2(12, 18)], ["Cafés", az2(9, 24)], ["Libros", az2(0, 22)]]
+      .forEach(([d, imp]) => pon(mes, "variables", "Gastos personales", imp, d));
+    pon(mes, "variables", "Gastos personales", az2(20, 55));
     pon(mes, "variables", "Transporte", az2(48, 92));
     pon(mes, "variables", "Restaurantes", az2(35, 125));
     pon(mes, "variables", "Ocio", az2(18, 68));
