@@ -46,26 +46,26 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
     document.querySelectorAll('#anSug [data-sugcat]').length >= 5);
 
   // pulsar una sugerencia rellena el nombre
-  await p.evaluate(() => document.querySelector('#anSug [data-sugcat="Comida"]').click());
+  await p.evaluate(() => document.querySelector('#anSug [data-sugcat="Ropa"]').click());
   r['7. la sugerencia rellena la casilla'] = await p.evaluate(() =>
-    document.getElementById('anCat').value === 'Comida');
+    document.getElementById('anCat').value === 'Ropa');
 
   await p.fill('#anImp', '200');
   await p.click('#btnAnOk');
   await p.waitForTimeout(300);
   r['8. la categoría escrita aparece de azulejo'] = await p.evaluate(() =>
-    !!document.querySelector('#p-mes [data-teja="variables|Comida"]'));
+    !!document.querySelector('#p-mes [data-teja="variables|Ropa"]'));
   r['9. con su importe bien grande'] = await p.evaluate(() =>
-    /200/.test(document.querySelector('[data-teja="variables|Comida"] .teja-v').textContent));
+    /200/.test(document.querySelector('[data-teja="variables|Ropa"] .teja-v').textContent));
   r['10. y queda guardada para volver a sugerirla'] = await p.evaluate(() =>
-    S.etiquetas.variables.includes('Comida'));
+    S.etiquetas.variables.includes('Ropa'));
 
   // ── 3 · cambiar el importe sin perder la categoría ─────────
-  await p.click('[data-teja="variables|Comida"]');
+  await p.click('[data-teja="variables|Ropa"]');
   await p.waitForTimeout(250);
   r['11. al pulsar el azulejo se abre para editar'] = await p.evaluate(() =>
     document.getElementById('dlgAnadir').open &&
-    document.getElementById('anTitulo').textContent === 'Comida' &&
+    document.getElementById('anTitulo').textContent === 'Ropa' &&
     document.getElementById('anCat').disabled === true);
   r['12. viene con el importe puesto'] = await p.evaluate(() =>
     document.getElementById('anImp').value.replace(',','.') === '200');
@@ -73,8 +73,8 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   await p.click('#btnAnOk');
   await p.waitForTimeout(300);
   r['13. cambia el importe y la categoría sigue'] = await p.evaluate(() =>
-    totalPartida(S.mes,'variables','Comida') === 235.5 &&
-    S.etiquetas.variables.includes('Comida'));
+    totalPartida(S.mes,'variables','Ropa') === 235.5 &&
+    S.etiquetas.variables.includes('Ropa'));
 
   // ── 4 · la chincheta: que vuelva sola el mes que viene ─────
   await p.click('[data-anadir="fijos"]');
@@ -102,7 +102,7 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
     return t.classList.contains('porconfirmar') && /confírmalo/i.test(t.textContent);
   });
   r['18. lo que NO está anclado no se arrastra'] = await p.evaluate(() =>
-    !document.querySelector('[data-teja="variables|Comida"]'));
+    !document.querySelector('[data-teja="variables|Ropa"]'));
 
   // volver al mes de trabajo
   await p.evaluate(() => { const [a,m]=S.mes.split('-').map(Number); const d=new Date(a,m-2,1);
@@ -111,23 +111,23 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
 
   // ── 5 · los tiques SUMAN dentro de la categoría ────────────
   await p.evaluate(() => {
-    S.apuntes.push({ id: uid(), mes:S.mes, seccion:'variables', item:'Comida',
-                     desc:'Mercadona', fecha:fechaParaMes(S.mes), importe:50 });
+    S.apuntes.push({ id: uid(), mes:S.mes, seccion:'variables', item:'Ropa',
+                     desc:'Zara', fecha:fechaParaMes(S.mes), importe:50 });
     render();
   });
   await p.waitForTimeout(250);
   r['19. el tique suma en el azulejo (235,50 + 50)'] = await p.evaluate(() =>
-    totalPartida(S.mes,'variables','Comida') === 285.5 &&
-    /285,50/.test(document.querySelector('[data-teja="variables|Comida"] .teja-v').textContent));
+    totalPartida(S.mes,'variables','Ropa') === 285.5 &&
+    /285,50/.test(document.querySelector('[data-teja="variables|Ropa"] .teja-v').textContent));
   r['20. el azulejo avisa de que hay desglose'] = await p.evaluate(() =>
-    /desglose/i.test(document.querySelector('[data-teja="variables|Comida"] .teja-s').textContent));
+    /desglose/i.test(document.querySelector('[data-teja="variables|Ropa"] .teja-s').textContent));
 
-  await p.click('[data-teja="variables|Comida"]');
+  await p.click('[data-teja="variables|Ropa"]');
   await p.waitForTimeout(350);
   r['21. con varios apuntes NO abre el diálogo: abre el desglose'] = await p.evaluate(() =>
-    !document.getElementById('dlgAnadir').open && S.partidaAbierta === 'variables|Comida');
+    !document.getElementById('dlgAnadir').open && S.partidaAbierta === 'variables|Ropa');
   r['22. el desglose lista los dos apuntes'] = await p.evaluate(() =>
-    document.body.textContent.includes('Mercadona'));
+    document.body.textContent.includes('Zara'));
   r['23. y tiene su gráfico circular'] = await p.evaluate(() =>
     document.querySelectorAll('#p-mes svg.anillo .arco').length === 2);
 
@@ -175,8 +175,8 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
     ponerImporte(S.mes,'ingresos','Nómina',1850);
     ponerImporte(S.mes,'fijos','Alquiler',750); anclar('fijos','Alquiler',750);
     ponerImporte(S.mes,'fijos','Luz',61.2);  anclar('fijos','Luz',61.2);
-    ponerImporte(S.mes,'variables','Comida',235.5);
-    S.apuntes.push({id:uid(),mes:S.mes,seccion:'variables',item:'Comida',desc:'Mercadona',fecha:fechaParaMes(S.mes),importe:50});
+    ponerImporte(S.mes,'variables','Ropa',235.5);
+    S.apuntes.push({id:uid(),mes:S.mes,seccion:'variables',item:'Ropa',desc:'Zara',fecha:fechaParaMes(S.mes),importe:50});
     ponerImporte(S.mes,'variables','Gasolina',88);
     S.modulo='economia'; S.tab='mes'; render();
   });
@@ -184,7 +184,7 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   await p2.screenshot({ path:OUT+'/mosaico-movil.png', fullPage:true });
   // medidas reales, no impresiones
   const med = await p2.evaluate(() => {
-    const t = document.querySelector('[data-teja="variables|Comida"]');
+    const t = document.querySelector('[data-teja="variables|Ropa"]');
     const b = t.querySelector('.teja-peso'); const rb = b.getBoundingClientRect();
     return { alto: Math.round(t.getBoundingClientRect().height),
              barraAlto: Math.round(rb.height), barraAncho: Math.round(rb.width),

@@ -19,12 +19,13 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   const r = {};
   const vis = i => p.evaluate(x => { const e=document.getElementById(x); return !!e && !e.hidden; }, i);
 
-  // Estado de partida: Comida con 200 escritos a mano
+  // Estado de partida: Ropa con 200 escritos a mano
   await p.evaluate(() => {
     S.configurado = true;   // cuenta ya montada: no toca la pantalla de arranque
-    S.etiquetas.variables = ['Comida','Peluquería','Gastos personales','Otros'];
+    S.mes = '2026-09';      // el mes del tique de abajo: si no, la prueba caduca al cambiar de mes
+    S.etiquetas.variables = ['Ropa','Peluquería','Gastos personales','Otros'];
     S.apuntes = [];
-    ponerImporte(S.mes,'variables','Comida', 200);
+    ponerImporte(S.mes,'variables','Ropa', 200);
     S.modulo='economia'; S.tab='mes'; S.partidaAbierta=null; render();
   });
   await p.waitForTimeout(300);
@@ -38,9 +39,9 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   });
   r['4. Ingresos es su propio módulo'] = await p.evaluate(() =>
     [...document.querySelectorAll('.card-hd h3')].some(h => h.textContent.trim().startsWith('Ingresos')));
-  r['5. Comida con un apunte: el azulejo abre el diálogo'] = await p.evaluate(() => {
-    const t = document.querySelector('[data-teja="variables|Comida"]');
-    return !!t && partidaSencilla(S.mes,'variables','Comida');
+  r['5. Ropa con un apunte: el azulejo abre el diálogo'] = await p.evaluate(() => {
+    const t = document.querySelector('[data-teja="variables|Ropa"]');
+    return !!t && partidaSencilla(S.mes,'variables','Ropa');
   });
 
   // ─── El escaneo suma: 200 + 50 = 250 ───────────────────────
@@ -48,17 +49,17 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
     seccionTique = 'variables';
     const A = analizaTique('SUPER EL ARBOL\n05/09/2026\nTOTAL 50,00');
     TIQUE = A; document.getElementById('dlgTique').showModal(); pintaTique(A);
-    document.getElementById('tqItem').value = 'Comida';
+    document.getElementById('tqItem').value = 'Ropa';
     document.getElementById('btnTiqueOk').click();
   });
   await p.waitForTimeout(400);
 
   const est = await p.evaluate(() => ({
-    total: totalPartida(S.mes,'variables','Comida'),
-    n: apuntesDe(S.mes,'variables','Comida').length,
-    fechas: apuntesDe(S.mes,'variables','Comida').map(a => a.fecha),
-    suma: (document.querySelector('[data-teja="variables|Comida"] .teja-v')||{}).textContent,
-    editable: partidaSencilla(S.mes,'variables','Comida')
+    total: totalPartida(S.mes,'variables','Ropa'),
+    n: apuntesDe(S.mes,'variables','Ropa').length,
+    fechas: apuntesDe(S.mes,'variables','Ropa').map(a => a.fecha),
+    suma: (document.querySelector('[data-teja="variables|Ropa"] .teja-v')||{}).textContent,
+    editable: partidaSencilla(S.mes,'variables','Ropa')
   }));
   r['6. el total pasa a 250 (200 + 50)'] = est.total === 250;
   r['7. son DOS apuntes, no uno fundido'] = est.n === 2;
@@ -66,10 +67,10 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   r['9. el listado enseña la suma'] = /250/.test(est.suma || '');
   r['10. ya no se edita a pelo: hay que abrir el desglose'] = est.editable === false;
   r['11. la sección venía decidida'] = await p.evaluate(() =>
-    apuntesDe(S.mes,'variables','Comida').some(a => a.desc && a.seccion === 'variables'));
+    apuntesDe(S.mes,'variables','Ropa').some(a => a.desc && a.seccion === 'variables'));
 
   // ─── La página del detalle ─────────────────────────────────
-  await p.click('[data-teja="variables|Comida"]');
+  await p.click('[data-teja="variables|Ropa"]');
   await p.waitForTimeout(350);
   const det = await p.evaluate(() => ({
     filas: document.querySelectorAll('.apunte').length,
@@ -92,7 +93,7 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
     !S.partidaAbierta && document.querySelectorAll('.bloque-gasto').length === 2);
 
   // cambiar de pestaña cierra el detalle
-  await p.evaluate(() => { S.partidaAbierta = 'variables|Comida'; render(); });
+  await p.evaluate(() => { S.partidaAbierta = 'variables|Ropa'; render(); });
   await p.evaluate(() => { irA('inversion'); });
   await p.waitForTimeout(250);
   r['19. navegar cierra el detalle'] = await p.evaluate(() => S.partidaAbierta === null);

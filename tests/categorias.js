@@ -29,10 +29,10 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   await p.waitForTimeout(120);
   await p.click('[data-sug="fijos|Luz"]');
   await p.waitForTimeout(120);
-  await p.click('[data-sug="variables|Comida"]');
+  await p.click('[data-sug="variables|Ropa"]');
   await p.waitForTimeout(120);
   r['4. marcar añade la categoría'] = await p.evaluate(() =>
-    S.etiquetas.fijos.includes('Luz') && S.etiquetas.variables.includes('Comida'));
+    S.etiquetas.fijos.includes('Luz') && S.etiquetas.variables.includes('Ropa'));
   await p.click('[data-sug="fijos|Luz"]');   // desmarcar
   await p.waitForTimeout(120);
   r['5. desmarcar la quita'] = await p.evaluate(() => !S.etiquetas.fijos.includes('Luz'));
@@ -85,28 +85,28 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   r['13. NO rellena meses ya pasados'] = await p.evaluate(m => apuntesDe(m,'fijos','Alquiler o hipoteca').length === 0, mesPasado);
 
   // ─── RENOMBRAR SIN PERDER NADA ───────────────────────────────
-  await p.evaluate(() => { S.mes = mesHoy(); S.partidaAbierta = 'variables|Comida'; render(); });
+  await p.evaluate(() => { S.mes = mesHoy(); S.partidaAbierta = 'variables|Ropa'; render(); });
   await p.waitForTimeout(300);
   await p.evaluate(() => {
-    S.apuntes.push({id:uid(), mes:S.mes, seccion:'variables', item:'Comida', desc:'Mercadona', fecha:S.mes+'-03', importe:52.4});
-    S.apuntes.push({id:uid(), mes:'2026-01', seccion:'variables', item:'Comida', desc:'Lidl', fecha:'2026-01-09', importe:31});
-    anclar('variables','Comida', 200);
+    S.apuntes.push({id:uid(), mes:S.mes, seccion:'variables', item:'Ropa', desc:'Zara', fecha:S.mes+'-03', importe:52.4});
+    S.apuntes.push({id:uid(), mes:'2026-01', seccion:'variables', item:'Ropa', desc:'Primark', fecha:'2026-01-09', importe:31});
+    anclar('variables','Ropa', 200);
     render();
   });
   await p.waitForTimeout(250);
   await p.evaluate(() => {
     const i = document.querySelector('[data-renombre]');
-    i.value = 'Supermercado';
+    i.value = 'Vestir';
     document.querySelector('[data-act="renombrar-partida"]').click();
   });
   await p.waitForTimeout(350);
   const ren = await p.evaluate(() => ({
-    etiqueta: S.etiquetas.variables.includes('Supermercado') && !S.etiquetas.variables.includes('Comida'),
-    apuntes:  S.apuntes.filter(a => a.item === 'Supermercado').length,
-    huerfanos: S.apuntes.filter(a => a.item === 'Comida').length,
-    otroMes:  S.apuntes.some(a => a.mes === '2026-01' && a.item === 'Supermercado'),
-    chincheta: !!fijaDe('variables','Supermercado'),
-    abierta:  S.partidaAbierta === 'variables|Supermercado'
+    etiqueta: S.etiquetas.variables.includes('Vestir') && !S.etiquetas.variables.includes('Ropa'),
+    apuntes:  S.apuntes.filter(a => a.item === 'Vestir').length,
+    huerfanos: S.apuntes.filter(a => a.item === 'Ropa').length,
+    otroMes:  S.apuntes.some(a => a.mes === '2026-01' && a.item === 'Vestir'),
+    chincheta: !!fijaDe('variables','Vestir'),
+    abierta:  S.partidaAbierta === 'variables|Vestir'
   }));
   r['14. renombrar cambia la etiqueta'] = ren.etiqueta;
   r['15. los apuntes la siguen (2)'] = ren.apuntes === 2 && ren.huerfanos === 0;
@@ -118,22 +118,24 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   await p.evaluate(() => {
     S.partidaAbierta = null; render();
     seccionTique = 'variables';
-    const A = analizaTique('SUPER\n05/09/2026\nTOTAL 50,00');
+    // El tique lleva la fecha del mes abierto: con una fija, la prueba caduca al cambiar de mes
+    const [a, m] = S.mes.split('-');
+    const A = analizaTique(`SUPER\n05/${m}/${a}\nTOTAL 50,00`);
     TIQUE = A; document.getElementById('dlgTique').showModal(); pintaTique(A);
   });
   await p.waitForTimeout(300);
   r['19. el escáner ofrece tus categorías'] = await p.evaluate(() =>
-    [...document.querySelectorAll('#tqItem option')].map(o => o.value).includes('Supermercado'));
+    [...document.querySelectorAll('#tqItem option')].map(o => o.value).includes('Vestir'));
   await p.evaluate(() => {
-    document.getElementById('tqItem').value = 'Supermercado';
+    document.getElementById('tqItem').value = 'Vestir';
     document.getElementById('btnTiqueOk').click();
   });
   await p.waitForTimeout(350);
   r['20. el tique suma en esa categoría'] = await p.evaluate(() =>
-    totalPartida(S.mes,'variables','Supermercado') === 102.4);
+    totalPartida(S.mes,'variables','Vestir') === 102.4);
 
   // ─── BORRAR ──────────────────────────────────────────────────
-  await p.evaluate(() => { S.partidaAbierta = 'variables|Supermercado'; render(); });
+  await p.evaluate(() => { S.partidaAbierta = 'variables|Vestir'; render(); });
   await p.waitForTimeout(250);
   await p.click('[data-act="borrar-partida"]');
   await p.waitForTimeout(250);
@@ -148,9 +150,9 @@ const { chromium, LAUNCH, OUT } = require('./_pw');
   });
   await p.waitForTimeout(350);
   r['22. se borra la partida y sus apuntes'] = await p.evaluate(() =>
-    !S.etiquetas.variables.includes('Supermercado') &&
-    S.apuntes.filter(a => a.item === 'Supermercado').length === 0 &&
-    !fijaDe('variables','Supermercado'));
+    !S.etiquetas.variables.includes('Vestir') &&
+    S.apuntes.filter(a => a.item === 'Vestir').length === 0 &&
+    !fijaDe('variables','Vestir'));
   r['23. sin errores de JS'] = errs.length === 0;
 
   console.log('\n══ CATEGORÍAS DE CADA UNO ══');

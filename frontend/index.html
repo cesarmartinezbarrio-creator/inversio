@@ -354,6 +354,13 @@ try {
   --s1:#8FCBAF; --s2:#C6A9CC; --s3:#9DBCE0; --s4:#D9BE7E; --s5:#E3A3AE;
 }
 
+/* Fondo de cómic: haces, semitono y rayas de velocidad pintados en un
+   lienzo fijo detrás de todo (lo dibuja el script del final). Con el color
+   de la tinta del tema y muy flojo: se intuye, no se ve. */
+body{isolation:isolate}
+#fondoPuntos{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+@media print{#fondoPuntos{display:none}}
+
 /* ── Base ─────────────────────────────────────────────────── */
 *{box-sizing:border-box}
 body{
@@ -1375,7 +1382,7 @@ textarea.code{
   background:var(--accent-wash);border-color:var(--accent);color:var(--ink);font-weight:600;
 }
 .arr-chip[aria-pressed="true"]::before{content:"✓ ";color:var(--accent);font-weight:700}
-.arr-chip.propia[data-usada]{opacity:.75;cursor:not-allowed}
+.arr-chip[data-usada]{opacity:.75;cursor:not-allowed}
 .arr-lock{display:block;font-size:10.5px;color:var(--ink-3);font-weight:400;letter-spacing:.02em}
 
 /* Importe traído por la chincheta y todavía sin confirmar. Discreto a
@@ -2163,7 +2170,7 @@ const ITEMS_INICIALES = {
    es el de lo más común primero, que es por donde mira la gente. */
 const SUGERIDAS = {
   ingresos:  ["Nómina", "Autónomo", "Alquileres", "Pensión", "Ayudas", "Extra"],
-  fijos:     ["Alquiler o hipoteca", "Comunidad", "Luz", "Agua", "Gas",
+  fijos:     ["Alquiler o hipoteca", "Comunidad", "Luz", "Agua y basuras", "Gas",
               "Internet", "Móvil", "Seguros", "Colegio", "Guardería",
               "Préstamo", "Suscripciones", "Gimnasio", "Comida"],
   variables: ["Transporte", "Gasolina", "Ocio", "Ropa", "Salud",
@@ -2319,7 +2326,7 @@ const LS_KEY = "cyc.estado.v1";
    para saber de un vistazo qué build corre (aparece en «Tus datos»). No
    es el nombre de la caché del service worker —eso vive en sw.js—, es el
    número que ve la persona. */
-const VERSION_APP = "2026.10.01";
+const VERSION_APP = "2026.10.02";
 
 /* Modo demo: con ?demo en la URL, la app arranca sin sesión, con datos
    de ejemplo, y NO guarda nada en la nube. Es lo que embebe la web de
@@ -4436,9 +4443,16 @@ function renderArranque(host){
       <h4>${titulo}</h4>
       <p class="help" style="margin:0 0 10px">${ayuda}</p>
       <div class="arr-chips">
-        ${SUGERIDAS[k].map(n => `
-          <button class="arr-chip" data-sug="${k}|${esc(n)}"
-                  aria-pressed="${(S.etiquetas[k] || []).includes(n)}">${esc(n)}</button>`).join("")}
+        ${SUGERIDAS[k].map(n => {
+          // Una sugerida que ya tiene dinero (Comida, por ejemplo) se protege
+          // igual que las propias: quitarla dejaría ese dinero huérfano.
+          const puesta = (S.etiquetas[k] || []).includes(n);
+          const usada = puesta && S.apuntes.some(a => a.seccion === k && a.item === n);
+          return `
+          <button class="arr-chip" data-sug="${k}|${esc(n)}" aria-pressed="${puesta}"
+                  ${usada ? `data-usada="1" title="Tiene apuntes: para borrarla, ábrela desde el listado"` : ""}
+                  >${esc(n)}${usada ? `<span class="arr-lock">con apuntes</span>` : ""}</button>`;
+        }).join("")}
       </div>
       ${rehaciendo ? (() => {
         // Las que ya tiene y no están entre las sugeridas: las suyas de toda
@@ -9317,6 +9331,78 @@ function registraServiceWorker(){
   });
 }
 
+</script>
+<canvas id="fondoPuntos" aria-hidden="true"></canvas>
+<script>
+/* Fondo de cómic — haces que salen del centro, semitono dentro de
+   los haces (puntos que crecen hacia fuera) y rayas de velocidad en los
+   bordes. Un solo color, el de la tinta del tema; la intensidad la pone la
+   opacidad del lienzo. Las rayas salen de un azar con semilla, así que no
+   cambian al redimensionar. */
+(function(){
+  const cv = document.getElementById("fondoPuntos"), cx = cv.getContext("2d");
+  const HACES = 72, PASO = 4.6, RMIN = 0.3, RMAX = 0.69, RAYAS = 90;
+  // Cuánto se ve cada capa. Todo muy por debajo del texto: se intuye.
+  const A_HAZ = 0.03, A_RAYA = 0.085, A_PUNTO = 0.17, A_PUNTO_OSC = 0.11;
+  function azar(sem){ return () => { sem = (sem + 0x6D2B79F5) | 0; let t = Math.imul(sem ^ (sem >>> 15), 1 | sem);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function pinta(){
+    const dpr = window.devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+    cv.width = w * dpr; cv.height = h * dpr;
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cx.clearRect(0, 0, w, h);
+    cx.fillStyle = getComputedStyle(document.body).color;
+    const mx = w / 2, my = h / 2, R = Math.hypot(mx, my) + 20, ang = 2 * Math.PI / HACES;
+
+    // 1 · los haces: uno sí, uno no
+    cx.globalAlpha = A_HAZ;
+    cx.beginPath();
+    for (let i = 0; i < HACES; i += 2){
+      cx.moveTo(mx, my);
+      cx.arc(mx, my, R, i * ang, (i + 1) * ang);
+      cx.closePath();
+    }
+    cx.fill();
+
+    // 2 · el semitono por toda la superficie: un halo de puntos finos y
+    //     apretados en el centro, y hacia fuera van creciendo. En los haces
+    //     oscuros se ven algo menos, como en el cómic impreso.
+    const claros = new Path2D(), oscuros = new Path2D();
+    let fila = 0;
+    for (let y = 0; y <= h + PASO; y += PASO * 0.866, fila++){
+      for (let x = (fila % 2) * PASO / 2; x <= w + PASO; x += PASO){
+        const d = Math.min(1, Math.hypot(x - mx, y - my) / R);
+        const halo = Math.max(0, 1 - d / 0.18);
+        const r = Math.max(RMIN + (RMAX - RMIN) * Math.pow(d, 1.1), RMIN + 0.35 * halo);
+        const a = (Math.atan2(y - my, x - mx) + 2 * Math.PI) % (2 * Math.PI);
+        const ruta = Math.floor(a / ang) % 2 ? claros : oscuros;
+        ruta.moveTo(x + r, y); ruta.arc(x, y, r, 0, 6.2832);
+      }
+    }
+    cx.globalAlpha = A_PUNTO;     cx.fill(claros);
+    cx.globalAlpha = A_PUNTO_OSC; cx.fill(oscuros);
+
+    // 3 · las rayas de velocidad: cuñas finas que entran desde el borde
+    const rnd = azar(908741);
+    cx.globalAlpha = A_RAYA;
+    cx.beginPath();
+    for (let i = 0; i < RAYAS; i++){
+      const a = rnd() * 2 * Math.PI, largo = R * (0.22 + rnd() * 0.38), ancho = 2 + rnd() * 7;
+      const px = -Math.sin(a), py = Math.cos(a);
+      const ex = mx + Math.cos(a) * R, ey = my + Math.sin(a) * R;
+      const ix = mx + Math.cos(a) * (R - largo), iy = my + Math.sin(a) * (R - largo);
+      cx.moveTo(ex + px * ancho, ey + py * ancho);
+      cx.lineTo(ix, iy);
+      cx.lineTo(ex - px * ancho, ey - py * ancho);
+      cx.closePath();
+    }
+    cx.fill();
+  }
+  let t; addEventListener("resize", () => { clearTimeout(t); t = setTimeout(pinta, 120); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", pinta);
+  new MutationObserver(pinta).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
+  pinta();
+})();
 </script>
 </body>
 </html>
