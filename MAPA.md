@@ -369,7 +369,7 @@ en producción no hace falta volver a ejecutarlos.
 | `cache-y-limites.sql` | aplicado | `precios_cache`, `uso_diario`, `consume_peticion()` |
 | `revision-seguridad.sql` | herramienta | Audita RLS, permisos, funciones. Se puede ejecutar cuando sea |
 | `vaciar-mi-cuenta-20260929.sql` | a mano | Deja tu cuenta en blanco sin borrar el usuario |
-| `limpiar-septiembre-y-agua-20261002.sql` | a mano | Borra septiembre y la partida «Agua», con copia previa |
+| `limpiar-septiembre-y-agua-20261002.sql` | aplicado | Borró septiembre y la partida «Agua» (copia en `perfiles_estado_copia_20261002`) |
 | `plantillas-correo.md` | a mano | Los seis correos de Supabase, con marca propia |
 
 Los scripts de un solo uso ya aplicados (la tabla antigua `estado`, su
