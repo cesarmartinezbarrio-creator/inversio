@@ -364,7 +364,7 @@ body{isolation:isolate}
 /* El resplandor de las tarjetas al pasar el ratón. Uno solo para toda la
    app y sacado del acento, así cambia con cada aspecto y con el modo
    noche. Antes era un rosa fijo y solo lo tenían las tarjetas de portada. */
-:root{--lift-glow:0 12px 24px -6px var(--accent)}
+:root{--lift-glow:0 10px 20px -12px color-mix(in srgb, var(--accent) 22%, transparent)}
 
 /* ── Base ─────────────────────────────────────────────────── */
 *{box-sizing:border-box}
@@ -2538,10 +2538,14 @@ function saneaEstado(x){
   /* La fiscalidad admite las dos formas: la escala real o un tipo fijo */
   if (x.ajustes){
     const f = x.ajustes.fiscalidad;
-    /* El 0,21 era el tipo plano por defecto de antes: se migra a la escala real */
-    o.ajustes.fiscalidad = (f === "tramos" || f == null || Math.abs(f - 0.21) < 1e-9) ? "tramos"
+    /* El 0,21 era el tipo plano por defecto de antes: se migra a la escala
+       real UNA vez. Si se hiciera siempre, quien elige hoy el 21% lo
+       perdería al volver a abrir la app. */
+    const viejo21 = !o.migr.fisc21 && isN(f) && Math.abs(f - 0.21) < 1e-9;
+    o.ajustes.fiscalidad = (f === "tramos" || f == null || viejo21) ? "tramos"
       : (isN(f) && f >= 0 && f <= 1 ? f : "tramos");
   }
+  o.migr.fisc21 = 1;
   if (typeof x.mes === "string" && /^\d{4}-\d{2}$/.test(x.mes)) o.mes = x.mes;
   /* La aplicación SIEMPRE abre en la Portada, aunque la última vez se
      cerrara en Mercado o en cualquier otro sitio. El módulo y la pestaña
@@ -6461,18 +6465,22 @@ function renderCompuesto(){
         <div class="field"><label for="c-inf">Inflación</label>
           <input id="c-inf" class="num" inputmode="decimal" data-ajuste="inflacion" data-pct="1" value="${(A.inflacion * 100).toFixed(1).replace(".", ",")}">
           <span class="mini">Lo que el dinero pierde al año</span></div>
-        <div class="field"><label for="c-fis">Impuestos sobre la ganancia${info("irpfAhorro")}</label>
-          <select id="c-fis" data-fiscal="1">
-            <option value="tramos"${porTramos ? " selected" : ""}>Tramos reales</option>
-            ${[0.19,0.21,0.23,0.26].map(v => `<option value="${v}"${!porTramos && Math.abs(A.fiscalidad - v) < 1e-9 ? " selected" : ""}>Tipo fijo del ${(v*100).toFixed(0)}%</option>`).join("")}
-          </select>
-          <span class="mini">${porTramos ? `Te saldría al ${pct(tipoMedioAhorro(fin.generado), 1)} de media` : "Tipo fijo elegido a mano"}</span></div>
         <div class="field"><label for="c-an">¿Cuántos años?</label>
           <input id="c-an" class="num" inputmode="decimal" data-ajuste="anios" value="${anios}">
           <span class="mini">Del 1 al 60, el que quieras</span></div>
       </div>
       <div class="chips" style="margin-top:14px">
-        ${[1,5,10,15,20,25,30,40].map(n => `<button class="chip-btn" data-anios="${n}" aria-selected="${n === anios}">${n} ${n === 1 ? "año" : "años"}</button>`).join("")}
+        ${[1,5,10,15,20,25,30,40].map(n => `<button class="chip-btn" data-anios="${n}" aria-pressed="${n === anios}">${n} ${n === 1 ? "año" : "años"}</button>`).join("")}
+      </div>
+      <!-- Botones y no un desplegable: la lista nativa la pinta el navegador,
+           y con escalado de pantalla y modo noche salía con un hueco blanco -->
+      <div class="field" style="margin-top:18px">
+        <label id="c-fis-l">Impuestos sobre la ganancia${info("irpfAhorro")}</label>
+        <div class="chips" role="group" aria-labelledby="c-fis-l">
+          <button class="chip-btn" data-fiscal-v="tramos" aria-pressed="${porTramos}">Tramos reales</button>
+          ${[0.19,0.21,0.23,0.26].map(v => `<button class="chip-btn" data-fiscal-v="${v}" aria-pressed="${!porTramos && Math.abs(A.fiscalidad - v) < 1e-9}">Fijo ${(v*100).toFixed(0)}%</button>`).join("")}
+        </div>
+        <span class="mini">${porTramos ? `Te saldría al ${pct(tipoMedioAhorro(fin.generado), 1)} de media` : "Tipo fijo elegido a mano"}</span>
       </div>`) +
 
     card(`En ${anios} ${anios === 1 ? "año" : "años"}`, `<div class="tiles">
@@ -8251,11 +8259,23 @@ function eventos(){
     const par = ev.target.closest("[data-partida]");
     if (par){ S.partidaAbierta = par.dataset.partida; render(); window.scrollTo(0, 0); return; }
     const abr = ev.target.closest("[data-abrir]");
-    if (abr){ posAbierta = abr.dataset.abrir || null; render(); window.scrollTo(0, 0); return; }
+    if (abr){
+      posAbierta = abr.dataset.abrir || null;
+      // La ficha se pinta en Cartera: desde Señales (o cualquier otro sitio)
+      // hay que llevar allí, o el botón no haría nada visible.
+      if (posAbierta){ S.modulo = "inversion"; S.tab = "cartera"; }
+      render(); window.scrollTo(0, 0); return;
+    }
     const fic = ev.target.closest("[data-ficha]");
     if (fic){ S.fichaAbierta = fic.dataset.ficha; S.modulo = "mercado"; S.tab = "ficha"; render(); window.scrollTo(0, 0); return; }
     const an = ev.target.closest("[data-anios]");
     if (an){ S.ajustes.anios = +an.dataset.anios; render(); return; }
+    const fis = ev.target.closest("[data-fiscal-v]");
+    if (fis){
+      const v = fis.dataset.fiscalV;
+      S.ajustes.fiscalidad = v === "tramos" ? "tramos" : (num(v) ?? "tramos");
+      programarGuardado(); render(); return;
+    }
     /* La chincheta ya no es un botón suelto en la fila: el azulejo la
        enseña y se pone o se quita dentro del diálogo, con «repetir cada
        mes». Por eso aquí no hay nada que atender. */
@@ -8538,10 +8558,6 @@ function eventos(){
     }
     if (t.dataset.autoFijas !== undefined){
       S.ajustes.autoFijas = t.checked ? 1 : 0; programarGuardado(); render(); return;
-    }
-    if (t.dataset.fiscal){
-      S.ajustes.fiscalidad = t.value === "tramos" ? "tramos" : (num(t.value) ?? "tramos");
-      programarGuardado(); render(); return;
     }
     if (t.dataset.fondo){
       const a = S.activos.find(x => x.id === t.dataset.id); if (!a) return;
